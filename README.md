@@ -1,12 +1,38 @@
-# pyul
+# yul2llvm
 
-a prototype front-end that translates Solidity's Yul to KSIR.
+A prototype front-end that translates Solidity's Yul IR to LLVM.
 
-## setup
+## Setup
 
-top level requirements:
+Two methods: Nix (recommended for end-to-end and C++ component) and manual
+(easier for Python component only).
 
-- python v3.9.*
+### Nix setup
+
+This project is configured with Nix flakes, so you can enter a developer shell
+with:
+
+```
+nix develop .
+```
+
+The shell will:
+* Automatically create a Python virtual env and install the Python component in
+  editable mode
+* Bring all the C++ component dependencies into scope
+
+Once in the shell:
+* To configure the C++ CMake project, run: `phases=configurePhase genericBuild`
+* In the build folder, build with `cmake --build .`
+* Run C++ only tests with `cmake --build . --target check`
+
+### Manual setup
+
+#### Python component
+
+Top level requirements:
+
+- Python >= 3.9
 - pip
 - a virtual env setup of your choice
 
@@ -25,7 +51,16 @@ after successfully installing poetry, install the project:
 (pyul) $ poetry install
 ```
 
-## running
+#### C++ component
+
+Dependencies:
+* LLVM 13
+* nlohmann json
+* (Optional) GoogleTest (for unit tests)
+
+Steps: TODO (this will be very involved)
+
+## Running
 
 after following [setup](#setup)
 

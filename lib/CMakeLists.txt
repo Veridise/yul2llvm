@@ -1,0 +1,2 @@
+add_subdirectory(libyul2llvm)
+add_subdirectory(yul2llvm_cpp)

@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-cpp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: cachix/install-nix-action@v17
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.9.2/install
+      # TODO: cache the build
+      - run: |
+          nix build --print-build-logs .#yul2llvm_cpp
+          echo "Done."
+  build-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - run: |
+          # TODO: replace with `pip install -e .`
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install poetry
+          poetry install
+          poetry run pytest

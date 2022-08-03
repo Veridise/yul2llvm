@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(LLVM)
+find_dependency(MLIR)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@KSIR_EXPORT_TARGETS@.cmake")
+check_required_components(@KSIR_EXPORT_TARGETS@)

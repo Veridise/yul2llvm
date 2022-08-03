@@ -1,0 +1,6 @@
+// RUN: yul2llvm_cpp %s | FileCheck %s
+{
+    "example": "asdf"
+}
+
+// CHECK: Hello world
