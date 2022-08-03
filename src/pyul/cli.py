@@ -1,29 +1,85 @@
 """cli driver to configure and run pyul"""
 
+from random import randint, randrange
 import click
 
 from subprocess import Popen, PIPE
+import shutil
+import os
+import pathlib
 
+@click.group()
+def run():
+    """cli command dispatcher for pyul"""
+    pass
 
-def compile(f):
-    """compile solc file to yul"""
-    click.echo(f"Compiling {f} to yul...")
-    res = Popen(["solc", "--ir", f], stdout=PIPE, stdin=PIPE)
+@run.command()
+def init():
+    """setup pyul for use"""
+    click.echo("checking for solc on path...")
+    res = shutil.which("solc")
+    if res is None:
+        click.echo(f"solc found at path: {res}")
+    else:
+        click.echo("no solc found in path.")
+        prompt = click.prompt("install solc? yes/[N]o", default=False, show_default=False)
+        if prompt:
+            click.echo("using solc-select to install solidity...")
+            res = Popen(["solc-select", "install", "0.8.11"], stdout=PIPE, stdin=PIPE, text="utf-8")
+            stdin, stdout = res.communicate()
+            click.echo(f"{stdin}")
 
-    stdin, stdout = res.communicate()
-
-    yul_obj = bytes.decode(stdin, "utf-8")
-    click.echo("RESULTS")
-    click.echo("==================================================")
-    click.echo(yul_obj)
-
-@click.command()
+@run.command()
 @click.argument("_file", metavar="FILE")
 @click.option("--input-type", "-iT", default="sol", type=str)
-@click.option("--input-type", "-iT", default="sol", type=str)
-def run(_file, input_type="sol"):
-    """cli command dispatcher for pyul"""
-    if input_type == "sol":
-        compile(_file)
+@click.option("--output", "-o", default="compiled", type=str, help="output directory")
+def compile(_file, input_type, output):
+    """compile solc file to yul"""
+    if input_type != "sol":
+        click.echo(".yul files are not supported yet.")
+        return
+
+    click.echo(f"Compiling {_file} to yul...")
+
+    # get the output directories setup
+    cwd = os.getcwd()
+    click.echo(f"cwd: {cwd}")
+    file_name = pathlib.Path(_file).stem
+    click.echo(f"file name: {file_name}")
+
+    compile_dir = os.path.join(cwd, output)
+
+    result_id = randint(100, 100000)
+    result_dir = os.path.join(compile_dir, file_name + "_" + str(result_id))
+    result_yul = os.path.join(result_dir, file_name + ".yul")
+    result_storage = os.path.join(result_dir, file_name + "_storage")
+    click.echo(f"output dir: {compile_dir}")
+    click.echo(f"result dir: {result_dir}")
+
+    if not os.path.exists(compile_dir):
+        os.mkdir(compile_dir)
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
     else:
-        click.echo(".yul file processing not yet supported.")
+        # wary of deleting output
+        result_dir = os.path.join(result_dir, str(randint(1,100)))
+        os.mkdir(result_dir)
+
+    # generate the yul
+    ir_res = Popen(["solc", "--ir", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
+    # @ejmg TODO: need to figure out error handling given that solc doesn't exit with an error code in many instances that would be considered an error by users
+    ir_stdin, ir_stdout = ir_res.communicate()
+    # trim off the heading included by solc in the Yul output
+    yul_obj = ir_stdin.split("\n", 2)[2]
+    storage_res = Popen(["solc", "--storage-layout", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
+    store_stdin, store_stdout = storage_res.communicate()
+    storage_layout = store_stdin.split("\n", 3)[3]
+
+    click.echo("writing results to file...")
+    with open(result_yul, "w") as f:
+      f.writelines(yul_obj)
+    with open(result_storage, "w") as _fs:
+        _fs.writelines(storage_layout)
+
+    click.echo("yul object and storage data successfully written!")
+    
