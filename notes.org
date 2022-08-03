@@ -1,0 +1,173 @@
+* pyul dev
+* tasks
+** TODO basic solc compilation
+   - [X] generate yul IR from sol file
+   - [ ] output
+     + [ ] write to file
+     + [ ] options for name, directory
+   - [ ] options for input
+     + [ ] take whole directory?
+   - [ ] niceties
+     + [ ] check for existing files before overwriting
+     + [ ] solc checks
+       * [ ] is it on path and what version?
+** TODO json compile api
+   - [ ] for a given sol file, extract
+     + [ ] abi data
+     + [ ] storage/resource map
+     + [ ] yul
+   - [ ] given abi, storage mapping, and yul...
+     + [ ] ...?
+* notes
+** useful commands
+   using =HelloWorld.sol= as example input:
+   #+begin_src solidity
+     // SPDX-License-Identifier: MIT
+     // HelloWorld.sol
+
+     pragma solidity ^0.8.0;
+
+     contract HelloWorld {
+         function get() public pure returns (string memory) {
+             return 'Hello, World.';
+         }
+     }
+   #+end_src
+*** solc
+    - ast representation of a given file
+      #+begin_src sh
+        solc --ast-compact-json HelloWorld.sol | less -n +5 | jq
+      #+end_src
+
+      will yield us:
+      #+begin_src json
+        {
+          "absolutePath": "HelloWorld.sol",
+          "exportedSymbols": {
+            "HelloWorld": [
+              10
+            ]
+          },
+          "id": 11,
+          "license": "MIT",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "^",
+                "0.8",
+                ".0"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "33:23:0"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "HelloWorld",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 10,
+              "linearizedBaseContracts": [
+                10
+              ],
+              "name": "HelloWorld",
+              "nameLocation": "67:10:0",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "body": {
+                    "id": 8,
+                    "nodeType": "Block",
+                    "src": "135:39:0",
+                    "statements": [
+                      {
+                        "expression": {
+                          "hexValue": "48656c6c6f2c20576f726c642e",
+                          "id": 6,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "string",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "152:15:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_stringliteral_0b8d199d8806c38e3085259418508d284aea37512054d7070046a0cdda4e1495",
+                            "typeString": "literal_string \"Hello, World.\""
+                          },
+                          "value": "Hello, World."
+                        },
+                        "functionReturnParameters": 5,
+                        "id": 7,
+                        "nodeType": "Return",
+                        "src": "145:22:0"
+                      }
+                    ]
+                  },
+                  "functionSelector": "6d4ce63c",
+                  "id": 9,
+                  "implemented": true,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "get",
+                  "nameLocation": "93:3:0",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 2,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "96:2:0"
+                  },
+                  "returnParameters": {
+                    "id": 5,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 4,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 9,
+                        "src": "120:13:0",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory_ptr",
+                          "typeString": "string"
+                        },
+                        "typeName": {
+                          "id": 3,
+                          "name": "string",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "120:6:0",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_string_storage_ptr",
+                            "typeString": "string"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "119:15:0"
+                  },
+                  "scope": 10,
+                  "src": "84:90:0",
+                  "stateMutability": "pure",
+                  "virtual": false,
+                  "visibility": "public"
+                }
+              ],
+              "scope": 11,
+              "src": "58:118:0",
+              "usedErrors": []
+            }
+          ],
+          "src": "33:144:0"
+        }
+      #+end_src
