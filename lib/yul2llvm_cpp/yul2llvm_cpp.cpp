@@ -1,6 +1,8 @@
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
+#include <fstream>
+
 
 namespace cl = llvm::cl;
 
@@ -20,8 +22,9 @@ int main(int argc, char **argv) {
   }
 
   // TODO: placeholder
-  yul2llvm::TranslateYulToLLVM translator;
-  (void)translator;
+  yul2llvm::TranslateYulToLLVM translator("/Users/ajinkya/Workspace/yul-playground/function-add.json");
+  
+  translator.run(NULL);
 
   llvm::outs() << "Hello world!\n";
   return EXIT_SUCCESS;
