@@ -1,0 +1,6 @@
+{
+    "C_Cpp.default.includePath": [
+        "/nix/store/57phqcz1fggs5xhzldvfm0z051y1ldma-llvm-13.0.1-dev/include",
+        "/nix/store/3ahld42gfdqhwjsry5149p44h72fpmcl-nlohmann_json-3.10.5/include"
+    ]
+}
