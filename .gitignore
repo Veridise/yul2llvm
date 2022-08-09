@@ -13,3 +13,6 @@ __pycache__/
 
 #build
 build/
+
+#vscode
+.vscode/

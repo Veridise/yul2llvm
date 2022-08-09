@@ -1,8 +1,6 @@
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
-#include <fstream>
-
 
 namespace cl = llvm::cl;
 
