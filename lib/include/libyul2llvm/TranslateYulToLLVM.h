@@ -3,6 +3,8 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #include<llvm/IR/LLVMContext.h>
+#include<vector>
+#include<libYulAST/YulFunctionDefinitionNode.h>
 
 namespace yul2llvm {
 
@@ -11,18 +13,14 @@ class TranslateYulToLLVM {
     /// interface
 
         //private fileds
-        nlohmann::json yulAst;
-        std::unique_ptr<llvm::LLVMContext> Context;
-        std::unique_ptr<llvm::Module> Module;
-        std::unique_ptr<llvm::IRBuilder<>> Builder;
-
-        // private functions
-        void initializeBuilder();
+        nlohmann::json rawAST;
         int readJsonData(std::string filename);
-
+        void traverseJson(nlohmann::json);
+        std::vector<yulast::YulFunctionDefinitionNode> functions;
+        std::string inputFilename, outputFilename;
     public: 
-        TranslateYulToLLVM(std::string);
-        void run(const nlohmann::json &yulAst);
+        TranslateYulToLLVM(std::string inputFilename, std::string outputFilename = NULL);
+        void run();
 };
 
 } // namespace yul2llvm
