@@ -7,6 +7,13 @@ from subprocess import Popen, PIPE
 import shutil
 import os
 import pathlib
+import re
+import antlr4
+import json
+from utils.yul_parser import YulPrintListener
+from utils.yul_translator import YulTranslator
+from utils.YulAntlr import YulLexer, YulParser
+
 
 @click.group()
 def run():
@@ -28,6 +35,54 @@ def init():
             res = Popen(["solc-select", "install", "0.8.11"], stdout=PIPE, stdin=PIPE, text="utf-8")
             stdin, stdout = res.communicate()
             click.echo(f"{stdin}")
+
+@run.command()
+@click.argument("_file", metavar="FILE")
+def translate(_file):
+    """transforms solc generated Yul code into more easily processed form. """
+    with open(_file, "r") as f:
+        raw_yul = f.read()
+    
+    t = YulTranslator()
+    yul_str = t.translate(raw_yul)
+
+    new_file = _file + ".tmp"
+    with open(new_file, "w") as f:
+        f.write(yul_str)
+
+    print(yul_str)
+
+@run.command()
+@click.argument("_file", metavar="YUL_FILE")
+def parse(_file):
+    """parse a Yul file into its AST representation"""
+    input_stream = antlr4.FileStream(_file)
+
+        # step 1: make sure there's only one contract in one file (this file)
+    with open(_file, "r") as f:
+        tmp_yul_str = f.read()
+    nobj = re.findall(r"object \".*?\" \{", tmp_yul_str)
+    if len(nobj) != 2:
+        click.echo("Yul input invalid. Contained more than one contract object. ")
+    
+    lexer = YulLexer.YulLexer(input_stream)
+    stream = antlr4.CommonTokenStream(lexer)
+    parser = YulParser.YulParser(stream)
+    tree = parser.start()
+    printer = YulPrintListener()
+    printer.clear_built_string()
+    walker = antlr4.ParseTreeWalker()
+    walker.walk(printer, tree)
+
+    # anyway to remove this call to eval? it's called parse don't validate sweaty
+    parsed_yul = eval(printer.built_string.strip(","))
+
+    print(parsed_yul)
+
+    with open(_file + '.json', "w") as f:
+        json.dump(parsed_yul, f, indent="  ")
+
+
 
 @run.command()
 @click.argument("_file", metavar="FILE")
@@ -82,4 +137,3 @@ def compile(_file, input_type, output):
         _fs.writelines(storage_layout)
 
     click.echo("yul object and storage data successfully written!")
-    
