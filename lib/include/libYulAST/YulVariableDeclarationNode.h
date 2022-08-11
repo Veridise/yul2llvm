@@ -1,15 +1,21 @@
+#pragma once
+
 #include<libYulAST/YulStatementNode.h>
-#include<libYulAST/YulIdentifierNode.h>
+#include<libYulAST/YulTypedIdentifierListNode.h>
 #include<libYulAST/YulExpressionNode.h>
+#include<libYulAST/YulNodeBuilder.h>
 #include<nlohmann/json.hpp>
 
 namespace yulast{
 class YulVariableDeclarationNode: protected YulStatementNode{
     protected:
-        YulIdentifierNode variableName;
-        YulExpressionNode value;
+        YulTypedIdentifierListNode *variableNames;
+        YulExpressionNode *value=NULL;
+        virtual void parseRawAST() override;
     public:
-        virtual void parseRawAST();
-        YulVariableDeclarationNode(nlohmann::json rawAST);
+        std::string str = "";
+        virtual void codegen()override {};
+        virtual std::string to_string() override;
+        YulVariableDeclarationNode(nlohmann::json *rawAST);
 };
 };

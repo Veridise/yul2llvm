@@ -1,12 +1,17 @@
+#pragma once
 #include<libYulAST/YulExpressionNode.h>
 #include<nlohmann/json.hpp>
 
 namespace yulast{
 class YulIdentifierNode: protected YulExpressionNode{
     protected:
-        const std::string identifierValue;
+        std::string identifierValue = "";
+        void parseRawAST() override;
     public:
-        virtual void parseRawAST() override;
+        std::string str = "";
+        void codegen() override;
+        virtual std::string to_string() override;
         YulIdentifierNode(nlohmann::json *rawAST);
+        std::string getIdentfierValue();
 };
 };

@@ -1,3 +1,5 @@
+#pragma once
+
 #include<libYulAST/YulASTBase.h>
 #include<libYulAST/YulIdentifierNode.h>
 #include<libYulAST/YulFunctionArgListNode.h>
@@ -8,12 +10,16 @@
 namespace yulast{
 class YulFunctionDefinitionNode: protected YulStatementNode{
     protected:
-        YulIdentifierNode functionName;
-        YulFunctionArgListNode args;
-        YulFunctionRetListNode rets;
-        YulBlockNode body;
+        YulIdentifierNode *functionName= NULL;
+        YulFunctionArgListNode *args= NULL;
+        YulFunctionRetListNode *rets= NULL;
+        YulBlockNode *body= NULL;
     public:
-    virtual void parseRawAST();
-        YulFunctionDefinitionNode(nlohmann::json rawAST);
+        std::string str = "";
+        virtual void codegen() override {};
+        virtual void parseRawAST() override;
+        virtual std::string to_string() override;
+        
+        YulFunctionDefinitionNode(nlohmann::json *rawAST);
 };
 };

@@ -1,13 +1,18 @@
+#pragma once
 #include<libYulAST/YulStatementNode.h>
+#include<libYulAST/YulNodeBuilder.h>
 #include<vector>
 #include<nlohmann/json.hpp>
 
 namespace yulast{
 class YulBlockNode: protected YulStatementNode{
     protected:
-        std::vector<YulStatementNode> statements;
+        std::vector<YulStatementNode*> statements;
     public:
-        virtual void parseRawAST();
-        YulBlockNode(nlohmann::json rawAST, YUL_AST_STATEMENT_NODE_TYPE);
+        std::string str = "";
+        virtual void parseRawAST() override;
+        virtual std::string to_string() override;
+        YulBlockNode(nlohmann::json *rawAST);
+        
 };
 };

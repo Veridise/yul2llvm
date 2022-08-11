@@ -1,15 +1,19 @@
+#pragma once
+
 #include<libYulAST/YulASTBase.h>
 #include<libYulAST/YulIdentifierNode.h>
 #include<libYulAST/YulFunctionArgListNode.h>
-#include<libnlohmann/json.hpp>
+#include<nlohmann/json.hpp>
 
 namespace yulast{
 class YulFunctionCallNode: protected YulExpressionNode{
     protected:
-        YulIdentifierNode callee;
-        YulFunctionArgListNode argList;
+        YulIdentifierNode *callee;
+        YulFunctionArgListNode *argList;
     public:
-        virtual void parseRawAST();
-        YulFunctionCallNode(nlohmann::json rawAST, YUL_AST_EXPRESSION_TYPE);
+        std::string str = "";
+        virtual void parseRawAST() override;
+        virtual std::string to_string() override;
+        YulFunctionCallNode(nlohmann::json *rawAST);
 };
 };
