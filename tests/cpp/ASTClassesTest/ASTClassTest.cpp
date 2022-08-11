@@ -1,29 +1,28 @@
-#include <fstream>
-#include <iostream>
-#include <libYulAST/YulAssignmentNode.h>
-#include <libYulAST/YulBlockNode.h>
-#include <libYulAST/YulFunctionCallNode.h>
-#include <libYulAST/YulFunctionDefinitionNode.h>
-#include <libYulAST/YulIdentifierNode.h>
-#include <libYulAST/YulTypedIdentifierListNode.h>
-#include <nlohmann/json.hpp>
-
+#include<libYulAST/YulIdentifierNode.h>
+#include<libYulAST/YulFunctionCallNode.h>
+#include<libYulAST/YulFunctionDefinitionNode.h>
+#include<libYulAST/YulAssignmentNode.h>
+#include<libYulAST/YulBlockNode.h>
+#include<libYulAST/YulTypedIdentifierListNode.h>
+#include<nlohmann/json.hpp>
+#include<iostream>
 using json = nlohmann::json;
 using namespace yulast;
 
-void identifierTest() {
-  json a = R"({
+void identifierTest(){
+    json a = R"({
             "type":"yul_identifier", 
             "children" : [
                 "fun_add_21"
             ]
         })"_json;
-  YulIdentifierNode n(&a);
-  std::cout << n.getIdentfierValue() << std::endl;
+    YulIdentifierNode n(&a);
+    std::cout<<n.getIdentfierValue()<<std::endl;
+
 }
 
-void typedIdentifierListTest() {
-  json j = R"(
+void typedIdentifierListTest(){
+    json j = R"(
 {
     "type":"yul_typed_identifier_list",
     "children":
@@ -43,11 +42,12 @@ void typedIdentifierListTest() {
     ]   
 }
     )"_json;
-  YulTypedIdentifierListNode ytI(&j);
+    YulTypedIdentifierListNode ytI(&j);
+
 }
 
-void functionDefinitionTest() {
-  json j = R"({
+void functionDefinitionTest(){
+     json j = R"({
     "type":"yul_function_definition", 
     "children":[
         {
@@ -332,14 +332,13 @@ void functionDefinitionTest() {
     ]
 })"_json;
 
-  YulFunctionDefinitionNode f(&j);
-  std::cout << "String representation of ast ------------" << std::endl;
-  std::cout << f.to_string() << std::endl;
-  std::cout << "llvm representation of ast ------------" << std::endl;
-  f.codegen(NULL);
+
+
+    std::cout<<YulFunctionDefinitionNode(&j).to_string();
+    
 }
 
-int main() {
-  functionDefinitionTest();
-  return 0;
+int main(){
+    functionDefinitionTest();
+    return 0;
 }

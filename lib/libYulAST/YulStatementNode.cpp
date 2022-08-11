@@ -1,6 +1,7 @@
-#include <cassert>
-#include <iostream>
-#include <libYulAST/YulStatementNode.h>
+#include<libYulAST/YulStatementNode.h>
+#include<cassert>
+#include<iostream>
+
 
 using namespace yulast;
 
@@ -10,11 +11,7 @@ YulStatementNode::YulStatementNode(json *rawAST,
 
 }
 
-llvm::Value *YulStatementNode::codegen(llvm::Function *F) {
-  std::cout << "Codegen not defined for YulStatementNode Base" << std::endl;
-  return nullptr;
+std::string YulStatementNode::to_string(){
+    return "to_string not implemented for statement";
 }
 
-std::string YulStatementNode::to_string() {
-  return "to_string not implemented for statement";
-}

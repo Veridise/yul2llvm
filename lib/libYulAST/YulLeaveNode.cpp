@@ -1,11 +1,17 @@
-#include <iostream>
-#include <libYulAST/YulLeaveNode.h>
+#include<libYulAST/YulLeaveNode.h>
+#include<iostream>
 
 using namespace yulast;
 
-void YulLeaveNode::parseRawAST() {}
+void YulLeaveNode::parseRawAST(){
+    
+}
 
-YulLeaveNode::YulLeaveNode(json *rawAST)
-    : YulStatementNode(rawAST, YUL_AST_STATEMENT_LEAVE) {}
+YulLeaveNode::YulLeaveNode(
+    json *rawAST):YulStatementNode(rawAST, YUL_AST_STATEMENT_LEAVE){
 
-std::string YulLeaveNode::to_string() { return "leave"; }
+}
+
+std::string YulLeaveNode::to_string(){
+    return "leave";
+}
