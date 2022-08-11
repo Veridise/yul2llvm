@@ -13,97 +13,114 @@ class YulPrintListener(YulListener):
     def __init__(self, *args, **kwargs):
         super(YulPrintListener, self).__init__(*args, **kwargs)
         self.built_string = ""
+        self.curr_yul_obj = False
+        self.first_obj = True
 
     def clear_built_string(self):
         self.built_string = ""
 
     # Enter a parse tree produced by YulParser#start.
     def enterStart(self, ctx:YulParser.StartContext):
-        self.built_string += "[\"start\","
+        self.built_string += '{"type":"start","yul_ast":'
 
     # Exit a parse tree produced by YulParser#start.
     def exitStart(self, ctx:YulParser.StartContext):
-        self.built_string += "],"
+        self.built_string += '},'
 
     # Enter a parse tree produced by YulParser#yul_object.
     def enterYul_object(self, ctx:YulParser.Yul_objectContext):
-        self.built_string += "[\"yul_object\","
+        self.curr_yul_obj = True
+
+        if self.first_obj:
+            self.built_string += '{"type":"yul_object","object_name":'
+            self.first_obj = False
+        else:
+            self.built_string += '"object_body":{"type":"yul_object","object_name":'
+
 
     # Exit a parse tree produced by YulParser#yul_object.
     def exitYul_object(self, ctx:YulParser.Yul_objectContext):
-        self.built_string += "],"
+        self.built_string += "},"
+        self.curr_yul_obj = False
 
     # Enter a parse tree produced by YulParser#yul_code.
     def enterYul_code(self, ctx:YulParser.Yul_codeContext):
-        self.built_string += "[\"yul_code\","
+        self.built_string += '"contract_body":{"type":"yul_code","children":['
 
     # Exit a parse tree produced by YulParser#yul_code.
     def exitYul_code(self, ctx:YulParser.Yul_codeContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_if.
     def enterYul_if(self, ctx:YulParser.Yul_ifContext):
-        self.built_string += "[\"yul_if\","
+        self.built_string += '{"type":"yul_if","children": ['
 
     # Exit a parse tree produced by YulParser#yul_if.
     def exitYul_if(self, ctx:YulParser.Yul_ifContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_switch.
     def enterYul_switch(self, ctx:YulParser.Yul_switchContext):
-        self.built_string += "[\"yul_switch\","
+        self.built_string += '{"type":"yul_switch","children":['
 
     # Exit a parse tree produced by YulParser#yul_switch.
     def exitYul_switch(self, ctx:YulParser.Yul_switchContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_case.
     def enterYul_case(self, ctx:YulParser.Yul_caseContext):
-        self.built_string += "[\"yul_case\","
+        self.built_string += '{"type":"yul_case","children":['
 
     # Exit a parse tree produced by YulParser#yul_case.
     def exitYul_case(self, ctx:YulParser.Yul_caseContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_default.
     def enterYul_default(self, ctx:YulParser.Yul_defaultContext):
-        self.built_string += "[\"yul_default\","
+        self.built_string += '{"type":"yul_default","children":['
 
     # Exit a parse tree produced by YulParser#yul_default.
     def exitYul_default(self, ctx:YulParser.Yul_defaultContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_for_loop.
     def enterYul_for_loop(self, ctx:YulParser.Yul_for_loopContext):
-        self.built_string += "[\"yul_for_loop\","
+        self.built_string += '{"type":"yul_for_loop","children":['
 
     # Exit a parse tree produced by YulParser#yul_for_loop.
     def exitYul_for_loop(self, ctx:YulParser.Yul_for_loopContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_break.
     def enterYul_break(self, ctx:YulParser.Yul_breakContext):
-        self.built_string += "[\"yul_break\","
+        # leave as nothing but as a leaf of the concrete value in the AST. possibly remove if the semantics of a break
+        # don't actually matter at this phase but I doubt?
+        self.built_string += '{"type":"yul_break"},'
 
     # Exit a parse tree produced by YulParser#yul_break.
     def exitYul_break(self, ctx:YulParser.Yul_breakContext):
-        self.built_string += "],"
+        # see :enterYul_break:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_continue.
     def enterYul_continue(self, ctx:YulParser.Yul_continueContext):
-        self.built_string += "[\"yul_continue\","
+        # leaf of literal value in AST
+        self.built_string += '{"type":"yul_continue"},'
 
     # Exit a parse tree produced by YulParser#yul_continue.
     def exitYul_continue(self, ctx:YulParser.Yul_continueContext):
-        self.built_string += "],"
+        # see :enterYul_continue:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_leave.
     def enterYul_leave(self, ctx:YulParser.Yul_leaveContext):
-        self.built_string += "[\"yul_leave\","
+        # leaf of literal value in AST
+        self.built_string += '{"type":"yul_leave"},'
 
     # Exit a parse tree produced by YulParser#yul_leave.
     def exitYul_leave(self, ctx:YulParser.Yul_leaveContext):
-        self.built_string += "],"
+        # see :enterYul_leave:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_function_definition.
     def enterYul_function_definition(self, ctx:YulParser.Yul_function_definitionContext):
@@ -258,6 +275,12 @@ class YulPrintListener(YulListener):
     # Exit a parse tree produced by YulParser#yul_string_literal.
     def exitYul_string_literal(self, ctx:YulParser.Yul_string_literalContext):
         pass
+
+    def strip_all_trailing(self):
+        self.built_string = re.sub(r",\}", "}", self.built_string)
+        self.built_string = re.sub(r",]", "]", self.built_string)
+        self.built_string = self.built_string.strip(",")
+        self.built_string = self.built_string.strip()
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--yul", default=None, help="input yul file")
