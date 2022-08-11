@@ -5,8 +5,8 @@
 namespace yulast{
 class YulStatementNode: protected YulASTBase{
     protected:
-        YUL_AST_STATEMENT_NODE_TYPE statementType;
     public:
+        YUL_AST_STATEMENT_NODE_TYPE statementType;
         virtual std::string to_string() override;
         YulStatementNode(nlohmann::json *rawAST, YUL_AST_STATEMENT_NODE_TYPE statementType);
 };

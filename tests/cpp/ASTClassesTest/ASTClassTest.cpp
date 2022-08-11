@@ -334,7 +334,7 @@ void functionDefinitionTest(){
 
 
 
-    std::cout<<YulFunctionDefinitionNode(&j).to_string();
+    YulFunctionDefinitionNode(&j).codegen();
     
 }
 

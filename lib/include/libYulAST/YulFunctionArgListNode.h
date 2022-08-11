@@ -7,12 +7,11 @@
 namespace yulast{
 class YulFunctionArgListNode: protected YulASTBase{
     protected:
-        YulTypedIdentifierListNode *identifierList;
         virtual void parseRawAST() override;
         
     public:
+        YulTypedIdentifierListNode *identifierList;
         std::string str= "";
-        virtual void codegen() override {};
         virtual std::string to_string() override;
         YulFunctionArgListNode(nlohmann::json *rawAST);
 };

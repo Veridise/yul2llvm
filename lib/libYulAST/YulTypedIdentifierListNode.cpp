@@ -13,10 +13,6 @@ void YulTypedIdentifierListNode::parseRawAST(){
     
 }
 
-void YulTypedIdentifierListNode::codegen(){
-    std::cout<<"Codegen not implemented";
-}
-
 YulTypedIdentifierListNode::YulTypedIdentifierListNode(
     json *rawAST):YulASTBase(rawAST, YUL_AST_NODE_TYPED_IDENTIFIER_LIST){
         parseRawAST();

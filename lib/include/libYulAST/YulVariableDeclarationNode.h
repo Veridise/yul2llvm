@@ -14,7 +14,7 @@ class YulVariableDeclarationNode: protected YulStatementNode{
         virtual void parseRawAST() override;
     public:
         std::string str = "";
-        virtual void codegen()override {};
+        // void codegen() {};
         virtual std::string to_string() override;
         YulVariableDeclarationNode(nlohmann::json *rawAST);
 };

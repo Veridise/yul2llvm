@@ -17,9 +17,6 @@ YulIdentifierNode::YulIdentifierNode(nlohmann::json *rawAST):YulExpressionNode(r
     parseRawAST();
 }
 
-void YulIdentifierNode::codegen(){
-    std::cout<<"Codegen not implemented";
-}
 
 std::string YulIdentifierNode::to_string(){
     return identifierValue;
