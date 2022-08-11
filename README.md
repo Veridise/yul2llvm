@@ -60,7 +60,24 @@ Dependencies:
 
 Steps: TODO (this will be very involved)
 
-## Running Pyul
+## Building C++ component
+To build
+
+```
+$ mkdir <build-dir>
+$ cd <build-dir>
+$ cmake <path-of-source-root>
+```
+To run
+```
+$ <build-dir>/bin/yul2llvm_cpp <inputFile> -o <outputFile>
+```
+Where,
+* inputFile: The file containing the AST in json format
+* outputFIle: The generated llvm code
+
+## Running
+
 
 after following [setup](#setup)
 

@@ -5,31 +5,55 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <fstream>
-
+#include <libYulAST/YulConstants.h>
+#include <libYulAST/YulFunctionDefinitionNode.h>
+#include <iostream>
 using namespace yul2llvm;
 
-TranslateYulToLLVM::TranslateYulToLLVM(std::string filename){
-    initializeBuilder();
-    if(!readJsonData(filename)){
+TranslateYulToLLVM::TranslateYulToLLVM(std::string filename, 
+    std::string outputFilename):inputFilename(filename), outputFilename(outputFilename){
+    if(readJsonData(filename)){
         llvm::outs()<<"Could not read json file, exiting \n";
         exit(1);
     }    
 }
 
 int TranslateYulToLLVM::readJsonData(std::string filename){
-    std::ifstream jsonFile(filename);
-    nlohmann::json rawAST = nlohmann::json::parse(jsonFile);
-    llvm::outs()<<rawAST.dump();
-    return 1;
+    std::ifstream jsonFileStream(filename);
+    try{
+        rawAST = nlohmann::json::parse(jsonFileStream);   
+    } catch(...) {
+        llvm::outs()<<"Could not parse json read from ";
+        llvm::outs()<<filename<<"\n";
+        return -1;
+    }
+    return 0;
 }
 
-void TranslateYulToLLVM::initializeBuilder(){
-            Context = std::make_unique<llvm::LLVMContext>();
-            Module = std::make_unique<llvm::Module>("Yul2LLVM Translator", *Context);
-            Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
-} 
+void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j){
+    if(j.is_array()){
+        for(nlohmann::json::iterator it=j.begin(); it!=j.end();it++)
+            traverseJson(*it);
+    }
+    else if(j.is_object()){
+        if(j.contains("type")){
+            if(!j["type"].get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)){
+                yulast::YulFunctionDefinitionNode fundef(&j);
+                fundef.codegen(nullptr);
+                functions.push_back(fundef);
+                return;
+            }
+        }
+        for(nlohmann::json::iterator it=j.begin(); it!=j.end();it++){
+            traverseJson(it.value());
+        }
+    }
+}
 
-void yul2llvm::TranslateYulToLLVM::run(const nlohmann::json &yulAst) {
-    llvm::outs()<<"in run()";
-
+void yul2llvm::TranslateYulToLLVM::run() {
+    traverseJson(rawAST);
+    for(auto f : functions){
+        f.dumpToFile(outputFilename);
+        // f.dumpToStdout();
+    }
 }
