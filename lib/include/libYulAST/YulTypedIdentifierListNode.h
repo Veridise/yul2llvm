@@ -6,11 +6,10 @@
 namespace yulast{
 class YulTypedIdentifierListNode: protected YulASTBase{
     protected:
-        std::vector<YulIdentifierNode*> identifierList;
         void parseRawAST() override;
     public:
+        std::vector<YulIdentifierNode*> identifierList;
         std::string str= "";
-        void codegen() override;
         virtual std::string to_string() override;
         YulTypedIdentifierListNode(nlohmann::json *rawAST);
 };

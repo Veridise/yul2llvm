@@ -26,24 +26,17 @@ bool YulASTBase::sanityCheckPassed(std::string key){
 std::string YulASTBase::to_string(){
     return "to_str not defined for base";
 }
-
-void YulASTBase::codegen(){
-    std::cout<<"Error Codegen not implemented"<<std::endl;
-    exit(1);
-}
+    
 
 void YulASTBase::parseRawAST(){
     std::cout<<"Parsing Not Implemented"<<std::endl;
 }
 
-bool YulASTBase::isParsed(){
-    return parsed;
-}
-
-void YulASTBase::setParsed(bool val){
-    parsed = val;
-}
-
 YulASTBase::YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType):rawAST(rawAST), nodeType(nodeType){
-    
+    if(!llvmInitialized){
+        // TheContext = std::make_unique<llvm::LLVMContext>();
+        // TheModule = std::make_unique<llvm::Module>("my cool jit", *TheContext);
+        // Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
+        llvmInitialized = true;
+    }
 }

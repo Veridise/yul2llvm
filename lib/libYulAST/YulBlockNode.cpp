@@ -27,3 +27,16 @@ std::string YulBlockNode::to_string(){
     }
     return str;
 }
+
+llvm::Value* YulBlockNode::codegen(){
+    for(auto s:statements){
+        if(s->statementType == YUL_AST_STATEMENT_EXPRESSION){
+            if( ((YulExpressionNode*)s)->expressionType == YUL_AST_EXPRESSION_FUNCTION_CALL){
+                YulFunctionCallNode *expr = (YulFunctionCallNode*)s;
+                return expr->codegen();
+            }
+
+        }
+    }
+    return nullptr;
+}

@@ -10,6 +10,7 @@ class YulBlockNode: protected YulStatementNode{
         std::vector<YulStatementNode*> statements;
     public:
         std::string str = "";
+        llvm::Value* codegen();
         virtual void parseRawAST() override;
         virtual std::string to_string() override;
         YulBlockNode(nlohmann::json *rawAST);

@@ -44,3 +44,34 @@ std::string YulFunctionDefinitionNode::to_string(){
     }
     return str;
 }
+
+void YulFunctionDefinitionNode::createPrototype(){
+    std::vector<llvm::Type*> funcArgTypes(args->identifierList->identifierList.size(),
+         llvm::Type::getInt32Ty(*TheContext));
+
+    FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), funcArgTypes, false);
+
+    F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, functionName->getIdentfierValue(),
+        TheModule.get());
+
+    int idx =0;
+    for(auto &arg: F->args()){
+        arg.setName(args->identifierList    
+            ->identifierList.at(idx++)->getIdentfierValue());
+    }
+}
+
+void YulFunctionDefinitionNode::codegen(){
+    if(!F)
+        createPrototype();
+    
+    NamedValues.clear();
+    
+    llvm::BasicBlock *BB = llvm::BasicBlock::Create(
+        *TheContext, "entry", F
+    );
+    Builder->SetInsertPoint(BB);
+    // llvm::Value *ret = body->codegen();
+
+    TheModule->print(llvm::errs(), nullptr);
+}

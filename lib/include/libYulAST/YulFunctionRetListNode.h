@@ -12,7 +12,6 @@ class YulFunctionRetListNode: protected YulASTBase{
     public:
         std::string str = "";
         virtual std::string to_string() override;
-        virtual void codegen() override;
         YulFunctionRetListNode(nlohmann::json *rawAST);
 };
 };

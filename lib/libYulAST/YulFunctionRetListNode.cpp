@@ -11,9 +11,6 @@ void YulFunctionRetListNode::parseRawAST(){
     identifierList = new YulTypedIdentifierListNode(&args);
 }
 
-void YulFunctionRetListNode::codegen(){
-    
-};
 
 YulFunctionRetListNode::YulFunctionRetListNode(json *rawAST)
             :YulASTBase(rawAST, YUL_AST_NODE_FUNCTION_ARG_LIST){
