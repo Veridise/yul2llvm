@@ -180,7 +180,8 @@ class YulPrintListener(YulListener):
 
     # Enter a parse tree produced by YulParser#yul_statement.
     def enterYul_statement(self, ctx:YulParser.Yul_statementContext):
-        self.built_string += '{"type":"yul_statement","children":['
+        pass
+        # self.built_string += '{"type":"yul_statement","children":['
         # print(ctx.parentCtx)
         # rule_idx = ctx.getRuleIndex()
         # print(f"RULE PRODUCTION: {rule_idx}")
@@ -188,7 +189,8 @@ class YulPrintListener(YulListener):
 
     # Exit a parse tree produced by YulParser#yul_statement.
     def exitYul_statement(self, ctx:YulParser.Yul_statementContext):
-        self.built_string += ']},'
+        pass
+        # self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_assignment.
     def enterYul_assignment(self, ctx:YulParser.Yul_assignmentContext):
@@ -200,11 +202,11 @@ class YulPrintListener(YulListener):
 
     # Enter a parse tree produced by YulParser#yul_expression.
     def enterYul_expression(self, ctx:YulParser.Yul_expressionContext):
-        self.built_string += '{"type":"yul_expression","children":['
+        pass
 
     # Exit a parse tree produced by YulParser#yul_expression.
     def exitYul_expression(self, ctx:YulParser.Yul_expressionContext):
-        self.built_string += ']},'
+        pass
 
     # Enter a parse tree produced by YulParser#yul_function_call.
     def enterYul_function_call(self, ctx:YulParser.Yul_function_callContext):
