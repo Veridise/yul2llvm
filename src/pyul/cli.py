@@ -8,7 +8,7 @@ import shutil
 import os
 import pathlib
 import re
-import antlr4 as A
+import antlr4
 import json
 from utils.yul_parser import YulPrintListener
 from utils.yul_translator import YulTranslator
@@ -56,7 +56,7 @@ def translate(_file):
 @click.argument("_file", metavar="YUL_FILE")
 def parse(_file):
     """parse a Yul file into its AST representation"""
-    input_stream = A.FileStream(_file)
+    input_stream = antlr4.FileStream(_file)
 
         # step 1: make sure there's only one contract in one file (this file)
     with open(_file, "r") as f:
@@ -66,12 +66,12 @@ def parse(_file):
         click.echo("Yul input invalid. Contained more than one contract object. ")
     
     lexer = YulLexer.YulLexer(input_stream)
-    stream = A.CommonTokenStream(lexer)
+    stream = antlr4.CommonTokenStream(lexer)
     parser = YulParser.YulParser(stream)
     tree = parser.start()
     printer = YulPrintListener()
     printer.clear_built_string()
-    walker = A.ParseTreeWalker()
+    walker = antlr4.ParseTreeWalker()
     walker.walk(printer, tree)
 
     # anyway to remove this call to eval? it's called parse don't validate sweaty

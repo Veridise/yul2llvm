@@ -10,14 +10,7 @@ class YulTranslator:
         super(YulTranslator, self).__init__(*args, **kwargs)
         self.translation_sequence = [
             "remove_data_metadata", "rewrite_constructor_arguments", "remove_post_constructor_datacall",
-            "hijack_dispatcher_revert", "hijack_dispatcher_miss",
-            # eurus series
-            "hijack_eurus_prank_once",
-            "hijack_eurus_assume", "hijack_eurus_assert", "hijack_eurus_says", 
-            "hijack_eurus_symbolic_uintX", "hijack_eurus_symbolic_intX", 
-            "hijack_eurus_symbolic_address", "hijack_eurus_symbolic_bool",
-            # rosette series
-            "hijack_rosette_assume", "hijack_rosette_assert", "hijack_rosette_cex", "hijack_rosette_solve",
+            "hijack_dispatcher_revert", "hijack_dispatcher_miss"
         ]
 
     def translate(self, original_yul, translation_sequence=None):
