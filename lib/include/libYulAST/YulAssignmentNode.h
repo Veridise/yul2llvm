@@ -11,6 +11,7 @@ class YulAssignmentNode: protected YulStatementNode{
         YulExpressionNode *rhs;
     public:
         std::string str = "";
+        llvm::Value *codegen();
         virtual std::string to_string() override;
         virtual void parseRawAST() override;
         YulAssignmentNode(nlohmann::json *rawAst);

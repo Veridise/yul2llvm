@@ -11,7 +11,7 @@ class TranslateYulToLLVM {
     /// interface
 
         //private fileds
-        nlohmann::json yulAst;
+        nlohmann::json rawAST;
         std::unique_ptr<llvm::LLVMContext> Context;
         std::unique_ptr<llvm::Module> Module;
         std::unique_ptr<llvm::IRBuilder<>> Builder;
@@ -22,7 +22,7 @@ class TranslateYulToLLVM {
 
     public: 
         TranslateYulToLLVM(std::string);
-        void run(const nlohmann::json &yulAst);
+        void run();
 };
 
 } // namespace yul2llvm

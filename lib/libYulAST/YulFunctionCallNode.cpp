@@ -32,7 +32,14 @@ std::string YulFunctionCallNode::to_string(){
 }
 
 void YulFunctionCallNode::createPrototype(){
-    std::vector<llvm::Type*> funcArgTypes(args->identifierList->identifierList.size(),
+     int numargs;
+    if(args==NULL ||
+        args->identifierList == NULL)
+        numargs = 0;
+    else    
+        numargs = args->identifierList->identifierList.size();
+
+    std::vector<llvm::Type*> funcArgTypes(numargs,
          llvm::Type::getInt32Ty(*TheContext));
 
     FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), funcArgTypes, false);
@@ -54,5 +61,6 @@ llvm::Value * YulFunctionCallNode::codegen(){
     for(auto &a:F->args()){
         ArgsV.push_back(&a);
     }
-    return Builder->CreateCall(F, ArgsV, "calltmp");
+    std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
+    return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
 }

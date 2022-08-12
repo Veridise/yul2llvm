@@ -13,6 +13,7 @@ class YulVariableDeclarationNode: protected YulStatementNode{
         YulExpressionNode *value=NULL;
         virtual void parseRawAST() override;
     public:
+        llvm::Value *codegen();
         std::string str = "";
         // void codegen() {};
         virtual std::string to_string() override;

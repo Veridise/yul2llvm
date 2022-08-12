@@ -5,12 +5,12 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <fstream>
-
+#include <libYulAST/YulConstants.h>
+#include <libYulAST/YulFunctionDefinitionNode.h>
 using namespace yul2llvm;
 
 TranslateYulToLLVM::TranslateYulToLLVM(std::string filename){
-    initializeBuilder();
-    if(!readJsonData(filename)){
+    if(readJsonData(filename)){
         llvm::outs()<<"Could not read json file, exiting \n";
         exit(1);
     }    
@@ -18,18 +18,26 @@ TranslateYulToLLVM::TranslateYulToLLVM(std::string filename){
 
 int TranslateYulToLLVM::readJsonData(std::string filename){
     std::ifstream jsonFile(filename);
-    nlohmann::json rawAST = nlohmann::json::parse(jsonFile);
-    llvm::outs()<<rawAST.dump();
-    return 1;
+    try{
+        rawAST = nlohmann::json::parse(jsonFile);   
+    } catch(...) {
+        llvm::outs()<<"Could not parse json read from ";
+        llvm::outs()<<filename;
+        return -1;
+    }
+    return 0;
 }
 
-void TranslateYulToLLVM::initializeBuilder(){
-            Context = std::make_unique<llvm::LLVMContext>();
-            Module = std::make_unique<llvm::Module>("Yul2LLVM Translator", *Context);
-            Builder = std::make_unique<llvm::IRBuilder<>>(*Context);
-} 
-
-void yul2llvm::TranslateYulToLLVM::run(const nlohmann::json &yulAst) {
-    llvm::outs()<<"in run()";
+void yul2llvm::TranslateYulToLLVM::run() {
+    for (auto it = rawAST.begin(); it != rawAST.end(); ++it)
+    {
+        llvm::outs()<<(*it).dump()<<"\n\n\n";
+        if((*it).contains("type"))
+            if(!(*it).at("type").get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)){
+                yulast::YulFunctionDefinitionNode fundef(&(*it));
+                fundef.codegen();
+                llvm::outs()<<fundef.to_string();
+            }
+    }
 
 }

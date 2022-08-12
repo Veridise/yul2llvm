@@ -11,6 +11,7 @@ int main(int argc, char **argv) {
   // TODO: There should be a CommandLine API that does this...
   cl::opt<std::string> inputFile(cl::Positional, cl::desc("<filename>"), cl::Optional);
 
+
   // By default, print to stdout. Otherwise, write to this file.
   // TODO: There should be a CommandLine API that does this...
   cl::opt<std::string> outputFile("o", cl::desc("Output file location"));
@@ -20,10 +21,8 @@ int main(int argc, char **argv) {
   }
 
   // TODO: placeholder
-  yul2llvm::TranslateYulToLLVM translator("/Users/ajinkya/Workspace/yul-playground/function-add.json");
+  yul2llvm::TranslateYulToLLVM translator(inputFile);
   
-  translator.run(NULL);
-
-  llvm::outs() << "Hello world!\n";
+  translator.run();
   return EXIT_SUCCESS;
 }

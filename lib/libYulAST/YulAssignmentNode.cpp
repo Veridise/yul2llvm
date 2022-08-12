@@ -25,3 +25,7 @@ std::string YulAssignmentNode::to_string(){
     return str;
 
 }
+
+llvm::Value * YulAssignmentNode::codegen(){
+    
+}

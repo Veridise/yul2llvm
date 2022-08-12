@@ -46,7 +46,14 @@ std::string YulFunctionDefinitionNode::to_string(){
 }
 
 void YulFunctionDefinitionNode::createPrototype(){
-    std::vector<llvm::Type*> funcArgTypes(args->identifierList->identifierList.size(),
+    int numargs;
+    if(args==NULL ||
+        args->identifierList == NULL)
+        numargs = 0;
+    else    
+        numargs = args->identifierList->identifierList.size();
+
+    std::vector<llvm::Type*> funcArgTypes(numargs,
          llvm::Type::getInt32Ty(*TheContext));
 
     FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext), funcArgTypes, false);
@@ -71,7 +78,8 @@ void YulFunctionDefinitionNode::codegen(){
         *TheContext, "entry", F
     );
     Builder->SetInsertPoint(BB);
-    // llvm::Value *ret = body->codegen();
+    llvm::Value *ret = body->codegen();
+    Builder->CreateRet(ret);
 
     TheModule->print(llvm::errs(), nullptr);
 }
