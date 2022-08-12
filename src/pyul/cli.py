@@ -3,7 +3,7 @@
 from random import randint, randrange
 import click
 
-from subprocess import Popen, PIPE
+import subprocess
 import shutil
 import os
 import pathlib
@@ -32,14 +32,17 @@ def init():
         prompt = click.prompt("install solc? yes/[N]o", default=False, show_default=False)
         if prompt:
             click.echo("using solc-select to install solidity...")
-            res = Popen(["solc-select", "install", "0.8.11"], stdout=PIPE, stdin=PIPE, text="utf-8")
-            stdin, stdout = res.communicate()
-            click.echo(f"{stdin}")
+            # versions of solc must be 0.8.14 or later (see Eurus README)
+            proc = subprocess.run(["solc-select", "install", "0.8.15"], capture_output=True, encoding="utf-8")
+            if proc.returncode != 0:
+                click.echo("Error downloading solc-select and solidity.")
+            else:
+                click.echo(f"{proc.stdout}")
 
 @run.command()
 @click.argument("_file", metavar="FILE")
 @click.option("--verbose", "-V", help="Enable logging to stdout while running pyul.")
-@click.option("--pipeline", "-P", default=None, help="Run translate and then parse on the output automatically.")
+@click.option("--pipeline", "-P", is_flag=True, default=False, help="Run translate and then parse on the output automatically.", )
 @click.pass_context
 def translate(ctx, _file, verbose, pipeline):
     """transforms solc generated Yul code into more easily processed form. """
@@ -60,7 +63,7 @@ def translate(ctx, _file, verbose, pipeline):
 
     if pipeline:
         click.echo(f"parsing flag pass, now parsing: {new_file}")
-        ctx.invoke(parse, new_file)
+        ctx.invoke(parse, _file=new_file)
 
 @run.command()
 @click.argument("_file", metavar="YUL_FILE")
@@ -133,20 +136,21 @@ def compile(_file, input_type, output):
         os.mkdir(result_dir)
 
     # generate the yul
-    ir_res = Popen(["solc", "--ir", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
+    ir_res = subprocess.run(["solc", "--ir", _file], encoding="utf-8", capture_output=True)
     # @ejmg TODO: need to figure out error handling given that solc doesn't exit with an error code in many instances that would be considered an error by users
-    ir_stdin, ir_stdout = ir_res.communicate()
+    # ir_res.returncode gives us the mechanism to check in general, however. how to gracefully exit is another choice to make later.
+    ir_output = ir_res.stdout
     # trim off the heading included by solc in the Yul output
-    yul_obj = ir_stdin.split("\n", 2)[2]
+    yul_obj = ir_output.split("\n", 2)[2]
     # grab storage layout for contract
-    storage_res = Popen(["solc", "--storage-layout", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
-    store_stdin, store_stdout = storage_res.communicate()
-    storage_layout = store_stdin.split("\n", 3)[3]
+    storage_res = subprocess.run(["solc", "--storage-layout", _file], encoding="utf-8", capture_output=True)
+    storage_output = storage_res.stdout
+    storage_layout = storage_output.split("\n", 3)[3]
     # grab the abi specification
-    abi_res = Popen(["solc", "--abi", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
-    abi_stdin, abi_stdout = abi_res.communicate()
+    abi_res = subprocess.run(["solc", "--abi", _file], encoding="utf-8", capture_output=True)
+    abi_output = abi_res.stdout
     # trim
-    abi_spec = abi_stdin.split("\n", 3)[3]
+    abi_spec = abi_output.split("\n", 3)[3]
 
     click.echo("writing results to file...")
     with open(result_yul, "w") as f:
