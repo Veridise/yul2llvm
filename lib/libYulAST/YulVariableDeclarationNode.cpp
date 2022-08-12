@@ -24,8 +24,12 @@ YulVariableDeclarationNode::YulVariableDeclarationNode(
 std::string YulVariableDeclarationNode::to_string(){
     str.append("var ");
     str.append(variableNames->to_string());
-    str.append(" ");
+    str.append("=");
     if(value != NULL)
         str.append(value->to_string());
     return str;
+}
+
+llvm::Value* YulVariableDeclarationNode::codegen(){
+        
 }

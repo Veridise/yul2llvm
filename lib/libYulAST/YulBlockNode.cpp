@@ -29,14 +29,21 @@ std::string YulBlockNode::to_string(){
 }
 
 llvm::Value* YulBlockNode::codegen(){
+    llvm::Value *tmp=nullptr;
     for(auto s:statements){
+        std::cout<<s->to_string()<<std::endl;
         if(s->statementType == YUL_AST_STATEMENT_EXPRESSION){
             if( ((YulExpressionNode*)s)->expressionType == YUL_AST_EXPRESSION_FUNCTION_CALL){
                 YulFunctionCallNode *expr = (YulFunctionCallNode*)s;
-                return expr->codegen();
+                    tmp = expr->codegen();
             }
-
+        }
+        else if(s->statementType == YUL_AST_STATEMENT_VARIABLE_DECLARATION){
+            ((YulVariableDeclarationNode*)s)->codegen();
+        }
+        else if(s->statementType == YUL_AST_STATEMENT_ASSIGNMENT){
+            ((YulAssignmentNode*)s)->codegen();
         }
     }
-    return nullptr;
+    return tmp;
 }
