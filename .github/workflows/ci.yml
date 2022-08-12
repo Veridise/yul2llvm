@@ -25,7 +25,9 @@ jobs:
       - run: |
           # TODO: replace with `pip install -e .`
           curl https://github.com/ethereum/solidity/releases/download/v0.8.15/solc-static-linux --output /usr/local/bin/solc
-          export PATH="/usr/local/bin":"$PATH"
+          chmod +x /usr/local/bin/solc
+          # path should be fine but in case still an issue, try adding explicitly
+          # export PATH="/usr/local/bin":"$PATH"
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
