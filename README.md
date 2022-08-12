@@ -60,18 +60,55 @@ Dependencies:
 
 Steps: TODO (this will be very involved)
 
-## Running
+## Running Pyul
 
 after following [setup](#setup)
 
 you can now run `pyul` as follows:
 
 ```
-(pyul) $ poetry run pyul
+(pyul) $ pyul --help
 ```
 
-as of now, this should just print `"hello, world"`
+this should give you a print out of the existing commands and their descriptions.
+
+### commands
+
+- **compile**: compiles a `.sol` file into its Yul IR equivalent along with its storage layout and ABI files.
+- **translate**: runs some preprocessing on a Yul file to make it easier to parse
+- **parse**: parses a Yul file (pre-processed) and generates the corresponding JSON AST.
+- **init**: helps setup a dev environment for handling Solidity files. WIP.
+
+### processing file example
+
+For some Solidity contract, let's say [`SimpleAdd.sol`](./corpus/SimpleAdd.sol), we can compile the file as follows:
+
+```
+(pyul) $ pyul compile corpus/SimpleAdd.sol
+```
+by default, this will generate a directory path of `compiled/SimpleAdd_${RANDOM_INT}/` where `SimpleAdd.yul` will be found. Run the following to perform some preprocessing of our new Yul file before generating our final JSON. For the sake of simplicity, assume our path is `compiled/SimpleAdd_1000/`.
+
+```
+(pyul) $ pyul translate -P compiled/SimpleAdd_1000/SimpleAdd.yul
+```
+
+This will do two things for us:
+1. Preprocess our Yul file in preparation of it's parsing into a JSON AST.
+2. the `-P` flag automatically parses our file for us and generates the aforementioned AST.
+
+You will now find two new files under `compiled/SimpleAdd_1000/`, `SimpleAdd.yul.tmp` and `SimpleAdd.yul.tmp.json` which contain the processed Yul and the respective JSON AST.
 
 ## development
 
-see [notes.org](notes.org) for more.
+### testing pyul
+
+As of now, it is assumed that solc is installed on your path and with the correct permissions. Please either install solc manually or try `pyul init`. After that, try:
+```
+(pyul) $  poetry run pytest
+```
+
+This will test the `pyul compile` command on your system as shown above.
+
+#### more
+
+see [notes.org](notes.org) for more on pyul.

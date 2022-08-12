@@ -3,7 +3,7 @@
 from random import randint, randrange
 import click
 
-from subprocess import Popen, PIPE
+import subprocess
 import shutil
 import os
 import pathlib
@@ -32,25 +32,38 @@ def init():
         prompt = click.prompt("install solc? yes/[N]o", default=False, show_default=False)
         if prompt:
             click.echo("using solc-select to install solidity...")
-            res = Popen(["solc-select", "install", "0.8.11"], stdout=PIPE, stdin=PIPE, text="utf-8")
-            stdin, stdout = res.communicate()
-            click.echo(f"{stdin}")
+            # versions of solc must be 0.8.14 or later (see Eurus README)
+            proc = subprocess.run(["solc-select", "install", "0.8.15"], capture_output=True, encoding="utf-8")
+            if proc.returncode != 0:
+                click.echo("Error downloading solc-select and solidity.")
+            else:
+                click.echo(f"{proc.stdout}")
 
 @run.command()
 @click.argument("_file", metavar="FILE")
-def translate(_file):
+@click.option("--verbose", "-V", help="Enable logging to stdout while running pyul.")
+@click.option("--pipeline", "-P", is_flag=True, default=False, help="Run translate and then parse on the output automatically.", )
+@click.pass_context
+def translate(ctx, _file, verbose, pipeline):
     """transforms solc generated Yul code into more easily processed form. """
     with open(_file, "r") as f:
         raw_yul = f.read()
-    
+
     t = YulTranslator()
     yul_str = t.translate(raw_yul)
 
     new_file = _file + ".tmp"
+
     with open(new_file, "w") as f:
         f.write(yul_str)
 
-    print(yul_str)
+    if verbose:
+        click.echo("Yul successfully translated.")
+        click.echo(yul_str)
+
+    if pipeline:
+        click.echo(f"parsing flag pass, now parsing: {new_file}")
+        ctx.invoke(parse, _file=new_file)
 
 @run.command()
 @click.argument("_file", metavar="YUL_FILE")
@@ -58,13 +71,13 @@ def parse(_file):
     """parse a Yul file into its AST representation"""
     input_stream = antlr4.FileStream(_file)
 
-        # step 1: make sure there's only one contract in one file (this file)
+    # step 1: make sure there's only one contract in one file (this file)
     with open(_file, "r") as f:
         tmp_yul_str = f.read()
     nobj = re.findall(r"object \".*?\" \{", tmp_yul_str)
     if len(nobj) != 2:
         click.echo("Yul input invalid. Contained more than one contract object. ")
-    
+
     lexer = YulLexer.YulLexer(input_stream)
     stream = antlr4.CommonTokenStream(lexer)
     parser = YulParser.YulParser(stream)
@@ -74,14 +87,15 @@ def parse(_file):
     walker = antlr4.ParseTreeWalker()
     walker.walk(printer, tree)
 
-    # anyway to remove this call to eval? it's called parse don't validate sweaty
-    parsed_yul = eval(printer.built_string.strip(","))
+    printer.strip_all_trailing()
+    _parsed_yul = printer.built_string
 
-    print(parsed_yul)
+    parsed_yul = re.sub(r",\}", "}", _parsed_yul)
 
     with open(_file + '.json', "w") as f:
-        json.dump(parsed_yul, f, indent="  ")
+        f.write(parsed_yul + "\n")
 
+    click.echo(parsed_yul)
 
 
 @run.command()
@@ -89,7 +103,7 @@ def parse(_file):
 @click.option("--input-type", "-iT", default="sol", type=str)
 @click.option("--output", "-o", default="compiled", type=str, help="output directory")
 def compile(_file, input_type, output):
-    """compile solc file to yul"""
+    """compile sol file to yul"""
     if input_type != "sol":
         click.echo(".yul files are not supported yet.")
         return
@@ -108,8 +122,9 @@ def compile(_file, input_type, output):
     result_dir = os.path.join(compile_dir, file_name + "_" + str(result_id))
     result_yul = os.path.join(result_dir, file_name + ".yul")
     result_storage = os.path.join(result_dir, file_name + "_storage")
-    click.echo(f"output dir: {compile_dir}")
-    click.echo(f"result dir: {result_dir}")
+    result_abi = os.path.join(result_dir, file_name + "_abi")
+    click.echo(f"output dir: {compile_dir}/")
+    click.echo(f"result dir: {result_dir}/")
 
     if not os.path.exists(compile_dir):
         os.mkdir(compile_dir)
@@ -121,19 +136,31 @@ def compile(_file, input_type, output):
         os.mkdir(result_dir)
 
     # generate the yul
-    ir_res = Popen(["solc", "--ir", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
+    ir_res = subprocess.run(["solc", "--ir", _file], encoding="utf-8", capture_output=True)
     # @ejmg TODO: need to figure out error handling given that solc doesn't exit with an error code in many instances that would be considered an error by users
-    ir_stdin, ir_stdout = ir_res.communicate()
+    # ir_res.returncode gives us the mechanism to check in general, however. how to gracefully exit is another choice to make later.
+    ir_output = ir_res.stdout
     # trim off the heading included by solc in the Yul output
-    yul_obj = ir_stdin.split("\n", 2)[2]
-    storage_res = Popen(["solc", "--storage-layout", _file], stdout=PIPE, stdin=PIPE, text="utf-8")
-    store_stdin, store_stdout = storage_res.communicate()
-    storage_layout = store_stdin.split("\n", 3)[3]
+    yul_obj = ir_output.split("\n", 2)[2]
+    # grab storage layout for contract
+    storage_res = subprocess.run(["solc", "--storage-layout", _file], encoding="utf-8", capture_output=True)
+    storage_output = storage_res.stdout
+    storage_layout = storage_output.split("\n", 3)[3]
+    # grab the abi specification
+    abi_res = subprocess.run(["solc", "--abi", _file], encoding="utf-8", capture_output=True)
+    abi_output = abi_res.stdout
+    # trim
+    abi_spec = abi_output.split("\n", 3)[3]
 
     click.echo("writing results to file...")
     with open(result_yul, "w") as f:
-      f.writelines(yul_obj)
-    with open(result_storage, "w") as _fs:
-        _fs.writelines(storage_layout)
+        f.writelines(yul_obj)
+        click.echo("yul successfully written")
+    with open(result_storage, "w") as f:
+        f.writelines(storage_layout)
+        click.echo("storage layout successfully written")
+    with open(result_abi, "w") as f:
+        f.writelines(abi_spec)
+        click.echo("abi specification successfully written")
 
-    click.echo("yul object and storage data successfully written!")
+    click.echo("`pyul compile` finished running.")

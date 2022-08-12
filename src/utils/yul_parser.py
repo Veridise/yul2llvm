@@ -13,201 +13,224 @@ class YulPrintListener(YulListener):
     def __init__(self, *args, **kwargs):
         super(YulPrintListener, self).__init__(*args, **kwargs)
         self.built_string = ""
+        self.curr_yul_obj = False
+        self.first_obj = True
 
     def clear_built_string(self):
         self.built_string = ""
 
     # Enter a parse tree produced by YulParser#start.
     def enterStart(self, ctx:YulParser.StartContext):
-        self.built_string += "[\"start\","
+        self.built_string += '{"type":"start","yul_ast":'
 
     # Exit a parse tree produced by YulParser#start.
     def exitStart(self, ctx:YulParser.StartContext):
-        self.built_string += "],"
+        self.built_string += '},'
 
     # Enter a parse tree produced by YulParser#yul_object.
     def enterYul_object(self, ctx:YulParser.Yul_objectContext):
-        self.built_string += "[\"yul_object\","
+        self.curr_yul_obj = True
+
+        if self.first_obj:
+            self.built_string += '{"type":"yul_object","object_name":'
+            self.first_obj = False
+        else:
+            self.built_string += '"object_body":{"type":"yul_object","object_name":'
+
 
     # Exit a parse tree produced by YulParser#yul_object.
     def exitYul_object(self, ctx:YulParser.Yul_objectContext):
-        self.built_string += "],"
+        self.built_string += "},"
+        self.curr_yul_obj = False
 
     # Enter a parse tree produced by YulParser#yul_code.
     def enterYul_code(self, ctx:YulParser.Yul_codeContext):
-        self.built_string += "[\"yul_code\","
+        self.built_string += '"contract_body":{"type":"yul_code","children":['
 
     # Exit a parse tree produced by YulParser#yul_code.
     def exitYul_code(self, ctx:YulParser.Yul_codeContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_if.
     def enterYul_if(self, ctx:YulParser.Yul_ifContext):
-        self.built_string += "[\"yul_if\","
+        self.built_string += '{"type":"yul_if","children": ['
 
     # Exit a parse tree produced by YulParser#yul_if.
     def exitYul_if(self, ctx:YulParser.Yul_ifContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_switch.
     def enterYul_switch(self, ctx:YulParser.Yul_switchContext):
-        self.built_string += "[\"yul_switch\","
+        self.built_string += '{"type":"yul_switch","children":['
 
     # Exit a parse tree produced by YulParser#yul_switch.
     def exitYul_switch(self, ctx:YulParser.Yul_switchContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_case.
     def enterYul_case(self, ctx:YulParser.Yul_caseContext):
-        self.built_string += "[\"yul_case\","
+        self.built_string += '{"type":"yul_case","children":['
 
     # Exit a parse tree produced by YulParser#yul_case.
     def exitYul_case(self, ctx:YulParser.Yul_caseContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_default.
     def enterYul_default(self, ctx:YulParser.Yul_defaultContext):
-        self.built_string += "[\"yul_default\","
+        self.built_string += '{"type":"yul_default","children":['
 
     # Exit a parse tree produced by YulParser#yul_default.
     def exitYul_default(self, ctx:YulParser.Yul_defaultContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_for_loop.
     def enterYul_for_loop(self, ctx:YulParser.Yul_for_loopContext):
-        self.built_string += "[\"yul_for_loop\","
+        self.built_string += '{"type":"yul_for_loop","children":['
 
     # Exit a parse tree produced by YulParser#yul_for_loop.
     def exitYul_for_loop(self, ctx:YulParser.Yul_for_loopContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_break.
     def enterYul_break(self, ctx:YulParser.Yul_breakContext):
-        self.built_string += "[\"yul_break\","
+        # leave as nothing but as a leaf of the concrete value in the AST. possibly remove if the semantics of a break
+        # don't actually matter at this phase but I doubt?
+        self.built_string += '{"type":"yul_break"},'
 
     # Exit a parse tree produced by YulParser#yul_break.
     def exitYul_break(self, ctx:YulParser.Yul_breakContext):
-        self.built_string += "],"
+        # see :enterYul_break:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_continue.
     def enterYul_continue(self, ctx:YulParser.Yul_continueContext):
-        self.built_string += "[\"yul_continue\","
+        # leaf of literal value in AST
+        self.built_string += '{"type":"yul_continue"},'
 
     # Exit a parse tree produced by YulParser#yul_continue.
     def exitYul_continue(self, ctx:YulParser.Yul_continueContext):
-        self.built_string += "],"
+        # see :enterYul_continue:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_leave.
     def enterYul_leave(self, ctx:YulParser.Yul_leaveContext):
-        self.built_string += "[\"yul_leave\","
+        # leaf of literal value in AST
+        self.built_string += '{"type":"yul_leave"},'
 
     # Exit a parse tree produced by YulParser#yul_leave.
     def exitYul_leave(self, ctx:YulParser.Yul_leaveContext):
-        self.built_string += "],"
+        # see :enterYul_leave:
+        pass
 
     # Enter a parse tree produced by YulParser#yul_function_definition.
     def enterYul_function_definition(self, ctx:YulParser.Yul_function_definitionContext):
-        self.built_string += "[\"yul_function_definition\","
+        self.built_string += '{"type":"yul_function_definition","children":['
 
     # Exit a parse tree produced by YulParser#yul_function_definition.
     def exitYul_function_definition(self, ctx:YulParser.Yul_function_definitionContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_variable_declaration.
     def enterYul_variable_declaration(self, ctx:YulParser.Yul_variable_declarationContext):
-        self.built_string += "[\"yul_variable_declaration\","
+        self.built_string += '{"type":"yul_variable_declaration","children":['
 
     # Exit a parse tree produced by YulParser#yul_variable_declaration.
     def exitYul_variable_declaration(self, ctx:YulParser.Yul_variable_declarationContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_function_arg_list.
     def enterYul_function_arg_list(self, ctx:YulParser.Yul_function_arg_listContext):
-        self.built_string += "[\"yul_function_arg_list\","
+        self.built_string += '{"type":"yul_function_arg_list","children":['
 
     # Exit a parse tree produced by YulParser#yul_function_arg_list.
     def exitYul_function_arg_list(self, ctx:YulParser.Yul_function_arg_listContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_function_ret_list.
     def enterYul_function_ret_list(self, ctx:YulParser.Yul_function_ret_listContext):
-        self.built_string += "[\"yul_function_ret_list\","
+        self.built_string += '{"type":"yul_function_ret_list","children":['
 
     # Exit a parse tree produced by YulParser#yul_function_ret_list.
     def exitYul_function_ret_list(self, ctx:YulParser.Yul_function_ret_listContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_typed_identifier_list.
     def enterYul_typed_identifier_list(self, ctx:YulParser.Yul_typed_identifier_listContext):
-        self.built_string += "[\"yul_typed_identifier_list\","
+        self.built_string += '{"type":"yul_typed_identifier_list","children":['
 
     # Exit a parse tree produced by YulParser#yul_typed_identifier_list.
     def exitYul_typed_identifier_list(self, ctx:YulParser.Yul_typed_identifier_listContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_identifier_list.
     def enterYul_identifier_list(self, ctx:YulParser.Yul_identifier_listContext):
-        self.built_string += "[\"yul_identifier_list\","
+        self.built_string += '{"type":"yul_identifier_list","children":['
 
     # Exit a parse tree produced by YulParser#yul_identifier_list.
     def exitYul_identifier_list(self, ctx:YulParser.Yul_identifier_listContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_block.
     def enterYul_block(self, ctx:YulParser.Yul_blockContext):
-        self.built_string += "[\"yul_block\","
+        self.built_string += '{"type":"yul_block","children":['
 
     # Exit a parse tree produced by YulParser#yul_block.
     def exitYul_block(self, ctx:YulParser.Yul_blockContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_statement.
     def enterYul_statement(self, ctx:YulParser.Yul_statementContext):
-        self.built_string += "[\"yul_statement\","
+        pass
+        # self.built_string += '{"type":"yul_statement","children":['
+        # print(ctx.parentCtx)
+        # rule_idx = ctx.getRuleIndex()
+        # print(f"RULE PRODUCTION: {rule_idx}")
+        
 
     # Exit a parse tree produced by YulParser#yul_statement.
     def exitYul_statement(self, ctx:YulParser.Yul_statementContext):
-        self.built_string += "],"
+        pass
+        # self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_assignment.
     def enterYul_assignment(self, ctx:YulParser.Yul_assignmentContext):
-        self.built_string += "[\"yul_assignment\","
+        self.built_string += '{"type":"yul_assignment","children":['
 
     # Exit a parse tree produced by YulParser#yul_assignment.
     def exitYul_assignment(self, ctx:YulParser.Yul_assignmentContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_expression.
     def enterYul_expression(self, ctx:YulParser.Yul_expressionContext):
-        self.built_string += "[\"yul_expression\","
+        pass
 
     # Exit a parse tree produced by YulParser#yul_expression.
     def exitYul_expression(self, ctx:YulParser.Yul_expressionContext):
-        self.built_string += "],"
+        pass
 
     # Enter a parse tree produced by YulParser#yul_function_call.
     def enterYul_function_call(self, ctx:YulParser.Yul_function_callContext):
-        self.built_string += "[\"yul_function_call\","
+        self.built_string += '{"type":"yul_function_call","children":['
 
     # Exit a parse tree produced by YulParser#yul_function_call.
     def exitYul_function_call(self, ctx:YulParser.Yul_function_callContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_literal.
     def enterYul_literal(self, ctx:YulParser.Yul_literalContext):
-        self.built_string += "[\"yul_literal\","
+        self.built_string += '{"type":"yul_literal","children":['
 
     # Exit a parse tree produced by YulParser#yul_literal.
     def exitYul_literal(self, ctx:YulParser.Yul_literalContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_number_literal.
     def enterYul_number_literal(self, ctx:YulParser.Yul_number_literalContext):
-        self.built_string += "[\"yul_number_literal\","
+        self.built_string += '{"type":"yul_number_literal","children":['
 
     # Exit a parse tree produced by YulParser#yul_number_literal.
     def exitYul_number_literal(self, ctx:YulParser.Yul_number_literalContext):
-        self.built_string += "],"
+        self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_true_literal.
     def enterYul_true_literal(self, ctx:YulParser.Yul_true_literalContext):
@@ -240,6 +263,7 @@ class YulPrintListener(YulListener):
     # Enter a parse tree produced by YulParser#yul_type_name.
     def enterYul_type_name(self, ctx:YulParser.Yul_type_nameContext):
         self.built_string += "[\"yul_type_name\",\"{}\",],".format(ctx.ID_LITERAL())
+
     # Exit a parse tree produced by YulParser#yul_type_name.
     def exitYul_type_name(self, ctx:YulParser.Yul_type_nameContext):
         pass
@@ -258,6 +282,12 @@ class YulPrintListener(YulListener):
     # Exit a parse tree produced by YulParser#yul_string_literal.
     def exitYul_string_literal(self, ctx:YulParser.Yul_string_literalContext):
         pass
+
+    def strip_all_trailing(self):
+        self.built_string = re.sub(r",\}", "}", self.built_string)
+        self.built_string = re.sub(r",]", "]", self.built_string)
+        self.built_string = self.built_string.strip(",")
+        self.built_string = self.built_string.strip()
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--yul", default=None, help="input yul file")

@@ -29,4 +29,6 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry install
+          solc-select install 0.8.15
+          solc-select use 0.8.15
           poetry run pytest
