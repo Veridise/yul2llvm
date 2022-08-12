@@ -102,7 +102,7 @@ You will now find two new files under `compiled/SimpleAdd_1000/`, `SimpleAdd.yul
 
 ### testing pyul
 
-As of now, `curl` is used to run the existing tests for pyul. With that, run:
+As of now, it is assumed that solc is installed on your path and with the correct permissions. Please either install solc manually or try `pyul init`. After that, try:
 ```
 (pyul) $  poetry run pytest
 ```
