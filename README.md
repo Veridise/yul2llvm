@@ -100,4 +100,15 @@ You will now find two new files under `compiled/SimpleAdd_1000/`, `SimpleAdd.yul
 
 ## development
 
-see [notes.org](notes.org) for more.
+### testing pyul
+
+As of now, it is assumed that solc is installed on the local system. Please either install solc manually or try `pyul init`. After that, try:
+```
+(pyul) $  poetry run pytest
+```
+
+This will test the `pyul compile` command on your system as shown above.
+
+#### more
+
+see [notes.org](notes.org) for more on pyul.
