@@ -238,35 +238,35 @@ class YulPrintListener(YulListener):
 
     # Enter a parse tree produced by YulParser#yul_true_literal.
     def enterYul_true_literal(self, ctx:YulParser.Yul_true_literalContext):
-        self.built_string += '{{"type":"yul_true_literal","children":[{}]}},'.format(ctx.TRUE_LITERAL())
+        self.built_string += '{{"type":"yul_true_literal","children":["{}"]}},'.format(ctx.TRUE_LITERAL())
     # Exit a parse tree produced by YulParser#yul_true_literal.
     def exitYul_true_literal(self, ctx:YulParser.Yul_true_literalContext):
         pass
 
     # Enter a parse tree produced by YulParser#yul_false_literal.
     def enterYul_false_literal(self, ctx:YulParser.Yul_false_literalContext):
-        self.built_string += '{{"type":"yul_false_literal","children":[{}]}},'.format(ctx.FALSE_LITERAL())
+        self.built_string += '{{"type":"yul_false_literal","children":["{}"]}},'.format(ctx.FALSE_LITERAL())
     # Exit a parse tree produced by YulParser#yul_false_literal.
     def exitYul_false_literal(self, ctx:YulParser.Yul_false_literalContext):
         pass
 
     # Enter a parse tree produced by YulParser#yul_hex_number.
     def enterYul_hex_number(self, ctx:YulParser.Yul_hex_numberContext):
-        self.built_string += '{{"type":"yul_hex_number","children":[{}]}},'.format(ctx.HEX_NUMBER())
+        self.built_string += '{{"type":"yul_hex_number","children":["{}"]}},'.format(ctx.HEX_NUMBER())
     # Exit a parse tree produced by YulParser#yul_hex_number.
     def exitYul_hex_number(self, ctx:YulParser.Yul_hex_numberContext):
         pass
 
     # Enter a parse tree produced by YulParser#yul_dec_number.
     def enterYul_dec_number(self, ctx:YulParser.Yul_dec_numberContext):
-        self.built_string += '{{"type":"yul_dec_number","children":[{}]}},'.format(ctx.DEC_NUMBER())
+        self.built_string += '{{"type":"yul_dec_number","children":["{}"]}},'.format(ctx.DEC_NUMBER())
     # Exit a parse tree produced by YulParser#yul_dec_number.
     def exitYul_dec_number(self, ctx:YulParser.Yul_dec_numberContext):
         pass
 
     # Enter a parse tree produced by YulParser#yul_type_name.
     def enterYul_type_name(self, ctx:YulParser.Yul_type_nameContext):
-        self.built_string += '{{"type":"yul_type_name","children":[{}]}},'.format(ctx.ID_LITERAL())
+        self.built_string += '{{"type":"yul_type_name","children":["{}"]}},'.format(ctx.ID_LITERAL())
 
     # Exit a parse tree produced by YulParser#yul_type_name.
     def exitYul_type_name(self, ctx:YulParser.Yul_type_nameContext):
@@ -274,7 +274,7 @@ class YulPrintListener(YulListener):
 
     # Enter a parse tree produced by YulParser#yul_identifier.
     def enterYul_identifier(self, ctx:YulParser.Yul_identifierContext):
-        self.built_string += '{{"type":"yul_identifier","children":[{}]}},'.format(ctx.ID_LITERAL())
+        self.built_string += '{{"type":"yul_identifier","children":["{}"]}},'.format(ctx.ID_LITERAL())
     # Exit a parse tree produced by YulParser#yul_identifier.
     def exitYul_identifier(self, ctx:YulParser.Yul_identifierContext):
         pass
