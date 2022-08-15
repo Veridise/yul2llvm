@@ -22,8 +22,10 @@ class YulFunctionDefinitionNode: protected YulStatementNode{
         std::string str = "";
         virtual void parseRawAST() override;
     public:
+        void dumpToStdout();
         virtual llvm::Value * codegen(llvm::Function *F) override;
         virtual std::string to_string() override;  
         YulFunctionDefinitionNode(nlohmann::json *rawAST);
+        void dumpToFile(std::string);
 };
 };

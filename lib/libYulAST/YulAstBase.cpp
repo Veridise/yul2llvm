@@ -46,6 +46,7 @@ llvm::Value *YulASTBase::codegen(llvm::Function *F){
 YulASTBase::YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType):rawAST(rawAST), nodeType(nodeType){
 }
 
+
 llvm::AllocaInst *YulASTBase::CreateEntryBlockAlloca(llvm::Function *TheFunction,
                                           const std::string &VarName) {
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
