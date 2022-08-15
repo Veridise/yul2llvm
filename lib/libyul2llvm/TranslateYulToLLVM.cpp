@@ -11,6 +11,7 @@
 #include <fstream>
 #include <libYulAST/YulConstants.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
+#include <iostream>
 using namespace yul2llvm;
 
 TranslateYulToLLVM::TranslateYulToLLVM(std::string filename){
@@ -21,33 +22,39 @@ TranslateYulToLLVM::TranslateYulToLLVM(std::string filename){
 }
 
 int TranslateYulToLLVM::readJsonData(std::string filename){
-    std::ifstream jsonFile(filename);
+    std::ifstream jsonFileStream(filename);
     try{
-        rawAST = nlohmann::json::parse(jsonFile);   
+        rawAST = nlohmann::json::parse(jsonFileStream);   
     } catch(...) {
         llvm::outs()<<"Could not parse json read from ";
-        llvm::outs()<<filename;
+        llvm::outs()<<filename<<"\n";
         return -1;
     }
     return 0;
 }
 
-void yul2llvm::TranslateYulToLLVM::run() {
-    for (auto it = rawAST.begin(); it != rawAST.end(); ++it)
-    {
-        llvm::outs()<<(*it).dump()<<"\n\n\n";
-        if((*it).contains("type"))
-            if(!(*it).at("type").get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)){
-                yulast::YulFunctionDefinitionNode fundef(&(*it));
-                fundef.codegen();
-                llvm::outs()<<fundef.to_string();
-            }
+void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j){
+    if(j.is_array()){
+        for(nlohmann::json::iterator it=j.begin(); it!=j.end();it++)
+            traverseJson(*it);
     }
+    else if(j.is_object()){
+        if(j.contains("type")){
+            if(!j["type"].get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)){
+                std::cout<<"creating function for "<<j.dump()<<std::endl;
+                yulast::YulFunctionDefinitionNode fundef(&j);
+                fundef.codegen(nullptr);
+                return;
+            }
+        }
+        for(nlohmann::json::iterator it=j.begin(); it!=j.end();it++){
+            traverseJson(it.value());
+        }
+    }
+}
 
 void yul2llvm::TranslateYulToLLVM::run() {
-  traverseJson(rawAST);
-  for (auto f : functions) {
-    f.dumpToFile(outputFilename);
-    // f.dumpToStdout();
-  }
+    traverseJson(rawAST["yul_ast"]);
+    // nlohmann::json j_nonempty_init_list = json("hello");
+    // std::cout<<j_nonempty_init_list.is_string();
 }

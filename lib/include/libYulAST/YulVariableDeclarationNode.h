@@ -12,11 +12,12 @@ class YulVariableDeclarationNode: protected YulStatementNode{
         YulTypedIdentifierListNode *variableNames;
         YulExpressionNode *value=NULL;
         virtual void parseRawAST() override;
-    public:
-        llvm::Value *codegen();
         std::string str = "";
-        // void codegen() {};
+    public:
+        virtual llvm::Value *codegen(llvm::Function *F) override;
+        void codeGenForOneVar(YulIdentifierNode *id, llvm::Function *F);
         virtual std::string to_string() override;
         YulVariableDeclarationNode(nlohmann::json *rawAST);
+        std::vector<YulIdentifierNode*> getVars();
 };
 }; // namespace yulast

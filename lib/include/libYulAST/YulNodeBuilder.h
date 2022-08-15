@@ -20,7 +20,5 @@ class YulStatementBuilder{
 class YulExpressionBuilder{
     public:
         static YulExpressionNode* Builder(json *rawAST);
-
 };
-
 };

@@ -16,14 +16,14 @@ class YulFunctionDefinitionNode: protected YulStatementNode{
         YulFunctionRetListNode *rets= NULL;
         YulBlockNode *body= NULL;
         void createPrototype();
-    public:
+        void createVarsForsRets();
         llvm::FunctionType *FT = NULL;
         llvm::Function *F = NULL;
         std::string str = "";
-        void codegen();
         virtual void parseRawAST() override;
-        virtual std::string to_string() override;
-        
+    public:
+        virtual llvm::Value * codegen(llvm::Function *F) override;
+        virtual std::string to_string() override;  
         YulFunctionDefinitionNode(nlohmann::json *rawAST);
 };
 }; // namespace yulast

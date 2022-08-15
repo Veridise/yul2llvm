@@ -11,9 +11,11 @@ class YulAssignmentNode: protected YulStatementNode{
         YulExpressionNode *rhs;
     public:
         std::string str = "";
-        llvm::Value *codegen();
+        virtual llvm::Value *codegen(llvm::Function *F) override;
         virtual std::string to_string() override;
         virtual void parseRawAST() override;
         YulAssignmentNode(nlohmann::json *rawAst);
+        std::vector<YulIdentifierNode*> getLHSIdentifiers();
+        YulExpressionNode *getRHSExpression();
 };
 }; // namespace yulast

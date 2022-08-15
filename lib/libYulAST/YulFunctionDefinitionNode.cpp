@@ -47,11 +47,10 @@ std::string YulFunctionDefinitionNode::to_string(){
 
 void YulFunctionDefinitionNode::createPrototype(){
     int numargs;
-    if(args==NULL ||
-        args->identifierList == NULL)
+    if(args==NULL)
         numargs = 0;
     else    
-        numargs = args->identifierList->identifierList.size();
+        numargs = args->getIdentifiers().size();
 
     std::vector<llvm::Type*> funcArgTypes(numargs,
          llvm::Type::getInt32Ty(*TheContext));
@@ -63,23 +62,33 @@ void YulFunctionDefinitionNode::createPrototype(){
 
     int idx =0;
     for(auto &arg: F->args()){
-        arg.setName(args->identifierList    
-            ->identifierList.at(idx++)->getIdentfierValue());
+        arg.setName(args->getIdentifiers().at(idx++)->getIdentfierValue());
     }
 }
 
-void YulFunctionDefinitionNode::codegen(){
-    if(!F)
-        createPrototype();
-    
-    NamedValues.clear();
-    
+void YulFunctionDefinitionNode::createVarsForsRets(){
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(
-        *TheContext, "entry", F
+        *(YulASTBase::TheContext), "entry", F
     );
     Builder->SetInsertPoint(BB);
-    llvm::Value *ret = body->codegen();
-    Builder->CreateRet(ret);
 
+    if(rets != NULL){
+        for(auto arg : rets->getIdentifiers()){
+            llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue());
+            NamedValues[arg->getIdentfierValue()] = a;
+        }
+    }
+}
+
+llvm::Value * YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc){
+    if(!F)
+        createPrototype();  
+    createVarsForsRets();
+    body->codegen(F);
+    //TODO assuming rets has only a single element
+    llvm::Value *v = Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
+        NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
+    Builder->CreateRet(v);
     TheModule->print(llvm::errs(), nullptr);
+    return nullptr;
 }

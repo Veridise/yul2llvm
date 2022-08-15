@@ -28,3 +28,7 @@ std::string YulTypedIdentifierListNode::to_string(){
     }
     return str;
 }
+
+std::vector<YulIdentifierNode *> YulTypedIdentifierListNode::getIdentifiers(){
+    return identifierList;
+}
