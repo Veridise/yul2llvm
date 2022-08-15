@@ -102,7 +102,7 @@
 
               # set up virtualenv
               source ${pkgs.python3Packages.venvShellHook}/nix-support/setup-hook
-              export venvDir="$PWD"/venv
+              export venvDir="$PWD"/.venv
               runHook venvShellHook
             '';
 

@@ -22,13 +22,21 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v2.4.0
-      - run: |
-          # TODO: replace with `pip install -e .`
-          python3 -m venv venv
-          source venv/bin/activate
+      - name: Install and test
+        run: |
+          # Set up venv
+          python3 -m venv .venv
+          source .venv/bin/activate
+
+          # Install solc
+          curl -LR 'https://github.com/ethereum/solidity/releases/download/v0.8.16/solc-static-linux' -o /usr/local/bin/solc
+          chmod +x /usr/local/bin/solc
+          solc --version
+
+          # Install deps
           pip install --upgrade pip
           pip install poetry
+
+          # Install project
           poetry install
-          solc-select install 0.8.15
-          solc-select use 0.8.15
           poetry run pytest
