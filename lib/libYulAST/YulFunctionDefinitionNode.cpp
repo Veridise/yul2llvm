@@ -1,6 +1,7 @@
 #include<libYulAST/YulFunctionDefinitionNode.h>
 #include<cassert>
 #include<iostream>
+#include<fstream>
 
 
 using namespace yulast;
@@ -89,6 +90,16 @@ llvm::Value * YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc
     llvm::Value *v = Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
-    TheModule->print(llvm::errs(), nullptr);
     return nullptr;
+}
+
+void YulFunctionDefinitionNode::dumpToFile(std::string outputFileName){
+    std::error_code fileOpeningError;
+    llvm::raw_fd_ostream f(outputFileName, fileOpeningError);
+    TheModule->print(f, nullptr);
+
+}
+
+void YulFunctionDefinitionNode::dumpToStdout( ){
+        TheModule->print(llvm::errs(), nullptr);
 }

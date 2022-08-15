@@ -6,6 +6,8 @@
 #include<libYulAST/YulTypedIdentifierListNode.h>
 #include<nlohmann/json.hpp>
 #include<iostream>
+#include<fstream>
+
 using json = nlohmann::json;
 using namespace yulast;
 
@@ -331,8 +333,6 @@ void functionDefinitionTest(){
         }
     ]
 })"_json;
-
-
 
     YulFunctionDefinitionNode f(&j);
     std::cout<<"String representation of ast ------------"<<std::endl;

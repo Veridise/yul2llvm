@@ -1,10 +1,9 @@
 #pragma once
 #include <libYulAST/YulFunctionDefinitionNode.h>
 #include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <nlohmann/json.hpp>
-#include <vector>
+#include<llvm/IR/LLVMContext.h>
+#include<vector>
+#include<libYulAST/YulFunctionDefinitionNode.h>
 
 namespace yul2llvm {
 
@@ -16,8 +15,10 @@ class TranslateYulToLLVM {
         nlohmann::json rawAST;
         int readJsonData(std::string filename);
         void traverseJson(nlohmann::json);
+        std::vector<yulast::YulFunctionDefinitionNode> functions;
+        std::string inputFilename, outputFilename;
     public: 
-        TranslateYulToLLVM(std::string);
+        TranslateYulToLLVM(std::string inputFilename, std::string outputFilename = NULL);
         void run();
 };
 
