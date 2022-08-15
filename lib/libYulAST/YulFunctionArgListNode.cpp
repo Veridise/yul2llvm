@@ -1,33 +1,32 @@
-#include<libYulAST/YulFunctionArgListNode.h>
-#include<cassert>
-#include<iostream>
+#include <cassert>
+#include <iostream>
+#include <libYulAST/YulFunctionArgListNode.h>
 
 using namespace yulast;
 
-void YulFunctionArgListNode::parseRawAST(){
-    json children = rawAST->at("children");
-    assert(children.size()==1);
-    json args = children[0];
-    identifierList = new YulTypedIdentifierListNode(&args);
-
+void YulFunctionArgListNode::parseRawAST() {
+  json children = rawAST->at("children");
+  assert(children.size() == 1);
+  json args = children[0];
+  identifierList = new YulTypedIdentifierListNode(&args);
 }
 
 YulFunctionArgListNode::YulFunctionArgListNode(json *rawAST)
-    :YulASTBase(rawAST, YUL_AST_NODE_FUNCTION_ARG_LIST){
-        assert(sanityCheckPassed(YUL_FUNCTION_ARG_LIST_KEY));
-        parseRawAST();
+    : YulASTBase(rawAST, YUL_AST_NODE_FUNCTION_ARG_LIST) {
+  assert(sanityCheckPassed(YUL_FUNCTION_ARG_LIST_KEY));
+  parseRawAST();
 }
 
-std::string YulFunctionArgListNode::to_string(){
-    if(!str.compare("")){
-        str.append("args(");
-        str.append(identifierList->to_string());
-        str.append(")");
-    }
-    return str;
+std::string YulFunctionArgListNode::to_string() {
+  if (!str.compare("")) {
+    str.append("args(");
+    str.append(identifierList->to_string());
+    str.append(")");
+  }
+  return str;
 }
 
-std::vector<YulIdentifierNode*> YulFunctionArgListNode::getIdentifiers(){
-    assert(identifierList != NULL);
-    return identifierList->getIdentifiers();
+std::vector<YulIdentifierNode *> YulFunctionArgListNode::getIdentifiers() {
+  assert(identifierList != NULL);
+  return identifierList->getIdentifiers();
 }
