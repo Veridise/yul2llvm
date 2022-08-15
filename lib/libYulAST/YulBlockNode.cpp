@@ -28,22 +28,21 @@ std::string YulBlockNode::to_string(){
     return str;
 }
 
-llvm::Value* YulBlockNode::codegen(){
-    llvm::Value *tmp=nullptr;
+llvm::Value* YulBlockNode::codegen(llvm::Function *F){
     for(auto s:statements){
-        std::cout<<s->to_string()<<std::endl;
+        // std::cout<<s->to_string()<<std::endl;
         if(s->statementType == YUL_AST_STATEMENT_EXPRESSION){
             if( ((YulExpressionNode*)s)->expressionType == YUL_AST_EXPRESSION_FUNCTION_CALL){
                 YulFunctionCallNode *expr = (YulFunctionCallNode*)s;
-                    tmp = expr->codegen();
+                    expr->codegen(F);
             }
         }
         else if(s->statementType == YUL_AST_STATEMENT_VARIABLE_DECLARATION){
-            ((YulVariableDeclarationNode*)s)->codegen();
+            ((YulVariableDeclarationNode*)s)->codegen(F);
         }
         else if(s->statementType == YUL_AST_STATEMENT_ASSIGNMENT){
-            ((YulAssignmentNode*)s)->codegen();
+            ((YulAssignmentNode*)s)->codegen(F);
         }
     }
-    return tmp;
+    return nullptr;
 }

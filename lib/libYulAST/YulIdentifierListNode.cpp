@@ -30,3 +30,7 @@ std::string YulIdentifierListNode::to_string(){
     }
     return str;
 }
+
+std::vector<YulIdentifierNode*> YulIdentifierListNode::getIdentifiers(){
+    return identifierList;
+}

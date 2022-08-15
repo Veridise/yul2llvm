@@ -30,6 +30,28 @@ std::string YulVariableDeclarationNode::to_string(){
     return str;
 }
 
-llvm::Value* YulVariableDeclarationNode::codegen(){
-        
+void YulVariableDeclarationNode::codeGenForOneVar(YulIdentifierNode *id, llvm::Function *F){
+    if(NamedValues[id->getIdentfierValue()]!= NULL){
+        std::cout<<"Error redeclaration of variable "<<id->getIdentfierValue()<<std::endl;
+    }
+    llvm::AllocaInst *v = CreateEntryBlockAlloca(F, id->getIdentfierValue());
+    NamedValues[id->getIdentfierValue()] = v;
+}
+
+llvm::Value *YulVariableDeclarationNode::codegen(llvm::Function *F){
+    for(YulIdentifierNode *id: variableNames->getIdentifiers()){
+        codeGenForOneVar(id, F);
+        if(value != NULL){
+            llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+            llvm::Value *constant = value->codegen(F);
+            Builder->CreateStore(constant, lval);
+        }
+    }
+    return nullptr;
+
+}
+
+std::vector<YulIdentifierNode*> YulVariableDeclarationNode::getVars(){
+    assert(variableNames != NULL);
+    return variableNames->getIdentifiers();
 }

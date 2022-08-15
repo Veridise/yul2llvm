@@ -9,5 +9,6 @@ class YulLeaveNode: protected YulStatementNode{
         virtual std::string to_string() override;
         virtual void parseRawAST() override;
         YulLeaveNode(nlohmann::json *rawAST);
+        virtual llvm::Value *codegen(llvm::Function *F) override {return nullptr;};
 };
 };

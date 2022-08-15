@@ -334,7 +334,12 @@ void functionDefinitionTest(){
 
 
 
-    YulFunctionDefinitionNode(&j).codegen();
+    YulFunctionDefinitionNode f(&j);
+    std::cout<<"String representation of ast ------------"<<std::endl;
+    std::cout<<f.to_string()<<std::endl;
+    std::cout<<"llvm representation of ast ------------"<<std::endl;
+    f.codegen(NULL);
+
     
 }
 

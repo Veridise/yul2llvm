@@ -12,14 +12,8 @@ class TranslateYulToLLVM {
 
         //private fileds
         nlohmann::json rawAST;
-        std::unique_ptr<llvm::LLVMContext> Context;
-        std::unique_ptr<llvm::Module> Module;
-        std::unique_ptr<llvm::IRBuilder<>> Builder;
-
-        // private functions
-        void initializeBuilder();
         int readJsonData(std::string filename);
-
+        void traverseJson(nlohmann::json);
     public: 
         TranslateYulToLLVM(std::string);
         void run();

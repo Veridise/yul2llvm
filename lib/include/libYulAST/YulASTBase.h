@@ -8,11 +8,6 @@
 
 using json=nlohmann::json;
 
-static std::unique_ptr<llvm::LLVMContext> TheContext = std::make_unique<llvm::LLVMContext>();
-static std::unique_ptr<llvm::Module> TheModule =std::make_unique<llvm::Module>("yul2llvm-artihmetic-ops.ll", *TheContext);
-static std::unique_ptr<llvm::IRBuilder<>> Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-static std::map<std::string, llvm::AllocaInst *> NamedValues;
-
 namespace yulast{
     class YulASTBase{
         protected:
@@ -23,10 +18,22 @@ namespace yulast{
         virtual void parseRawAST();
 
         public:
+        static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
+                                          const std::string &VarName);
+            static  std::unique_ptr<llvm::LLVMContext> TheContext;
+            static std::unique_ptr<llvm::Module> TheModule;
+            static std::unique_ptr<llvm::IRBuilder<>> Builder;
+            static std::map<std::string, llvm::AllocaInst *> NamedValues;
+
+
+            std::unique_ptr<llvm::LLVMContext> getContext();
+            std::unique_ptr<llvm::Module> getModule();
+            std::unique_ptr<llvm::IRBuilder<>> getBuilder();
+
             bool llvmInitialized=false;     
             virtual ~YulASTBase() {};
+            virtual llvm::Value *codegen(llvm::Function *F);
             virtual std::string to_string();
-
             YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType);
             bool sanityCheckPassed(std::string);
     };

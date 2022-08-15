@@ -17,7 +17,13 @@ YulIdentifierNode::YulIdentifierNode(nlohmann::json *rawAST):YulExpressionNode(r
     parseRawAST();
 }
 
+llvm::Value *YulIdentifierNode::codegen(llvm::Function *F){
+    llvm::Type *inttype = llvm::Type::getInt32Ty(*TheContext);
+    return Builder->CreateLoad(inttype, NamedValues[getIdentfierValue()], getIdentfierValue());
+}
+
 
 std::string YulIdentifierNode::to_string(){
     return identifierValue;
 }
+

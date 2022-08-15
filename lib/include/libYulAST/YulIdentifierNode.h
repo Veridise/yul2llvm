@@ -10,6 +10,7 @@ class YulIdentifierNode: protected YulExpressionNode{
     public:
         std::string str = "";
         virtual std::string to_string() override;
+        virtual llvm::Value *codegen(llvm::Function *F) override;
         YulIdentifierNode(nlohmann::json *rawAST);
         std::string getIdentfierValue();
 };

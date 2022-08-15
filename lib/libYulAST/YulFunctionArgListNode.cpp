@@ -26,3 +26,8 @@ std::string YulFunctionArgListNode::to_string(){
     }
     return str;
 }
+
+std::vector<YulIdentifierNode*> YulFunctionArgListNode::getIdentifiers(){
+    assert(identifierList != NULL);
+    return identifierList->getIdentifiers();
+}

@@ -26,6 +26,20 @@ std::string YulAssignmentNode::to_string(){
 
 }
 
-llvm::Value * YulAssignmentNode::codegen(){
-    
+llvm::Value * YulAssignmentNode::codegen(llvm::Function *F){
+    for(auto var: lhs->getIdentifiers()){
+        std::string lvalname = var->getIdentfierValue();
+        llvm::AllocaInst *lval = NamedValues[lvalname];
+        llvm::Value *rval = rhs->codegen(F);
+        Builder->CreateStore(rval, lval, false);
+    }
+    return nullptr;
+}
+
+std::vector<YulIdentifierNode*> YulAssignmentNode::getLHSIdentifiers(){
+    return lhs->getIdentifiers();
+}
+
+YulExpressionNode *YulAssignmentNode::getRHSExpression(){
+    return rhs;
 }

@@ -33,11 +33,10 @@ std::string YulFunctionCallNode::to_string(){
 
 void YulFunctionCallNode::createPrototype(){
      int numargs;
-    if(args==NULL ||
-        args->identifierList == NULL)
+    if(args == NULL)
         numargs = 0;
     else    
-        numargs = args->identifierList->identifierList.size();
+        numargs = getArgs().size();
 
     std::vector<llvm::Type*> funcArgTypes(numargs,
          llvm::Type::getInt32Ty(*TheContext));
@@ -46,21 +45,42 @@ void YulFunctionCallNode::createPrototype(){
 
     F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, callee->getIdentfierValue(),
         TheModule.get());
-
-    int idx =0;
-    for(auto &arg: F->args()){
-        arg.setName(args->identifierList    
-            ->identifierList.at(idx++)->getIdentfierValue());
-    }
 }
 
-llvm::Value * YulFunctionCallNode::codegen(){
+llvm::Value* YulFunctionCallNode::codegen(llvm::Function *enclosingFunction){
+    if(!F)
+        F = TheModule->getFunction(callee->getIdentfierValue());
+
     if(!F)
         createPrototype();
-    std::vector<llvm::Value *> ArgsV;
-    for(auto &a:F->args()){
-        ArgsV.push_back(&a);
+    else{
+        std::cout<<"Function not found and could not be created"<<std::endl;
+        exit(1);
     }
-    std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
+    if(!callee->getIdentfierValue().compare("checked_add_t_uint256")){
+        llvm::Value *v1, *v2;
+        v1 = Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
+            NamedValues[args->getIdentifiers()[0]->getIdentfierValue()]);
+        v2 = Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
+            NamedValues[args->getIdentifiers()[1]->getIdentfierValue()]);
+        return  Builder->CreateAdd(v1, v2);
+    }
+    std::vector<llvm::Value *> ArgsV;
+
+    if(args != nullptr)
+        for(auto a:args->getIdentifiers()){
+            std::cout<<"Loading identifier "<<a<<std::endl;
+            llvm::Value *lv = Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext), NamedValues[a->getIdentfierValue()]);
+            ArgsV.push_back(lv);
+        }
+    // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
     return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
+}
+
+std::string YulFunctionCallNode::getName(){
+    return callee->getIdentfierValue();
+}
+
+std::vector<YulIdentifierNode*> YulFunctionCallNode::getArgs(){
+    return args->getIdentifiers();
 }

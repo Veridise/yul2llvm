@@ -12,7 +12,7 @@ __pycache__/
 /outputs/
 
 #build
-build/
+build/*
 
 #vscode
-.vscode/
+.vscode/*

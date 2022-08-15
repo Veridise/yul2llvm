@@ -26,3 +26,8 @@ std::string YulFunctionRetListNode::to_string(){
     }
     return str;
 }
+
+std::vector<YulIdentifierNode*> YulFunctionRetListNode::getIdentifiers(){
+    assert(identifierList != NULL);
+    return identifierList->getIdentifiers();
+}
