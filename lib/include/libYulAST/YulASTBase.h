@@ -1,34 +1,33 @@
 #pragma once
-#include<nlohmann/json.hpp>
-#include<libYulAST/YulConstants.h>
-#include<llvm/IR/LLVMContext.h>
-#include<llvm/IR/IRBuilder.h>
-#include<llvm/IR/Module.h>
+#include <libYulAST/YulConstants.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 
-using json=nlohmann::json;
+namespace yulast {
+class YulASTBase {
+protected:
+  json *rawAST;
+  YUL_AST_NODE_TYPE nodeType;
+  virtual void parseRawAST();
 
-namespace yulast{
-    class YulASTBase{
-        protected:
-        json *rawAST;
-        YUL_AST_NODE_TYPE nodeType;     
-        virtual void parseRawAST();
+public:
+  static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
+                                                  const std::string &VarName);
 
-        public:
-            static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                          const std::string &VarName);
-            
-            static  std::unique_ptr<llvm::LLVMContext> TheContext;
-            static std::unique_ptr<llvm::Module> TheModule;
-            static std::unique_ptr<llvm::IRBuilder<>> Builder;
-            static std::map<std::string, llvm::AllocaInst *> NamedValues;
+  static std::unique_ptr<llvm::LLVMContext> TheContext;
+  static std::unique_ptr<llvm::Module> TheModule;
+  static std::unique_ptr<llvm::IRBuilder<>> Builder;
+  static std::map<std::string, llvm::AllocaInst *> NamedValues;
 
-            bool llvmInitialized=false;     
-            virtual ~YulASTBase() {};
-            virtual llvm::Value *codegen(llvm::Function *F);
-            virtual std::string to_string();
-            YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType);
-            bool sanityCheckPassed(std::string);
-    };
+  bool llvmInitialized = false;
+  virtual ~YulASTBase(){};
+  virtual llvm::Value *codegen(llvm::Function *F);
+  virtual std::string to_string();
+  YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType);
+  bool sanityCheckPassed(std::string);
 };
+}; // namespace yulast
