@@ -27,16 +27,13 @@ jobs:
           # Set up venv
           python3 -m venv .venv
           source .venv/bin/activate
+          pip install --upgrade pip
 
           # Install solc
           curl -LR 'https://github.com/ethereum/solidity/releases/download/v0.8.16/solc-static-linux' -o /usr/local/bin/solc
           chmod +x /usr/local/bin/solc
           solc --version
 
-          # Install deps
-          pip install --upgrade pip
-          pip install poetry
-
           # Install project
-          poetry install
-          poetry run pytest
+          pip install -e '.[dev]'
+          pytest

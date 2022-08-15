@@ -12,6 +12,8 @@
     {
       # First, we define the packages used in this repository/flake
       overlays.default = final: prev: {
+        # TODO: package solc
+
         # Fix the version of LLVM being used.
         yul2llvm_libllvm = final.llvmPackages_13.tools.libllvm;
 
@@ -108,7 +110,7 @@
 
             postVenvCreation = ''
               pip install --upgrade pip
-              pip install -e .
+              pip install -e '.[dev]'
             '';
           });
         };

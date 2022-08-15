@@ -48,7 +48,7 @@ the same command but with `--user` in addition to `-U`.
 after successfully installing poetry, install the project:
 
 ```
-(pyul) $ poetry install
+(pyul) $ poetry install --extras dev
 ```
 
 #### C++ component
