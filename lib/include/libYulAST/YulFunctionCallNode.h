@@ -9,7 +9,7 @@ namespace yulast {
 class YulFunctionCallNode : protected YulExpressionNode {
 protected:
   YulIdentifierNode *callee;
-  std::vector<std::unique_ptr<YulExpressionNode>> args;
+  std::vector<YulExpressionNode*> args;
 
 public:
   void createPrototype();
@@ -21,6 +21,6 @@ public:
   virtual std::string to_string() override;
   YulFunctionCallNode(nlohmann::json *rawAST);
   std::string getName();
-  std::vector<std::unique_ptr<YulExpressionNode>> getArgs();
+  std::vector<YulExpressionNode *> getArgs();
 };
 }; // namespace yulast

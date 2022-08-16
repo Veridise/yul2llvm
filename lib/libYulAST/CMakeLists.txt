@@ -14,6 +14,8 @@ add_library(libYulAST
   YulLeaveNode.cpp
   YulVariableDeclarationNode.cpp
   YulNodeBuilder.cpp
+  YulLiteralNode.cpp
+  YulNumberLiteralNode.cpp
   )
 target_include_directories(libYulAST PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
