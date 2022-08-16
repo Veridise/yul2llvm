@@ -8,9 +8,8 @@ void YulFunctionCallNode::parseRawAST() {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() >= 1);
   callee = new YulIdentifierNode(&topLevelChildren[0]);
-  args = NULL;
-  if (topLevelChildren.size() > 1) {
-    args = new YulFunctionArgListNode(&topLevelChildren[1]);
+  for (int i = 1; i<topLevelChildren.size(); i++) {
+    args.push_back(std::make_unique<YulExpressionNode>(&topLevelChildren[i]));
   }
 }
 
@@ -24,8 +23,8 @@ std::string YulFunctionCallNode::to_string() {
   if (!str.compare("")) {
     str.append(callee->to_string());
     str.append("(");
-    if (args != NULL) {
-      str.append(args->to_string());
+    for(auto &arg: args){
+      str.append(arg->to_string()).append(",");
     }
     str.append(")");
   }
@@ -34,7 +33,7 @@ std::string YulFunctionCallNode::to_string() {
 
 void YulFunctionCallNode::createPrototype() {
   int numargs;
-  if (args == NULL)
+  if (args.size()==0)
     numargs = 0;
   else
     numargs = getArgs().size();
@@ -61,24 +60,18 @@ llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
   }
   if (!callee->getIdentfierValue().compare("checked_add_t_uint256")) {
     llvm::Value *v1, *v2;
-    v1 = Builder->CreateLoad(
-        llvm::Type::getInt32Ty(*TheContext),
-        NamedValues[args->getIdentifiers()[0]->getIdentfierValue()]);
-    v2 = Builder->CreateLoad(
-        llvm::Type::getInt32Ty(*TheContext),
-        NamedValues[args->getIdentifiers()[1]->getIdentfierValue()]);
+    v1 = args[0]->codegen(enclosingFunction);
+    v2 = args[0]->codegen(enclosingFunction);
     return Builder->CreateAdd(v1, v2);
   }
   std::vector<llvm::Value *> ArgsV;
 
-  if (args != nullptr)
-    for (auto a : args->getIdentifiers()) {
-      std::cout << "Loading identifier " << a << std::endl;
-      llvm::Value *lv =
-          Builder->CreateLoad(llvm::Type::getInt32Ty(*TheContext),
-                              NamedValues[a->getIdentfierValue()]);
-      ArgsV.push_back(lv);
-    }
+  
+  for (auto &a : args) {
+    std::cout << "Loading identifier " << a << std::endl;
+    llvm::Value *lv = a->codegen(enclosingFunction);
+    ArgsV.push_back(lv);
+  }
   // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
   return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
 }
@@ -87,6 +80,6 @@ std::string YulFunctionCallNode::getName() {
   return callee->getIdentfierValue();
 }
 
-std::vector<YulIdentifierNode *> YulFunctionCallNode::getArgs() {
-  return args->getIdentifiers();
+std::vector<std::unique_ptr<YulExpressionNode>> YulFunctionCallNode::getArgs() {
+  return args;
 }

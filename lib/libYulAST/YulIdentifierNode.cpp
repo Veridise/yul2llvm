@@ -18,6 +18,14 @@ YulIdentifierNode::YulIdentifierNode(nlohmann::json *rawAST)
 
 llvm::Value *YulIdentifierNode::codegen(llvm::Function *F) {
   llvm::Type *inttype = llvm::Type::getInt32Ty(*TheContext);
+  if(NamedValues.find(identifierValue)==NamedValues.end()){
+    for(auto &arg:F->args()){
+      if(!std::string(arg.getName()).compare(identifierValue)){
+        return &arg;
+      }
+    }
+  }
+
   return Builder->CreateLoad(inttype, NamedValues[getIdentfierValue()],
                              getIdentfierValue());
 }

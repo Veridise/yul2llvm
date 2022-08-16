@@ -10,6 +10,7 @@ void YulFunctionDefinitionNode::parseRawAST() {
   assert(topLevelChildren.size() >= 2);
   for (json::iterator it = topLevelChildren.begin();
        it != topLevelChildren.end(); it++) {
+    std::cout<<(*it).dump(2,' ')<<std::endl<<"----"<<std::endl;
     if (!(*it)["type"].get<std::string>().compare(YUL_IDENTIFIER_KEY))
       functionName = new YulIdentifierNode(&(*it));
     else if (!(*it)["type"].get<std::string>().compare(
@@ -62,7 +63,9 @@ void YulFunctionDefinitionNode::createPrototype() {
 
   int idx = 0;
   for (auto &arg : F->args()) {
+    //1122
     arg.setName(args->getIdentifiers().at(idx++)->getIdentfierValue());
+    std::cout<<"setting identifier name"<<std::string(arg.getName())<<std::endl;
   }
 }
 

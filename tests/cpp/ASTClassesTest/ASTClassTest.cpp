@@ -271,28 +271,17 @@ void functionDefinitionTest() {
                                     "children":[
                                         "checked_add_t_uint256"
                                     ]
+                                },        
+                                {
+                                    "type":"yul_identifier",
+                                    "children":[
+                                        "expr_16"
+                                    ]
                                 },
                                 {
-                                    "type":"yul_function_arg_list",
+                                    "type": "yul_identifier",
                                     "children":[
-                                        {
-                                            "type":"yul_typed_identifier_list",
-                                            "children": [
-                                                {
-                                                    "type":"yul_identifier",
-                                                    "children":[
-                                                        "expr_16"
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "yul_identifier",
-                                                    "children":[
-                                                        "expr_17"
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                        
+                                        "expr_17"
                                     ]
                                 }
                             ]
@@ -337,6 +326,7 @@ void functionDefinitionTest() {
   std::cout << f.to_string() << std::endl;
   std::cout << "llvm representation of ast ------------" << std::endl;
   f.codegen(NULL);
+  f.dumpToStdout();
 }
 
 int main() {
