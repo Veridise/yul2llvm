@@ -3,17 +3,18 @@
     flake-utils = {
       url = "github:numtide/flake-utils/v1.0.0";
     };
+
+    veridise-pkgs.url = "git+ssh://git@github.com/Veridise/veridise-nix-pkgs.git?ref=main";
+    veridise-pkgs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # Custom colored bash prompt
   nixConfig.bash-prompt = ''\[\e[0;32m\][yul2llvm]\[\e[m\] \[\e[38;5;244m\]\w\[\e[m\] % '';
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, veridise-pkgs }:
     {
       # First, we define the packages used in this repository/flake
       overlays.default = final: prev: {
-        # TODO: package solc
-
         # Fix the version of LLVM being used.
         yul2llvm_libllvm = final.llvmPackages_13.tools.libllvm;
 
@@ -49,7 +50,7 @@
             name = "yul2llvm-source";
           };
           format = "pyproject";
-          buildInputs = [ final.yul2llvm_cpp ];
+          buildInputs = [ final.yul2llvm_cpp final.solc_0_8_15 ];
 
           # Currently, we're using the files generated for Eurus's Yul parser.
           # Will probably need to add ANTLR if we need to modify the grammar.
@@ -57,11 +58,11 @@
         };
       };
     } //
-    (flake-utils.lib.eachDefaultSystem (system:
+    (flake-utils.lib.eachSystem ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"] (system:
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ self.overlays.default ];
+          overlays = [ veridise-pkgs.overlays.default self.overlays.default ];
         };
       in
       {
@@ -69,7 +70,7 @@
 
         packages = flake-utils.lib.flattenTree {
           # Copy the packages from the overlay.
-          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_libllvm;
+          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_libllvm solc_0_8_15;
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -87,6 +88,7 @@
               (python3.withPackages (p: [
                 p.venvShellHook
               ]))
+              solc_0_8_15
 
               # C++ dev tools
               doxygen

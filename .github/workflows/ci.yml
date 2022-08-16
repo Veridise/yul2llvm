@@ -8,13 +8,24 @@ jobs:
   build-cpp:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v2.4.0
       - uses: cachix/install-nix-action@v17
         with:
           install_url: https://releases.nixos.org/nix/nix-2.9.2/install
+      - name: Add SSH private key
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+          ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
       # TODO: cache the build
-      - run: |
+      - name: Build
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
           nix build --print-build-logs .#yul2llvm_cpp
           echo "Done."
   build-python:
