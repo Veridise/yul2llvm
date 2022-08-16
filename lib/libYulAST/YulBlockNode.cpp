@@ -8,7 +8,12 @@ void YulBlockNode::parseRawAST() {
   json topLevelChildren = rawAST->at("children");
   for (json::iterator it = topLevelChildren.begin();
        it != topLevelChildren.end(); it++) {
-    statements.push_back(YulStatementBuilder::Builder(&(*it)));
+    YulStatementNode *builtStatement = YulStatementBuilder::Builder(&(*it));
+    if(builtStatement == NULL){
+      //skipping building some statement take care of it
+    } 
+    else 
+      statements.push_back(builtStatement);
   }
 }
 
