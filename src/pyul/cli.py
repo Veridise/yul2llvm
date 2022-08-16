@@ -1,6 +1,6 @@
 """cli driver to configure and run pyul"""
 
-from random import randint, randrange
+from random import randint
 import click
 
 import subprocess
@@ -10,7 +10,7 @@ import pathlib
 import re
 import antlr4
 import json
-from utils.yul_parser import YulPrintListener
+from utils.yul_parser import YulPrintListener, strip_all_trailing, make_json_arr
 from utils.yul_translator import YulTranslator
 from utils.YulAntlr import YulLexer, YulParser
 
@@ -28,6 +28,7 @@ def init():
     if res is None:
         click.echo(f"solc found at path: {res}")
     else:
+        # TODO: consider just curl'ing solidity instead of using solc-select. Would require path manipulation and permissions.
         click.echo("no solc found in path.")
         prompt = click.prompt("install solc? yes/[N]o", default=False, show_default=False)
         if prompt:
@@ -41,7 +42,7 @@ def init():
 
 @run.command()
 @click.argument("_file", metavar="FILE")
-@click.option("--verbose", "-V", help="Enable logging to stdout while running pyul.")
+@click.option("--verbose", "-V", is_flag=True, default=False, help="Enable logging of results to stdout while running pyul.")
 @click.option("--pipeline", "-P", is_flag=True, default=False, help="Run translate and then parse on the output automatically.", )
 @click.pass_context
 def translate(ctx, _file, verbose, pipeline):
@@ -58,7 +59,6 @@ def translate(ctx, _file, verbose, pipeline):
         f.write(yul_str)
 
     if verbose:
-        click.echo("Yul successfully translated.")
         click.echo(yul_str)
 
     if pipeline:
@@ -67,7 +67,9 @@ def translate(ctx, _file, verbose, pipeline):
 
 @run.command()
 @click.argument("_file", metavar="YUL_FILE")
-def parse(_file):
+@click.option("--verbose", "-V", is_flag=True, help="Enable logging of results to stdout while running pyul.")
+@click.option("--dry-run", "-D", is_flag=True, help="Don't write results to file.")
+def parse(_file, verbose, dry_run):
     """parse a Yul file into its AST representation"""
     input_stream = antlr4.FileStream(_file)
 
@@ -88,15 +90,25 @@ def parse(_file):
     walker.walk(printer, tree)
 
     printer.strip_all_trailing()
-    _parsed_yul = printer.built_string
+    parsed_yul = printer.built_string
 
-    parsed_yul = re.sub(r",\}", "}", _parsed_yul)
+    if not dry_run:
+        with open(_file + '.json', "w") as f:
+            f.write(parsed_yul + "\n")
 
-    with open(_file + '.json', "w") as f:
-        f.write(parsed_yul + "\n")
-
-    click.echo(parsed_yul)
-
+    if verbose:
+        # TODO: this is very messy. How I pipe this data to stdout needs to be cleaned up either with
+        # additional flags or by unifying output into a clean JSON format that keeps everything separate
+        # or a similarly minded approach. This will apply regardless of how we ultimately extract information
+        # such as the symbol table and extracted functions.
+        click.echo("Parsed Yul\n")
+        click.echo(parsed_yul)
+        click.echo("\nKnown Symbols")
+        click.echo(printer.known_symbols)
+        click.echo("\nUnknown Symbols\n")
+        click.echo(printer.unknown_symbols.items())
+        click.echo("\nExtracted Functions\n")
+        click.echo(make_json_arr(printer.extracted_fn))
 
 @run.command()
 @click.argument("_file", metavar="FILE")

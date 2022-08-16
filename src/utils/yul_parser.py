@@ -1,7 +1,4 @@
-import sys
-import os
-import json
-import argparse
+from dataclasses import dataclass
 import re
 
 from antlr4 import *
@@ -9,11 +6,13 @@ from .YulAntlr.YulLexer import YulLexer
 from .YulAntlr.YulParser import YulParser
 from .YulAntlr.YulListener import YulListener
 
+
 class YulPrintListener(YulListener):
     def __init__(self, *args, **kwargs):
         super(YulPrintListener, self).__init__(*args, **kwargs)
+        # the string representation of the total AST as traversed by our listener
         self.built_string = ""
-        self.curr_yul_obj = False
+        # flag that tracks first contract object
         self.first_obj = True
 
     def clear_built_string(self):
@@ -29,8 +28,6 @@ class YulPrintListener(YulListener):
 
     # Enter a parse tree produced by YulParser#yul_object.
     def enterYul_object(self, ctx:YulParser.Yul_objectContext):
-        self.curr_yul_obj = True
-
         if self.first_obj:
             self.built_string += '{"type":"yul_object","object_name":'
             self.first_obj = False
@@ -41,7 +38,6 @@ class YulPrintListener(YulListener):
     # Exit a parse tree produced by YulParser#yul_object.
     def exitYul_object(self, ctx:YulParser.Yul_objectContext):
         self.built_string += "},"
-        self.curr_yul_obj = False
 
     # Enter a parse tree produced by YulParser#yul_code.
     def enterYul_code(self, ctx:YulParser.Yul_codeContext):
@@ -181,16 +177,10 @@ class YulPrintListener(YulListener):
     # Enter a parse tree produced by YulParser#yul_statement.
     def enterYul_statement(self, ctx:YulParser.Yul_statementContext):
         pass
-        # self.built_string += '{"type":"yul_statement","children":['
-        # print(ctx.parentCtx)
-        # rule_idx = ctx.getRuleIndex()
-        # print(f"RULE PRODUCTION: {rule_idx}")
-        
 
     # Exit a parse tree produced by YulParser#yul_statement.
     def exitYul_statement(self, ctx:YulParser.Yul_statementContext):
         pass
-        # self.built_string += ']},'
 
     # Enter a parse tree produced by YulParser#yul_assignment.
     def enterYul_assignment(self, ctx:YulParser.Yul_assignmentContext):
@@ -275,6 +265,7 @@ class YulPrintListener(YulListener):
     # Enter a parse tree produced by YulParser#yul_identifier.
     def enterYul_identifier(self, ctx:YulParser.Yul_identifierContext):
         self.built_string += '{{"type":"yul_identifier","children":["{}"]}},'.format(ctx.ID_LITERAL())
+
     # Exit a parse tree produced by YulParser#yul_identifier.
     def exitYul_identifier(self, ctx:YulParser.Yul_identifierContext):
         pass
@@ -293,91 +284,15 @@ class YulPrintListener(YulListener):
         self.built_string = self.built_string.strip(",")
         self.built_string = self.built_string.strip()
 
-ap = argparse.ArgumentParser()
-ap.add_argument("--yul", default=None, help="input yul file")
-ap.add_argument("--verbose", default=False, help="show more info for debugging")
-
-if __name__ == "__main__":
-    args = ap.parse_args()
-    if args.yul is None:
-        sys.exit("# Incomplete arguments. Use -h to see options.")
-
-    output_json_file =args.yul.replace(".yul",".json")
-    # output_config_file = args.yul.replace(".yul",".config.json")
-
-    if args.verbose: print("# loading yul...")
-    input_stream = FileStream(args.yul)
-
-    # step 1: make sure there's only one contract in one file (this file)
-    with open(args.yul, "r") as f:
-        tmp_yul_str = f.read()
-    nobj = re.findall(r"object \".*?\" \{", tmp_yul_str)
-    if len(nobj) != 2:
-        sys.exit("# Yul structure is not valid, object number should be 2, got: {}".format(len(nobj)))
-
-    # # step 2: extract call code for dispatcher and pack into a mapping
-    # output_config = {
-    #     # call code is unique, but function name may not be unique due to polymorphism
-    #     # but function signature is unique since Solidity is statically typed
-    #     "call_code_to_function_name": {},
-
-    #     # signature here is structured, e.g., ["function_name", "arg0_type", "arg1_type", ...]
-    #     # (note) no return type is presented because it's missing in the yul comment notations
-    #     "call_code_to_function_signature": {}, 
-    # }
-    # with open(args.yul, "r") as f:
-    #     tmp_yul_lines = f.readlines()
-    # switch_on = False
-    # code_on = False
-    # curr_code = None
-    # for dline in tmp_yul_lines:
-    #     if (not switch_on) and (not code_on) and dline.strip() == "switch selector":
-    #         switch_on = True
-    #         continue
-    #     if switch_on and (not code_on) and dline.strip().startswith("case 0x"):
-    #         code_on = True
-    #         curr_code = dline.replace("case","").strip()
-    #         continue
-    #     if switch_on and code_on and dline.strip().startswith("//"):
-    #         curr_sig = dline.replace("//","").strip()
-    #         curr_name = curr_sig[:curr_sig.index("(")]
-    #         curr_params = curr_sig[curr_sig.index("(")+1:-1].split(",") # fixme: could be wrong for array/mappings, check it out
-    #         # remove empty string
-    #         curr_params = [p for p in curr_params if len(p.strip())>0]
-    #         output_config["call_code_to_function_name"][curr_code] = curr_name
-    #         output_config["call_code_to_function_signature"][curr_code] = [curr_name]+curr_params
-    #         code_on = False
-    #         curr_code = None
-    #     if switch_on and (not code_on) and dline.strip().startswith("default"):
-    #         switch_on = False
-    #         # done here, can exit now
-    #         break
-
-    # step 3: start parsing
-    if args.verbose: print("# loading grammar...")
-    lexer = YulLexer(input_stream)
-    stream = CommonTokenStream(lexer)
-    parser = YulParser(stream)
-
-    if args.verbose: print("# parsing...")
-    tree = parser.start()
-
-    printer = YulPrintListener()
-    printer.clear_built_string()
-    walker = ParseTreeWalker()
-    walker.walk(printer, tree)
-
-    # print(printer.built_string)
-
-    if args.verbose: print("# translating...")
-    # note: should remove commas in postfix
-    n = eval(printer.built_string.strip(","))
-
-    if args.verbose: print("# writing to json...")
-    # write parsed yul json
-    with open(output_json_file, "w") as f:
-        json.dump(n, f, indent="    ")
-    # write config json
-    # with open(output_config_file, "w") as f:
-    #     json.dump(output_config, f, indent="    ")
-    if args.verbose: print("# done.")
+def make_json_arr(ls):
+    """transform a list of JSON-ish objects in a python list into a proper string representation"""
+    if len(ls) > 0:
+        arr = []
+        for fn in ls:
+            arr.append(f"{fn},")
+        json_arr = "".join(arr)
+        # trailing comma
+        json_arr = json_arr[:-1]
+        return f"[{json_arr}]"
+    else:
+        return f"[{ls[0]}]"
