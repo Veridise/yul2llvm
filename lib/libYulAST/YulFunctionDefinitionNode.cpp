@@ -110,7 +110,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
   }
-  llvm::verifyFunction(*F, &(llvm::outs()));
+  llvm::verifyFunction(*F, &(llvm::errs()));
 
   return nullptr;
 }
