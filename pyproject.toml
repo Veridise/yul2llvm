@@ -27,3 +27,27 @@ pyul = "pyul.cli:run"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.8"
+exclude = ["src/utils"]
+
+[[tool.mypy.overrides]]
+module = "sha3"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "antlr4"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "utils.yul_parser"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "utils.yul_translator"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "utils.YulAntlr"
+ignore_missing_imports = true
