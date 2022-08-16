@@ -16,7 +16,7 @@ protected:
   YulFunctionRetListNode *rets = NULL;
   YulBlockNode *body = NULL;
   void createPrototype();
-  void createVarsForsRets();
+  void createVarsForArgsAndRets();
   llvm::FunctionType *FT = NULL;
   llvm::Function *F = NULL;
   std::string str = "";

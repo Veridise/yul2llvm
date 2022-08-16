@@ -29,6 +29,10 @@ llvm::Value *YulAssignmentNode::codegen(llvm::Function *F) {
   for (auto var : lhs->getIdentifiers()) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
+    if(lval == nullptr){
+      std::cout<<"undefined variable "<<lvalname;
+      exit(1);
+    }
     llvm::Value *rval = rhs->codegen(F);
     Builder->CreateStore(rval, lval, false);
   }

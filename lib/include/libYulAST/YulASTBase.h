@@ -4,6 +4,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <nlohmann/json.hpp>
+#include <llvm/IR/Verifier.h>
 
 using json = nlohmann::json;
 

@@ -34,9 +34,11 @@ std::string YulFunctionDefinitionNode::to_string() {
     str.append("define ");
     str.append(functionName->to_string());
     str.append("(");
-    str.append(args->to_string());
+    if(args != NULL)
+      str.append(args->to_string());
     str.append(")");
-    str.append(rets->to_string());
+    if(rets != NULL)
+      str.append(rets->to_string());
     str.append(body->to_string());
     str.append("}");
   }
@@ -66,10 +68,23 @@ void YulFunctionDefinitionNode::createPrototype() {
   }
 }
 
-void YulFunctionDefinitionNode::createVarsForsRets() {
+void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
   llvm::BasicBlock *BB =
       llvm::BasicBlock::Create(*(YulASTBase::TheContext), "entry", F);
   Builder->SetInsertPoint(BB);
+
+
+
+  if (args != NULL) {
+    for (auto arg : args->getIdentifiers()) {
+      llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
+      NamedValues[arg->getIdentfierValue()] = a;
+    }
+  }
+
+  for(auto &f: F->args()){
+    Builder->CreateStore(&f, NamedValues[f.getName().str()]);
+  }
 
   if (rets != NULL) {
     for (auto arg : rets->getIdentifiers()) {
@@ -83,7 +98,7 @@ llvm::Value *
 YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   if (!F)
     createPrototype();
-  createVarsForsRets();
+  createVarsForArgsAndRets();
   body->codegen(F);
   if(!rets){
     Builder->CreateRetVoid();
@@ -95,6 +110,8 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
   }
+  llvm::verifyFunction(*F, &(llvm::outs()));
+
   return nullptr;
 }
 
