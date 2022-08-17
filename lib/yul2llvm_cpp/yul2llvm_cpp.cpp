@@ -46,6 +46,6 @@ int main(int argc, char **argv) {
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
   translator.dumpFunctionsToFile(outputFile);
-  std::cout<<"llvm successfully generated";
+  llvm::outs()<<"llvm successfully generated";
   return EXIT_SUCCESS;
 }
