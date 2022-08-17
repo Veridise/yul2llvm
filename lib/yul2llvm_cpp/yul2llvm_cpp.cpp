@@ -1,3 +1,4 @@
+#include <iostream>
 #include <fstream>
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
@@ -8,7 +9,7 @@ namespace cl = llvm::cl;
 int readJsonData(std::string filename, json &rawAST) {
   std::ifstream jsonFileStream(filename);
   try {
-    rawAST = nlohmann::json::parse(jsonFileStream);
+    rawAST = nlohmann::json::parse(jsonFileStream, nullptr, true, true);
     return 0;
   } catch (...) {
     llvm::outs() << "Could not parse json read from ";
@@ -45,6 +46,6 @@ int main(int argc, char **argv) {
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
   translator.dumpFunctionsToFile(outputFile);
-
+  std::cout<<"llvm successfully generated";
   return EXIT_SUCCESS;
 }

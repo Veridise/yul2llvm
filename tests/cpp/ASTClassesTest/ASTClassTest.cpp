@@ -313,7 +313,7 @@ void functionDefinitionTest() {
                     ]
                 },
                 {
-                    "type": "yul_leave_statement",
+                    "type": "yul_leave",
 										"children":[]
                 }
             ]
