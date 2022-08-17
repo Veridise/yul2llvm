@@ -5,15 +5,15 @@
 #include <vector>
 
 namespace yulast {
-class YulFunctionRetListNode : protected YulASTBase {
+class YulFunctionRetListNode : public YulASTBase {
 protected:
-  virtual void parseRawAST() override;
-  YulTypedIdentifierListNode *identifierList;
+  virtual void parseRawAST(const json *rawAst) override;
+  std::unique_ptr<YulTypedIdentifierListNode> identifierList;
   std::string str = "";
 
 public:
   virtual std::string to_string() override;
-  YulFunctionRetListNode(nlohmann::json *rawAST);
-  std::vector<YulIdentifierNode *> getIdentifiers();
+  YulFunctionRetListNode(const json *rawAST);
+  std::vector<std::unique_ptr<YulIdentifierNode>>& getIdentifiers();
 };
 }; // namespace yulast

@@ -5,28 +5,28 @@
 
 using namespace yulast;
 
-void YulFunctionDefinitionNode::parseRawAST() {
+void YulFunctionDefinitionNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() >= 2);
   for (json::iterator it = topLevelChildren.begin();
        it != topLevelChildren.end(); it++) {
     if (!(*it)["type"].get<std::string>().compare(YUL_IDENTIFIER_KEY))
-      functionName = new YulIdentifierNode(&(*it));
+      functionName = std::make_unique<YulIdentifierNode>(&(*it));
     else if (!(*it)["type"].get<std::string>().compare(
                  YUL_FUNCTION_ARG_LIST_KEY))
-      args = new YulFunctionArgListNode(&(*it));
+      args = std::make_unique<YulFunctionArgListNode>(&(*it));
     else if (!(*it)["type"].get<std::string>().compare(
                  YUL_FUNCTION_RET_LIST_KEY))
-      rets = new YulFunctionRetListNode(&(*it));
+      rets = std::make_unique<YulFunctionRetListNode>(&(*it));
     else if (!(*it)["type"].get<std::string>().compare(YUL_BLOCK_KEY))
-      body = new YulBlockNode(&(*it));
+      body = std::make_unique<YulBlockNode>(&(*it));
   }
 }
 
-YulFunctionDefinitionNode::YulFunctionDefinitionNode(json *rawAST)
-    : YulStatementNode(rawAST, YUL_AST_STATEMENT_FUNCTION_DEFINITION) {
-  assert(sanityCheckPassed(YUL_FUNCTION_DEFINITION_KEY));
-  parseRawAST();
+YulFunctionDefinitionNode::YulFunctionDefinitionNode(const json *rawAST)
+    : YulStatementNode(rawAST, YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION) {
+  assert(sanityCheckPassed(rawAST, YUL_FUNCTION_DEFINITION_KEY));
+  parseRawAST(rawAST);
 }
 
 std::string YulFunctionDefinitionNode::to_string() {
@@ -76,7 +76,7 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
 
 
   if (args != NULL) {
-    for (auto arg : args->getIdentifiers()) {
+    for (auto& arg : args->getIdentifiers()) {
       llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
       NamedValues[arg->getIdentfierValue()] = a;
     }
@@ -87,7 +87,7 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
   }
 
   if (rets != NULL) {
-    for (auto arg : rets->getIdentifiers()) {
+    for (auto& arg : rets->getIdentifiers()) {
       llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue());
       NamedValues[arg->getIdentfierValue()] = a;
     }

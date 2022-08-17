@@ -3,12 +3,12 @@
 #include <nlohmann/json.hpp>
 
 namespace yulast {
-class YulExpressionNode : protected YulStatementNode {
+class YulExpressionNode : public YulStatementNode {
 protected:
 public:
-  YUL_AST_EXPRESSION_TYPE expressionType;
+  YUL_AST_EXPRESSION_NODE_TYPE expressionType;
   virtual std::string to_string() override;
-  YulExpressionNode(nlohmann::json *rawAST, YUL_AST_EXPRESSION_TYPE exprType);
+  YulExpressionNode(const json *rawAST, YUL_AST_EXPRESSION_NODE_TYPE exprType);
   virtual llvm::Value *codegen(llvm::Function *F) override;
   virtual ~YulExpressionNode(){};
 };

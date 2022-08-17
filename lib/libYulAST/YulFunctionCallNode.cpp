@@ -5,19 +5,19 @@
 
 using namespace yulast;
 
-void YulFunctionCallNode::parseRawAST() {
+void YulFunctionCallNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() >= 1);
-  callee = new YulIdentifierNode(&topLevelChildren[0]);
+  callee = std::make_unique<YulIdentifierNode>(&topLevelChildren[0]);
   for (unsigned long i = 1; i<topLevelChildren.size(); i++) {
     args.push_back(YulExpressionBuilder::Builder(&topLevelChildren[i]));
   }
 }
 
-YulFunctionCallNode::YulFunctionCallNode(json *rawAST)
-    : YulExpressionNode(rawAST, YUL_AST_EXPRESSION_FUNCTION_CALL) {
-  assert(sanityCheckPassed(YUL_FUNCTION_CALL_KEY));
-  parseRawAST();
+YulFunctionCallNode::YulFunctionCallNode(const json *rawAST)
+    : YulExpressionNode(rawAST,YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL) {
+  assert(sanityCheckPassed(rawAST, YUL_FUNCTION_CALL_KEY));
+  parseRawAST(rawAST);
 }
 
 std::string YulFunctionCallNode::to_string() {
@@ -80,6 +80,6 @@ std::string YulFunctionCallNode::getName() {
   return callee->getIdentfierValue();
 }
 
-std::vector<YulExpressionNode*> YulFunctionCallNode::getArgs() {
+std::vector<std::unique_ptr<YulExpressionNode>>& YulFunctionCallNode::getArgs() {
   return args;
 }

@@ -3,16 +3,16 @@
 #include <nlohmann/json.hpp>
 
 namespace yulast {
-class YulIdentifierNode : protected YulExpressionNode {
+class YulIdentifierNode : public YulExpressionNode {
 protected:
   std::string identifierValue = "";
-  void parseRawAST() override;
+  void parseRawAST(const json *rawAst) override;
 
 public:
   std::string str = "";
   virtual std::string to_string() override;
   virtual llvm::Value *codegen(llvm::Function *F) override;
-  YulIdentifierNode(nlohmann::json *rawAST);
+  YulIdentifierNode(const json *rawAST);
   std::string getIdentfierValue();
 };
 }; // namespace yulast

@@ -11,9 +11,8 @@ using json = nlohmann::json;
 namespace yulast {
 class YulASTBase {
 protected:
-  json *rawAST;
   YUL_AST_NODE_TYPE nodeType;
-  virtual void parseRawAST();
+  virtual void parseRawAST(const json *rawAst);
 
 public:
   static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
@@ -28,7 +27,7 @@ public:
   virtual ~YulASTBase(){};
   virtual llvm::Value *codegen(llvm::Function *F);
   virtual std::string to_string();
-  YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType);
-  bool sanityCheckPassed(std::string);
+  YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType);
+  bool sanityCheckPassed(const json *rawAST, std::string);
 };
 }; // namespace yulast

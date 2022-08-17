@@ -4,17 +4,17 @@
 
 using namespace yulast;
 
-void YulFunctionRetListNode::parseRawAST() {
+void YulFunctionRetListNode::parseRawAST(const json *rawAST) {
   json children = rawAST->at("children");
   assert(children.size() == 1);
   json args = children[0];
-  identifierList = new YulTypedIdentifierListNode(&args);
+  identifierList = std::make_unique<YulTypedIdentifierListNode>(&args);
 }
 
-YulFunctionRetListNode::YulFunctionRetListNode(json *rawAST)
-    : YulASTBase(rawAST, YUL_AST_NODE_FUNCTION_ARG_LIST) {
-  assert(sanityCheckPassed(YUL_FUNCTION_RET_LIST_KEY));
-  parseRawAST();
+YulFunctionRetListNode::YulFunctionRetListNode(const json *rawAST)
+    : YulASTBase(rawAST,YUL_AST_NODE_TYPE::YUL_AST_NODE_FUNCTION_ARG_LIST) {
+  assert(sanityCheckPassed(rawAST, YUL_FUNCTION_RET_LIST_KEY));
+  parseRawAST(rawAST);
 }
 
 std::string YulFunctionRetListNode::to_string() {
@@ -26,7 +26,7 @@ std::string YulFunctionRetListNode::to_string() {
   return str;
 }
 
-std::vector<YulIdentifierNode *> YulFunctionRetListNode::getIdentifiers() {
+std::vector<std::unique_ptr<YulIdentifierNode>>& YulFunctionRetListNode::getIdentifiers() {
   assert(identifierList != NULL);
   return identifierList->getIdentifiers();
 }

@@ -4,16 +4,16 @@
 
 
 namespace yulast {
-class YulNumberLiteralNode : protected YulLiteralNode {
+class YulNumberLiteralNode : public YulLiteralNode {
 protected:
   std::int32_t literalValue = 0;
-  void parseRawAST() override;
+  void parseRawAST(const json *rawAst) override;
 
 public:
   std::string str = "";
   virtual std::string to_string() override;
   virtual llvm::Value *codegen(llvm::Function *F) override;
-  YulNumberLiteralNode(nlohmann::json *rawAST);
+  YulNumberLiteralNode(const json *rawAST);
   /** TODO: Currently literals only a data type of 32 bits is assumed
    * Needs to account for other datatypes (more subclasses maybe)
   */
