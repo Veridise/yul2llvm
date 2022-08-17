@@ -12,10 +12,7 @@
 using namespace yul2llvm;
 
 TranslateYulToLLVM::TranslateYulToLLVM(json inputRawAST)
-    : rawAST(inputRawAST) {
-}
-
-
+    : rawAST(inputRawAST) {}
 
 void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
   if (j.is_array()) {
@@ -39,19 +36,16 @@ void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
 }
 
 void TranslateYulToLLVM::run() {
-  std::cout<<"[+] Traversing json "<<std::endl;
+  std::cout << "[+] Traversing json " << std::endl;
   traverseJson(rawAST);
 }
 
-bool TranslateYulToLLVM::areFunctionsBuilt(){
-  return functionsBuilt;
-}
+bool TranslateYulToLLVM::areFunctionsBuilt() { return functionsBuilt; }
 
-void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename){
-  std::cout<<"[+] Dumping function to file "<<std::endl;
-  for (auto& f : functions) {
+void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename) {
+  std::cout << "[+] Dumping function to file " << std::endl;
+  for (auto &f : functions) {
     f.dumpToFile(outputFilename);
     // f.dumpToStdout();
   }
 }
-

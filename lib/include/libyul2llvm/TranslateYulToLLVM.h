@@ -15,14 +15,15 @@ class TranslateYulToLLVM {
   /**
    * @todo The vecotr function contianing ast definitions of functions is kept
    * here intentionally. We might need access to a metadata/information about
-   * a function that is not yet encoded in llvm. 
-   * This will be eventually removed once we have handled all yul-language features
-   * that are currently not supporeted in llvm.
-   * 
+   * a function that is not yet encoded in llvm.
+   * This will be eventually removed once we have handled all yul-language
+   * features that are currently not supporeted in llvm.
+   *
    */
   std::vector<yulast::YulFunctionDefinitionNode> functions;
   std::vector<llvm::Function *> llvmFunctions;
   bool functionsBuilt = false;
+
 public:
   TranslateYulToLLVM(const json rawAST);
   bool areFunctionsBuilt();
