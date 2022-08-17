@@ -36,14 +36,14 @@ void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
 }
 
 void TranslateYulToLLVM::run() {
-  std::cout << "[+] Traversing json " << std::endl;
+  // std::cout << "[+] Traversing json " << std::endl;
   traverseJson(rawAST);
 }
 
 bool TranslateYulToLLVM::areFunctionsBuilt() { return functionsBuilt; }
 
 void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename) {
-  std::cout << "[+] Dumping function to file " << std::endl;
+  // std::cout << "[+] Dumping function to file " << std::endl;
   for (auto &f : functions) {
     f.dumpToFile(outputFilename);
     // f.dumpToStdout();

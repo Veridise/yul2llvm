@@ -97,9 +97,9 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
 
 llvm::Value *
 YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
-  llvm::errs() << "\n[+] Generating function for "
-               << functionName->getIdentfierValue()
-               << "\nWarnings from verifier:\n";
+  // llvm::errs() << "\n[+] Generating function for "
+  //              << functionName->getIdentfierValue()
+  //              << "\nWarnings from verifier:\n";
   if (!F)
     createPrototype();
   NamedValues.clear();
@@ -114,7 +114,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
   }
-  llvm::verifyFunction(*F, &(llvm::errs()));
+  llvm::verifyFunction(*F, &(llvm::nulls()));
 
   return nullptr;
 }

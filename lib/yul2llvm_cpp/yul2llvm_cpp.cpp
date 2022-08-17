@@ -9,7 +9,7 @@ int readJsonData(std::string filename, json &rawAST) {
   std::ifstream jsonFileStream(filename);
   try {
     rawAST = nlohmann::json::parse(jsonFileStream);
-    return rawAST;
+    return 0;
   } catch (...) {
     llvm::outs() << "Could not parse json read from ";
     llvm::outs() << filename << "\n";
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
   json rawAST;
 
-  if (!readJsonData(inputFile, rawAST)) {
+  if (readJsonData(inputFile, rawAST)) {
     return EXIT_FAILURE;
   }
 
