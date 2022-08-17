@@ -106,7 +106,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   if (!rets) {
     Builder->CreateRetVoid();
   } else {
-    // TODO assuming rets has only a single element
+    // @todo assuming rets has only a single element
     llvm::Value *v = Builder->CreateLoad(
         llvm::Type::getInt32Ty(*TheContext),
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);

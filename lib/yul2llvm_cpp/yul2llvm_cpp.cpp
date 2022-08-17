@@ -23,14 +23,14 @@ int main(int argc, char **argv) {
   cl::HideUnrelatedOptions({});
 
   // If this is null, read from stdin
-  // TODO: There should be a CommandLine API that does this...
+  // @todo There should be a CommandLine API that does this...
   cl::opt<std::string> inputFile(
       cl::Positional,
       cl::desc("<filename> : Input json file name conatining preprocessed AST"),
       cl::Required);
 
   // By default, print to stdout. Otherwise, write to this file.
-  // TODO: There should be a CommandLine API that does this...
+  // @todo There should be a CommandLine API that does this...
   cl::opt<std::string> outputFile("o", cl::desc("Output file location"));
 
   if (!cl::ParseCommandLineOptions(argc, argv)) {

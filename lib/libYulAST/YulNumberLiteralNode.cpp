@@ -9,14 +9,14 @@ std::int32_t YulNumberLiteralNode::getLiteralValue() { return literalValue; }
 void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   assert(sanityCheckPassed(rawAST, YUL_NUMBER_LITERAL_KEY));
   /**
-   * TODO: Number literal assumed is only of type yul_dec_number
+   * @todo Number literal assumed is only of type yul_dec_number
    * Consider adding a different number type.
    */
   json children = rawAST->at("children");
   assert(children.size() == 1);
   json child = children[0];
   /**
-   * TODO: If the uint256 literals are encountered, they are
+   * @todo If the uint256 literals are encountered, they are
    * set to int max.
    *
    */

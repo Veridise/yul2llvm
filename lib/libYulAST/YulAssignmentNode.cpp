@@ -7,7 +7,7 @@ using namespace yulast;
 void YulAssignmentNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() == 2);
-  // XXX TODO: Dont depend on the ordering in children array for type of nodes.
+  // XXX @todo Dont depend on the ordering in children array for type of nodes.
   lhs = std::make_unique<YulIdentifierListNode>(&topLevelChildren[0]);
   rhs = YulExpressionBuilder::Builder(&topLevelChildren[1]);
 }

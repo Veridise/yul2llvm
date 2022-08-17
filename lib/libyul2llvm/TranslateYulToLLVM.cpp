@@ -9,7 +9,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
-namespace yul2llvm{
+using namespace yul2llvm;
 
 TranslateYulToLLVM::TranslateYulToLLVM(json inputRawAST)
     : rawAST(inputRawAST) {
@@ -55,4 +55,3 @@ void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename){
   }
 }
 
-};//namespace yul2llvm

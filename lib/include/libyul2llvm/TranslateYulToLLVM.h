@@ -9,10 +9,7 @@
 namespace yul2llvm {
 
 class TranslateYulToLLVM {
-  /// TODO: this is a placeholder interface, please replace this with the real
-  /// interface
-  // private fileds
-
+  
   json rawAST;
   void traverseJson(json);
   /**
@@ -33,4 +30,4 @@ public:
   void dumpFunctionsToFile(std::string);
 };
 
-} // namespace yul2llvm
+}; // namespace yul2llvm
