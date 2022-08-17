@@ -52,7 +52,7 @@ void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j) {
 
 void yul2llvm::TranslateYulToLLVM::run() {
   traverseJson(rawAST);
-  for (auto& f : functions) {
+  for (auto &f : functions) {
     f.dumpToFile(outputFilename);
     // f.dumpToStdout();
   }

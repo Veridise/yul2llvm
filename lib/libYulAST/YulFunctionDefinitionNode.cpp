@@ -24,7 +24,9 @@ void YulFunctionDefinitionNode::parseRawAST(const json *rawAST) {
 }
 
 YulFunctionDefinitionNode::YulFunctionDefinitionNode(const json *rawAST)
-    : YulStatementNode(rawAST, YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION) {
+    : YulStatementNode(
+          rawAST,
+          YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION) {
   assert(sanityCheckPassed(rawAST, YUL_FUNCTION_DEFINITION_KEY));
   parseRawAST(rawAST);
 }
@@ -34,10 +36,10 @@ std::string YulFunctionDefinitionNode::to_string() {
     str.append("define ");
     str.append(functionName->to_string());
     str.append("(");
-    if(args != NULL)
+    if (args != NULL)
       str.append(args->to_string());
     str.append(")");
-    if(rets != NULL)
+    if (rets != NULL)
       str.append(rets->to_string());
     str.append(body->to_string());
     str.append("}");
@@ -73,21 +75,20 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
       llvm::BasicBlock::Create(*(YulASTBase::TheContext), "entry", F);
   Builder->SetInsertPoint(BB);
 
-
-
   if (args != NULL) {
-    for (auto& arg : args->getIdentifiers()) {
-      llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
+    for (auto &arg : args->getIdentifiers()) {
+      llvm::AllocaInst *a =
+          CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
       NamedValues[arg->getIdentfierValue()] = a;
     }
   }
 
-  for(auto &f: F->args()){
+  for (auto &f : F->args()) {
     Builder->CreateStore(&f, NamedValues[f.getName().str()]);
   }
 
   if (rets != NULL) {
-    for (auto& arg : rets->getIdentifiers()) {
+    for (auto &arg : rets->getIdentifiers()) {
       llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue());
       NamedValues[arg->getIdentfierValue()] = a;
     }
@@ -96,14 +97,15 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
 
 llvm::Value *
 YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
+  llvm::errs()<<"\nGenerating function for "<<functionName->getIdentfierValue()<<"\n";
   if (!F)
     createPrototype();
+  NamedValues.clear();
   createVarsForArgsAndRets();
   body->codegen(F);
-  if(!rets){
+  if (!rets) {
     Builder->CreateRetVoid();
-  }
-  else {
+  } else {
     // TODO assuming rets has only a single element
     llvm::Value *v = Builder->CreateLoad(
         llvm::Type::getInt32Ty(*TheContext),

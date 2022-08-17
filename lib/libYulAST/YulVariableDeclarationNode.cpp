@@ -7,14 +7,17 @@ using namespace yulast;
 void YulVariableDeclarationNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() <= 2);
-  variableNames = std::make_unique<YulTypedIdentifierListNode>(&topLevelChildren[0]);
+  variableNames =
+      std::make_unique<YulTypedIdentifierListNode>(&topLevelChildren[0]);
   if (topLevelChildren.size() == 2) {
     value = YulExpressionBuilder::Builder(&(topLevelChildren[1]));
   }
 }
 
 YulVariableDeclarationNode::YulVariableDeclarationNode(const json *rawAST)
-    : YulStatementNode(rawAST, YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_VARIABLE_DECLARATION) {
+    : YulStatementNode(
+          rawAST,
+          YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_VARIABLE_DECLARATION) {
   assert(sanityCheckPassed(rawAST, YUL_VARIABLE_DECLARATION_KEY));
   parseRawAST(rawAST);
 }
@@ -28,8 +31,8 @@ std::string YulVariableDeclarationNode::to_string() {
   return str;
 }
 
-void YulVariableDeclarationNode::codeGenForOneVar(std::unique_ptr<YulIdentifierNode> &id,
-                                                  llvm::Function *F) {
+void YulVariableDeclarationNode::codeGenForOneVar(
+    std::unique_ptr<YulIdentifierNode> &id, llvm::Function *F) {
   if (NamedValues[id->getIdentfierValue()] != NULL) {
     std::cout << "Error redeclaration of variable " << id->getIdentfierValue()
               << std::endl;
@@ -39,7 +42,7 @@ void YulVariableDeclarationNode::codeGenForOneVar(std::unique_ptr<YulIdentifierN
 }
 
 llvm::Value *YulVariableDeclarationNode::codegen(llvm::Function *F) {
-  for (auto& id : variableNames->getIdentifiers()) {
+  for (auto &id : variableNames->getIdentifiers()) {
     codeGenForOneVar(id, F);
     if (value != NULL) {
       llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
@@ -50,7 +53,8 @@ llvm::Value *YulVariableDeclarationNode::codegen(llvm::Function *F) {
   return nullptr;
 }
 
-std::vector<std::unique_ptr<YulIdentifierNode>>& YulVariableDeclarationNode::getVars() {
+std::vector<std::unique_ptr<YulIdentifierNode>> &
+YulVariableDeclarationNode::getVars() {
   assert(variableNames != NULL);
   return variableNames->getIdentifiers();
 }

@@ -14,6 +14,6 @@ public:
   std::string str = "";
   virtual std::string to_string() override;
   YulFunctionArgListNode(const json *rawAST);
-  std::vector<std::unique_ptr<YulIdentifierNode>>& getIdentifiers();
+  std::vector<std::unique_ptr<YulIdentifierNode>> &getIdentifiers();
 };
 }; // namespace yulast

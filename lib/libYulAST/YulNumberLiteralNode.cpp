@@ -16,22 +16,22 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   assert(children.size() == 1);
   json child = children[0];
   /**
-   * TODO: If the uint256 literals are encountered, they are 
+   * TODO: If the uint256 literals are encountered, they are
    * set to int max.
-   * 
+   *
    */
   std::string valString = child["children"][0].get<std::string>();
 
-  if(child["type"] == YUL_DEC_NUMBER_LITERAL_KEY){
-    try{
+  if (child["type"] == YUL_DEC_NUMBER_LITERAL_KEY) {
+    try {
       literalValue = std::stoi(valString);
-    } catch (std::exception e){
+    } catch (std::exception e) {
       literalValue = INT32_MAX;
     }
-  } else if(child["type"] == YUL_HEX_NUMBER_LITERAL_KEY){
-    try{
+  } else if (child["type"] == YUL_HEX_NUMBER_LITERAL_KEY) {
+    try {
       literalValue = std::stoi(valString, nullptr, 16);
-    } catch (std::exception e){
+    } catch (std::exception e) {
       literalValue = INT32_MAX;
     }
   } else {
@@ -40,13 +40,16 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
 }
 
 YulNumberLiteralNode::YulNumberLiteralNode(const json *rawAST)
-    : YulLiteralNode(rawAST, YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_NUMBER) {
+    : YulLiteralNode(rawAST,
+                     YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_NUMBER) {
   parseRawAST(rawAST);
 }
 
 llvm::Value *YulNumberLiteralNode::codegen(llvm::Function *F) {
-  llvm::Type* int32Type = llvm::Type::getInt32Ty(*TheContext);
+  llvm::Type *int32Type = llvm::Type::getInt32Ty(*TheContext);
   return llvm::ConstantInt::get(int32Type, literalValue, true);
 }
 
-std::string YulNumberLiteralNode::to_string() { return std::to_string(literalValue); }
+std::string YulNumberLiteralNode::to_string() {
+  return std::to_string(literalValue);
+}

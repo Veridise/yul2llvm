@@ -9,6 +9,7 @@ class YulBlockNode : public YulStatementNode {
 protected:
   std::vector<std::unique_ptr<YulStatementNode>> statements;
   virtual void parseRawAST(const json *rawAst) override;
+
 public:
   std::string str = "";
   virtual llvm::Value *codegen(llvm::Function *F) override;

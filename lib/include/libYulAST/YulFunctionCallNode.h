@@ -21,6 +21,6 @@ public:
   virtual std::string to_string() override;
   YulFunctionCallNode(const json *rawAST);
   std::string getName();
-  std::vector<std::unique_ptr<YulExpressionNode>>& getArgs();
+  std::vector<std::unique_ptr<YulExpressionNode>> &getArgs();
 };
 }; // namespace yulast

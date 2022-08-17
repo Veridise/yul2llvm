@@ -14,6 +14,6 @@ protected:
 public:
   virtual std::string to_string() override;
   YulFunctionRetListNode(const json *rawAST);
-  std::vector<std::unique_ptr<YulIdentifierNode>>& getIdentifiers();
+  std::vector<std::unique_ptr<YulIdentifierNode>> &getIdentifiers();
 };
 }; // namespace yulast
