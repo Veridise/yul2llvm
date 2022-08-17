@@ -97,7 +97,9 @@ void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
 
 llvm::Value *
 YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
-  llvm::errs()<<"\nGenerating function for "<<functionName->getIdentfierValue()<<"\n";
+  llvm::errs() << "\n[+] Generating function for "
+               << functionName->getIdentfierValue()
+               << "\nWarnings from verifier:\n";
   if (!F)
     createPrototype();
   NamedValues.clear();
@@ -106,7 +108,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   if (!rets) {
     Builder->CreateRetVoid();
   } else {
-    // TODO assuming rets has only a single element
+    // @todo assuming rets has only a single element
     llvm::Value *v = Builder->CreateLoad(
         llvm::Type::getInt32Ty(*TheContext),
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
@@ -126,3 +128,5 @@ void YulFunctionDefinitionNode::dumpToFile(std::string outputFileName) {
 void YulFunctionDefinitionNode::dumpToStdout() {
   TheModule->print(llvm::errs(), nullptr);
 }
+
+llvm::Function *YulFunctionDefinitionNode::getLLVMFunction() { return F; }
