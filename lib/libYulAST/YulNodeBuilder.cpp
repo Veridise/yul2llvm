@@ -28,7 +28,7 @@ YulStatementBuilder::Builder(const json *rawAST) {
     ;
   }
   std::cout << "Statement node not implemented: " << type << std::endl;
-  assert(false);
+  assert(false && "Statement node not implemented");
   return NULL;
 }
 
@@ -45,7 +45,7 @@ YulExpressionBuilder::Builder(const json *rawAST) {
   } else if (!type.compare(YUL_LITERAL_KEY)) {
     return YulLiteralBuilder::Build(&(rawAST->at("children")[0]));
   }
-  assert(false);
+  assert(false&& "Encountered an unimplemented Expression");
   return NULL;
 }
 
@@ -56,6 +56,6 @@ std::unique_ptr<YulLiteralNode> YulLiteralBuilder::Build(const json *rawAST) {
     return std::unique_ptr<YulLiteralNode>(
         std::make_unique<YulNumberLiteralNode>(rawAST));
   }
-  assert(false);
+  assert(false&& "Encountered an unimplemented literal node");
   return NULL;
 }
