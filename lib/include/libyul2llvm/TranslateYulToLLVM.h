@@ -9,7 +9,7 @@
 namespace yul2llvm {
 
 class TranslateYulToLLVM {
-  
+
   json rawAST;
   void traverseJson(json);
   /**
