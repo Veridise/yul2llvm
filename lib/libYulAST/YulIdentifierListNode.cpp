@@ -13,13 +13,13 @@ void YulIdentifierListNode::parseRawAST(const json *rawAST) {
 }
 
 YulIdentifierListNode::YulIdentifierListNode(const json *rawAST)
-    : YulASTBase(rawAST,YUL_AST_NODE_TYPE::YUL_AST_NODE_IDENTIFIER_LIST) {
+    : YulASTBase(rawAST, YUL_AST_NODE_TYPE::YUL_AST_NODE_IDENTIFIER_LIST) {
   parseRawAST(rawAST);
 }
 
 std::string YulIdentifierListNode::to_string() {
   if (!str.compare("")) {
-    for (auto& it: identifierList) {
+    for (auto &it : identifierList) {
       str.append(it->to_string());
       str.append(",");
     }
@@ -27,6 +27,7 @@ std::string YulIdentifierListNode::to_string() {
   return str;
 }
 
-std::vector<std::unique_ptr<YulIdentifierNode>>& YulIdentifierListNode::getIdentifiers() {
+std::vector<std::unique_ptr<YulIdentifierNode>> &
+YulIdentifierListNode::getIdentifiers() {
   return identifierList;
 }

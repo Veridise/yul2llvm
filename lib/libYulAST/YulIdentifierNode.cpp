@@ -12,15 +12,16 @@ void YulIdentifierNode::parseRawAST(const json *rawAST) {
 }
 
 YulIdentifierNode::YulIdentifierNode(const json *rawAST)
-    : YulExpressionNode(rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER) {
+    : YulExpressionNode(
+          rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER) {
   parseRawAST(rawAST);
 }
 
 llvm::Value *YulIdentifierNode::codegen(llvm::Function *F) {
   llvm::Type *inttype = llvm::Type::getInt32Ty(*TheContext);
-  if(NamedValues.find(identifierValue)==NamedValues.end()){
-    for(auto &arg:F->args()){
-      if(!std::string(arg.getName()).compare(identifierValue)){
+  if (NamedValues.find(identifierValue) == NamedValues.end()) {
+    for (auto &arg : F->args()) {
+      if (!std::string(arg.getName()).compare(identifierValue)) {
         return &arg;
       }
     }

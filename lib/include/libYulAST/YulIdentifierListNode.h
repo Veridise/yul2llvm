@@ -11,7 +11,7 @@ protected:
 
 public:
   std::string str = "";
-  std::vector<std::unique_ptr<YulIdentifierNode>>& getIdentifiers();
+  std::vector<std::unique_ptr<YulIdentifierNode>> &getIdentifiers();
   virtual std::string to_string() override;
   YulIdentifierListNode(const json *rawAST);
 };

@@ -2,7 +2,6 @@
 #include <libYulAST/YulLiteralNode.h>
 #include <nlohmann/json.hpp>
 
-
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {
 protected:
@@ -16,7 +15,7 @@ public:
   YulNumberLiteralNode(const json *rawAST);
   /** TODO: Currently literals only a data type of 32 bits is assumed
    * Needs to account for other datatypes (more subclasses maybe)
-  */
+   */
   std::int32_t getLiteralValue();
 };
 }; // namespace yulast

@@ -6,12 +6,12 @@
 #include <libYulAST/YulVariableDeclarationNode.h>
 #include <nlohmann/json.hpp>
 
+#include <libYulAST/YulBlockNode.h>
 #include <libYulAST/YulExpressionNode.h>
 #include <libYulAST/YulFunctionCallNode.h>
 #include <libYulAST/YulIdentifierNode.h>
 #include <libYulAST/YulLiteralNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
-#include <libYulAST/YulBlockNode.h>
 
 namespace yulast {
 class YulStatementBuilder {

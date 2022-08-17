@@ -7,6 +7,7 @@ class YulLiteralNode : public YulExpressionNode {
 protected:
   void parseRawAST(const json *rawAst) override;
   YUL_AST_LITERAL_NODE_TYPE literalType;
+
 public:
   std::string str = "";
   virtual std::string to_string() override;

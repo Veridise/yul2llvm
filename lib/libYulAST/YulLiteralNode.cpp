@@ -4,18 +4,18 @@
 #include <string>
 using namespace yulast;
 
-
 void YulLiteralNode::parseRawAST(const json *rawAST) {
-  std::cout<<"Literal base; parseRawAST not implemented"<<std::endl;
+  std::cout << "Literal base; parseRawAST not implemented" << std::endl;
 }
 
-YulLiteralNode::YulLiteralNode(const json *rawAST, YUL_AST_LITERAL_NODE_TYPE type)
-    : YulExpressionNode(rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL), 
-    literalType(type) {
-}
+YulLiteralNode::YulLiteralNode(const json *rawAST,
+                               YUL_AST_LITERAL_NODE_TYPE type)
+    : YulExpressionNode(
+          rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL),
+      literalType(type) {}
 
 llvm::Value *YulLiteralNode::codegen(llvm::Function *F) {
-  std::cout<<"Literal base: Codegen not implemented"<<std::endl;
+  std::cout << "Literal base: Codegen not implemented" << std::endl;
   return NULL;
 }
 

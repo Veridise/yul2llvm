@@ -3,8 +3,8 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <nlohmann/json.hpp>
 #include <llvm/IR/Verifier.h>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
