@@ -1,8 +1,23 @@
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
+#include <fstream>
 
 namespace cl = llvm::cl;
+
+int readJsonData(std::string filename, json &rawAST) {
+  std::ifstream jsonFileStream(filename);
+  try {
+    rawAST = nlohmann::json::parse(jsonFileStream);
+    return rawAST;
+  } catch (...) {
+    llvm::outs() << "Could not parse json read from ";
+    llvm::outs() << filename << "\n";
+    return -1;
+  }
+  return 0;
+}
+
 
 int main(int argc, char **argv) {
   cl::HideUnrelatedOptions({});
@@ -22,9 +37,15 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  // TODO: placeholder
-  yul2llvm::TranslateYulToLLVM translator(inputFile, outputFile);
+  json rawAST;
 
+  if(!readJsonData(inputFile, rawAST)){
+    return EXIT_FAILURE;
+  }
+
+  yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
+  translator.dumpFunctionsToFile(outputFile);
+
   return EXIT_SUCCESS;
 }

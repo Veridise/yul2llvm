@@ -8,30 +8,16 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
-using namespace yul2llvm;
 
-TranslateYulToLLVM::TranslateYulToLLVM(std::string filename,
-                                       std::string outputFilename)
-    : inputFilename(filename), outputFilename(outputFilename) {
-  if (readJsonData(filename)) {
-    llvm::outs() << "Could not read json file, exiting \n";
-    exit(1);
-  }
+namespace yul2llvm{
+
+TranslateYulToLLVM::TranslateYulToLLVM(json inputRawAST)
+    : rawAST(inputRawAST) {
 }
 
-int TranslateYulToLLVM::readJsonData(std::string filename) {
-  std::ifstream jsonFileStream(filename);
-  try {
-    rawAST = nlohmann::json::parse(jsonFileStream);
-  } catch (...) {
-    llvm::outs() << "Could not parse json read from ";
-    llvm::outs() << filename << "\n";
-    return -1;
-  }
-  return 0;
-}
 
-void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j) {
+
+void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
   if (j.is_array()) {
     for (nlohmann::json::iterator it = j.begin(); it != j.end(); it++)
       traverseJson(*it);
@@ -41,6 +27,7 @@ void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j) {
         yulast::YulFunctionDefinitionNode fundef(&j);
         fundef.codegen(nullptr);
         functions.push_back(std::move(fundef));
+        llvmFunctions.push_back(fundef.getLLVMFunction());
         return;
       }
     }
@@ -48,12 +35,24 @@ void yul2llvm::TranslateYulToLLVM::traverseJson(nlohmann::json j) {
       traverseJson(it.value());
     }
   }
+  functionsBuilt = true;
 }
 
-void yul2llvm::TranslateYulToLLVM::run() {
+void TranslateYulToLLVM::run() {
+  std::cout<<"[+] Traversing json "<<std::endl;
   traverseJson(rawAST);
-  for (auto &f : functions) {
+}
+
+bool TranslateYulToLLVM::areFunctionsBuilt(){
+  return functionsBuilt;
+}
+
+void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename){
+  std::cout<<"[+] Dumping function to file "<<std::endl;
+  for (auto& f : functions) {
     f.dumpToFile(outputFilename);
     // f.dumpToStdout();
   }
 }
+
+};//namespace yul2llvm
