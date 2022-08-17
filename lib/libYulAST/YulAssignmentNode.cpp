@@ -4,18 +4,18 @@
 
 using namespace yulast;
 
-void YulAssignmentNode::parseRawAST() {
+void YulAssignmentNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() == 2);
   // XXX TODO: Dont depend on the ordering in children array for type of nodes.
-  lhs = new YulIdentifierListNode(&topLevelChildren[0]);
+  lhs = std::make_unique<YulIdentifierListNode>(&topLevelChildren[0]);
   rhs = YulExpressionBuilder::Builder(&topLevelChildren[1]);
 }
 
-YulAssignmentNode::YulAssignmentNode(json *rawAST)
-    : YulStatementNode(rawAST, YUL_AST_STATEMENT_ASSIGNMENT) {
-  assert(sanityCheckPassed(YUL_ASSIGNMENT_KEY));
-  parseRawAST();
+YulAssignmentNode::YulAssignmentNode(const json *rawAST)
+    : YulStatementNode(rawAST, YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_ASSIGNMENT) {
+  assert(sanityCheckPassed(rawAST, YUL_ASSIGNMENT_KEY));
+  parseRawAST(rawAST);
 }
 
 std::string YulAssignmentNode::to_string() {
@@ -26,7 +26,7 @@ std::string YulAssignmentNode::to_string() {
 }
 
 llvm::Value *YulAssignmentNode::codegen(llvm::Function *F) {
-  for (auto var : lhs->getIdentifiers()) {
+  for (auto& var : lhs->getIdentifiers()) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if(lval == nullptr){
@@ -39,8 +39,8 @@ llvm::Value *YulAssignmentNode::codegen(llvm::Function *F) {
   return nullptr;
 }
 
-std::vector<YulIdentifierNode *> YulAssignmentNode::getLHSIdentifiers() {
+std::vector<std::unique_ptr<YulIdentifierNode>>& YulAssignmentNode::getLHSIdentifiers() {
   return lhs->getIdentifiers();
 }
 
-YulExpressionNode *YulAssignmentNode::getRHSExpression() { return rhs; }
+std::unique_ptr<YulExpressionNode>& YulAssignmentNode::getRHSExpression() { return rhs; }

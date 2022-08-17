@@ -10,7 +10,7 @@ std::unique_ptr<llvm::IRBuilder<>> YulASTBase::Builder =
     std::make_unique<llvm::IRBuilder<>>(*TheContext);
 std::map<std::string, llvm::AllocaInst *> YulASTBase::NamedValues;
 
-bool YulASTBase::sanityCheckPassed(std::string key) {
+bool YulASTBase::sanityCheckPassed(const json *rawAST, std::string key) {
   if (!rawAST->contains("type")) {
     std::cout << "type not present" << std::endl;
     return false;
@@ -32,7 +32,7 @@ bool YulASTBase::sanityCheckPassed(std::string key) {
 
 std::string YulASTBase::to_string() { return "to_str not defined for base"; }
 
-void YulASTBase::parseRawAST() {
+void YulASTBase::parseRawAST(const json *rawAST) {
   std::cout << "Parsing Not Implemented" << std::endl;
 }
 
@@ -41,8 +41,8 @@ llvm::Value *YulASTBase::codegen(llvm::Function *F) {
   return nullptr;
 }
 
-YulASTBase::YulASTBase(json *rawAST, YUL_AST_NODE_TYPE nodeType)
-    : rawAST(rawAST), nodeType(nodeType) {}
+YulASTBase::YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType)
+    : nodeType(nodeType) {}
 
 llvm::AllocaInst *
 YulASTBase::CreateEntryBlockAlloca(llvm::Function *TheFunction,

@@ -13,9 +13,9 @@ class TranslateYulToLLVM {
   /// interface
 
   // private fileds
-  nlohmann::json rawAST;
+  json rawAST;
   int readJsonData(std::string filename);
-  void traverseJson(nlohmann::json);
+  void traverseJson(json);
   std::vector<yulast::YulFunctionDefinitionNode> functions;
   std::string inputFilename, outputFilename;
 

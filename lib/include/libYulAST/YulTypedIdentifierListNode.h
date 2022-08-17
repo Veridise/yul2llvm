@@ -4,15 +4,15 @@
 #include <nlohmann/json.hpp>
 
 namespace yulast {
-class YulTypedIdentifierListNode : protected YulASTBase {
+class YulTypedIdentifierListNode : public YulASTBase {
 protected:
-  void parseRawAST() override;
-  std::vector<YulIdentifierNode *> identifierList;
+  void parseRawAST(const json *rawAst) override;
+  std::vector<std::unique_ptr<YulIdentifierNode>> identifierList;
 
 public:
   std::string str = "";
   virtual std::string to_string() override;
-  YulTypedIdentifierListNode(nlohmann::json *rawAST);
-  std::vector<YulIdentifierNode *> getIdentifiers();
+  YulTypedIdentifierListNode(const json *rawAST);
+  std::vector<std::unique_ptr<YulIdentifierNode>>& getIdentifiers();
 };
 }; // namespace yulast

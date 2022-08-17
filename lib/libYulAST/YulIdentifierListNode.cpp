@@ -4,30 +4,29 @@
 
 using namespace yulast;
 
-void YulIdentifierListNode::parseRawAST() {
-  assert(sanityCheckPassed(YUL_IDENTIFIER_LIST_KEY));
+void YulIdentifierListNode::parseRawAST(const json *rawAST) {
+  assert(sanityCheckPassed(rawAST, YUL_IDENTIFIER_LIST_KEY));
   json identifiers = rawAST->at("children");
-  for (json::iterator it = identifiers.begin(); it != identifiers.end(); it++) {
-    identifierList.push_back(new YulIdentifierNode(&(*it)));
+  for (auto it = identifiers.begin(); it != identifiers.end(); it++) {
+    identifierList.push_back(std::make_unique<YulIdentifierNode>(&(*it)));
   }
 }
 
-YulIdentifierListNode::YulIdentifierListNode(json *rawAST)
-    : YulASTBase(rawAST, YUL_AST_NODE_IDENTIFIER_LIST) {
-  parseRawAST();
+YulIdentifierListNode::YulIdentifierListNode(const json *rawAST)
+    : YulASTBase(rawAST,YUL_AST_NODE_TYPE::YUL_AST_NODE_IDENTIFIER_LIST) {
+  parseRawAST(rawAST);
 }
 
 std::string YulIdentifierListNode::to_string() {
   if (!str.compare("")) {
-    for (std::vector<YulIdentifierNode *>::iterator it = identifierList.begin();
-         it != identifierList.end(); it++) {
-      str.append((*it)->to_string());
+    for (auto& it: identifierList) {
+      str.append(it->to_string());
       str.append(",");
     }
   }
   return str;
 }
 
-std::vector<YulIdentifierNode *> YulIdentifierListNode::getIdentifiers() {
+std::vector<std::unique_ptr<YulIdentifierNode>>& YulIdentifierListNode::getIdentifiers() {
   return identifierList;
 }

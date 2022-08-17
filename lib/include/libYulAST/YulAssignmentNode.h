@@ -5,18 +5,18 @@
 #include <nlohmann/json.hpp>
 
 namespace yulast {
-class YulAssignmentNode : protected YulStatementNode {
+class YulAssignmentNode : public YulStatementNode {
 protected:
-  YulIdentifierListNode *lhs;
-  YulExpressionNode *rhs;
+  std::unique_ptr<YulIdentifierListNode> lhs;
+  std::unique_ptr<YulExpressionNode> rhs;
 
 public:
   std::string str = "";
   virtual llvm::Value *codegen(llvm::Function *F) override;
   virtual std::string to_string() override;
-  virtual void parseRawAST() override;
-  YulAssignmentNode(nlohmann::json *rawAst);
-  std::vector<YulIdentifierNode *> getLHSIdentifiers();
-  YulExpressionNode *getRHSExpression();
+  virtual void parseRawAST(const json *rawAst) override;
+  YulAssignmentNode(const json *rawAst);
+  std::vector<std::unique_ptr<YulIdentifierNode>>& getLHSIdentifiers();
+  std::unique_ptr<YulExpressionNode>& getRHSExpression();
 };
 }; // namespace yulast

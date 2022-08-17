@@ -6,14 +6,14 @@ using namespace yulast;
 
 std::string YulIdentifierNode::getIdentfierValue() { return identifierValue; }
 
-void YulIdentifierNode::parseRawAST() {
-  assert(sanityCheckPassed(YUL_IDENTIFIER_KEY));
+void YulIdentifierNode::parseRawAST(const json *rawAST) {
+  assert(sanityCheckPassed(rawAST, YUL_IDENTIFIER_KEY));
   identifierValue.append(rawAST->at("children")[0].get<std::string>());
 }
 
-YulIdentifierNode::YulIdentifierNode(nlohmann::json *rawAST)
-    : YulExpressionNode(rawAST, YUL_AST_EXPRESSION_IDENTIFIER) {
-  parseRawAST();
+YulIdentifierNode::YulIdentifierNode(const json *rawAST)
+    : YulExpressionNode(rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER) {
+  parseRawAST(rawAST);
 }
 
 llvm::Value *YulIdentifierNode::codegen(llvm::Function *F) {

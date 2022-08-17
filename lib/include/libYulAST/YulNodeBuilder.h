@@ -16,17 +16,17 @@
 namespace yulast {
 class YulStatementBuilder {
 public:
-  static YulStatementNode *Builder(json *rawAST);
+  static std::unique_ptr<YulStatementNode> Builder(const json *rawAST);
 };
 
 class YulExpressionBuilder {
 public:
-  static YulExpressionNode *Builder(json *rawAST);
+  static std::unique_ptr<YulExpressionNode> Builder(const json *rawAST);
 };
 
 class YulLiteralBuilder {
 public:
-  static YulLiteralNode *Build(json *rawAST);
+  static std::unique_ptr<YulLiteralNode> Build(const json *rawAST);
 };
 
 }; // namespace yulast

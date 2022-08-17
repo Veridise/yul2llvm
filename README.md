@@ -64,13 +64,12 @@ Steps: TODO (this will be very involved)
 To build
 
 ```
-$ mkdir <build-dir>
-$ cd <build-dir>
-$ cmake <path-of-source-root>
+<yul2llvm-root>$ phases=configurePhase genericBuild
+# This will automatically create and change to the directory to build directory
 ```
 To run
 ```
-$ <build-dir>/bin/yul2llvm_cpp <inputFile> -o <outputFile>
+$ <yul2llvm-root>/build$ /bin/yul2llvm_cpp <inputFile> -o <outputFile>
 ```
 Where,
 * inputFile: The file containing the AST in json format

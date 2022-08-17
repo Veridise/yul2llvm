@@ -6,10 +6,10 @@
 #include <nlohmann/json.hpp>
 
 namespace yulast {
-class YulFunctionCallNode : protected YulExpressionNode {
+class YulFunctionCallNode : public YulExpressionNode {
 protected:
-  YulIdentifierNode *callee;
-  std::vector<YulExpressionNode*> args;
+  std::unique_ptr<YulIdentifierNode> callee;
+  std::vector<std::unique_ptr<YulExpressionNode>> args;
 
 public:
   void createPrototype();
@@ -17,10 +17,10 @@ public:
   llvm::FunctionType *FT = nullptr;
   std::string str = "";
   llvm::Value *codegen(llvm::Function *) override;
-  virtual void parseRawAST() override;
+  virtual void parseRawAST(const json *rawAST) override;
   virtual std::string to_string() override;
-  YulFunctionCallNode(nlohmann::json *rawAST);
+  YulFunctionCallNode(const json *rawAST);
   std::string getName();
-  std::vector<YulExpressionNode *> getArgs();
+  std::vector<std::unique_ptr<YulExpressionNode>>& getArgs();
 };
 }; // namespace yulast

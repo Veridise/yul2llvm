@@ -6,8 +6,8 @@ using namespace yulast;
 
 std::int32_t YulNumberLiteralNode::getLiteralValue() { return literalValue; }
 
-void YulNumberLiteralNode::parseRawAST() {
-  assert(sanityCheckPassed(YUL_NUMBER_LITERAL_KEY));
+void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
+  assert(sanityCheckPassed(rawAST, YUL_NUMBER_LITERAL_KEY));
   /**
    * TODO: Number literal assumed is only of type yul_dec_number
    * Consider adding a different number type.
@@ -39,9 +39,9 @@ void YulNumberLiteralNode::parseRawAST() {
   }
 }
 
-YulNumberLiteralNode::YulNumberLiteralNode(nlohmann::json *rawAST)
-    : YulLiteralNode(rawAST, YUL_AST_LITERAL_TYPE::YUL_AST_LITERAL_NUMBER) {
-  parseRawAST();
+YulNumberLiteralNode::YulNumberLiteralNode(const json *rawAST)
+    : YulLiteralNode(rawAST, YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_NUMBER) {
+  parseRawAST(rawAST);
 }
 
 llvm::Value *YulNumberLiteralNode::codegen(llvm::Function *F) {
