@@ -75,8 +75,9 @@ this should give you a print out of the existing commands and their descriptions
 ### commands
 
 - **compile**: compiles a `.sol` file into its Yul IR equivalent along with its storage layout and ABI files.
-- **translate**: runs some preprocessing on a Yul file to make it easier to parse
 - **parse**: parses a Yul file (pre-processed) and generates the corresponding JSON AST.
+- **inspect-ast**: Extracts function and identifier information from a JSON AST for Yul.
+- **all**: Runs `compile`, `parse`, and `inspect-ast` in one pass on a .sol file and its intermediate forms.
 - **init**: helps setup a dev environment for handling Solidity files. WIP.
 
 ### processing file example

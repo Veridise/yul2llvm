@@ -10,3 +10,8 @@ THIS_DIR = Path(__file__).parent
 def test_cli_compile():
     proc = subprocess.run(["pyul", "compile", THIS_DIR.parent / "corpus" / "SimpleAdd.sol"], check=True)
     assert proc.returncode == 0
+
+def test_inspect_ast():
+    proc = subprocess.run(["pyul", "inspect-ast", THIS_DIR.parent / "compiled" / "SimpleAdd" / "SimpleAdd.json"], check=True)
+
+    assert proc.returncode == 0
