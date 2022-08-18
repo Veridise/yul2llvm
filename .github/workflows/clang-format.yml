@@ -1,0 +1,51 @@
+name: Formatting check
+on:
+  # Run whenever a cpp or h file is modified in a PR
+  pull_request:
+    paths:
+      - '**.cpp'
+      - '**.h'
+
+jobs:
+  run-clang-format:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y clang-format-11
+        name: Install clang-format
+      - name: Get fetch depth
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+      - uses: actions/checkout@v3
+        with:
+          # Checkout head commit and all commits in the PR, including the merge base
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+      - name: Set merge base
+        run: |
+          echo "BASE_COMMIT=$(git rev-list --max-parents=0 HEAD)" >> "${GITHUB_ENV}"
+      - name: Download git-clang-format
+        run: |
+          curl 'https://raw.githubusercontent.com/llvm/llvm-project/c94a02e0e223bcce3b2c88741fae35d31a2d4f1d/clang/tools/clang-format/git-clang-format' -o ./git-clang-format
+          chmod +x ./git-clang-format
+      - name: Run clang-format
+        run: |
+          export tmp_patch="$(mktemp)"
+          export HEAD_COMMIT="$(git rev-parse HEAD)"
+          EXIT_CODE=0
+          ./git-clang-format --diff "$BASE_COMMIT" "$HEAD_COMMIT" > "$tmp_patch" || EXIT_CODE=$?
+          IS_EMPTY_PATCH=$( [ -s "$tmp_patch" ]; echo $? )
+          echo "git-clang-format exited with status $EXIT_CODE"
+          echo "patch empty? $IS_EMPTY_PATCH"
+          if [[ $EXIT_CODE -eq 0 ]] || [ $IS_EMPTY_PATCH -eq 1 ]; then
+            echo "No formatting problems detected"
+            exit
+          fi
+          echo "::error::The code changes are not formatted."
+          echo "Please run the following command in the repository root:"
+          echo
+          echo "    git clang-format --diff $BASE_COMMIT $HEAD_COMMIT | patch -p1"
+          echo
+          echo "::notice::Alternatively, apply the following patch:"
+          cat "$tmp_patch"
+          rm "$tmp_patch"
+          exit 1
