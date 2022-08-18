@@ -1,4 +1,5 @@
 #pragma once
+
 #include <libYulAST/YulNodeBuilder.h>
 #include <libYulAST/YulStatementNode.h>
 #include <nlohmann/json.hpp>
