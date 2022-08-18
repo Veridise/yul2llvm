@@ -8,10 +8,20 @@
 import os
 
 config.llvm_tools_dir = "@LLVM_TOOLS_DIR@"
-config.lit_tools_dir = "@LLVM_LIT_TOOLS_DIR@"
 config.python_executable = "@Python3_EXECUTABLE@"
+config.cpp_build_root = "@CMAKE_BINARY_DIR@"
+
+##
+# C++ component specific settings
+##
+config.cpp_bin_dir = os.path.join(config.cpp_build_root, "bin")
 config.cpp_src_root = "@CMAKE_SOURCE_DIR@"
-config.cpp_bin_root = "@CMAKE_BINARY_DIR@"
+
+# test_exec_root: The root path where tests should be run.
+config.test_exec_root = os.path.join(config.cpp_build_root, 'tests')
+
+# test_source_root: The root path where tests are located.
+config.test_source_root = "@CMAKE_CURRENT_SOURCE_DIR@"
 
 config.extra_suffixes = ['.txt']
 

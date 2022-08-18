@@ -25,6 +25,11 @@ from lit.llvm.subst import FindTool
 # 2. running C++ tests only
 # 3. running end-to-end tests
 
+assert hasattr(config, 'llvm_tools_dir')
+assert hasattr(config, 'cpp_bin_dir')
+assert hasattr(config, 'extra_suffixes')
+assert hasattr(config, 'test_exec_root')
+assert hasattr(config, 'test_source_root')
 
 
 # name: The name of this test suite.
@@ -37,34 +42,27 @@ config.suffixes = ['.sol', '.yul', '.json']
 config.suffixes.extend(config.extra_suffixes)
 
 # test_source_root: The root path where tests are located.
-config.test_source_root = os.path.dirname(__file__)
-
-# test_exec_root: The root path where tests should be run.
-config.test_exec_root = os.path.join(config.cpp_src_root, 'test')
-
-config.substitutions.append(('%PATH%', config.environment['PATH']))
-
-llvm_config.with_system_environment(
-    ['HOME', 'INCLUDE', 'LIB', 'TMP', 'TEMP'])
-
-llvm_config.use_default_substitutions()
 
 # excludes: A list of directories to exclude from the testsuite. The 'Inputs'
 # subdirectories contain auxiliary inputs for various tests in their parent
 # directories.
 config.excludes = ['Inputs', 'CMakeLists.txt', 'README.txt', 'LICENSE.txt']
 
-# test_exec_root: The root path where tests should be run.
-config.test_exec_root = os.path.join(config.cpp_bin_root, 'tests')
-config.y2l_bin_dir = os.path.join(config.cpp_bin_root, 'bin')
 
-# Tweak the PATH to include the tools dir.
-llvm_config.with_environment('PATH', config.y2l_bin_dir, append_path=True)
+# Set up environment variables
+
+llvm_config.with_system_environment(
+    ['HOME', 'INCLUDE', 'LIB', 'TMP', 'TEMP'])
+
+llvm_config.use_default_substitutions()
+llvm_config.with_environment('PATH', config.cpp_bin_dir, append_path=True)
 llvm_config.with_environment('PATH', config.llvm_tools_dir, append_path=True)
 
-tool_dirs = [config.y2l_bin_dir, config.llvm_tools_dir]
+tool_dirs = [config.cpp_bin_dir, config.llvm_tools_dir]
 tools = [
     "yul2llvm_cpp"
 ]
 
+# Set up variable substitutions
 llvm_config.add_tool_substitutions(tools, tool_dirs)
+config.substitutions.append(('%PATH%', config.environment['PATH']))
