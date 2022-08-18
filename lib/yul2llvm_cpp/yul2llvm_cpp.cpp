@@ -2,6 +2,7 @@
 #include <fstream>
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/WithColor.h>
 #include <llvm/Support/raw_ostream.h>
 
 namespace cl = llvm::cl;
@@ -31,7 +32,8 @@ int main(int argc, char **argv) {
 
   // By default, print to stdout. Otherwise, write to this file.
   // @todo There should be a CommandLine API that does this...
-  cl::opt<std::string> outputFile("o", cl::desc("Output file location"));
+  cl::opt<std::string> outputFile("o", cl::desc("Output file location"),
+                                  cl::value_desc("filename"), cl::init("-"));
 
   if (!cl::ParseCommandLineOptions(argc, argv)) {
     return EXIT_FAILURE;
@@ -45,7 +47,22 @@ int main(int argc, char **argv) {
 
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
-  translator.dumpFunctionsToFile(outputFile);
-  llvm::outs()<<"llvm successfully generated";
+
+  std::error_code fileOpeningError;
+  if (outputFile == "-") {
+    translator.dumpFunctions(llvm::outs());
+  } else {
+    llvm::raw_fd_ostream fstream(outputFile, fileOpeningError);
+    if (fileOpeningError) {
+      llvm::WithColor::error(llvm::errs())
+          << "Could not open output file for writing: "
+          << fileOpeningError.message() << "\n";
+      return EXIT_FAILURE;
+    } else {
+      translator.dumpFunctions(fstream);
+    }
+  }
+
+  llvm::errs() << "llvm successfully generated\n";
   return EXIT_SUCCESS;
 }
