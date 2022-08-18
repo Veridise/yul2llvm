@@ -19,23 +19,16 @@ FN_REGX = "(" + ")|(".join(YUL_FN_REGX) + ")"
 @dataclass
 class AstMeta:
     """struct that holds AST data during inspection."""
-    CONTRACT_FNS : list = field(default_factory=list)
-    FUNCTION_DEFS : dict = field(default_factory=dict)
-    UNKNOWN_SYMBOLS : dict = field(default_factory=dict)
+    contract_fns : list = field(default_factory=list)
+    function_defs : dict = field(default_factory=dict)
+    unknown_symbols : dict = field(default_factory=dict)
 
 def generate_output(ast):
     """generates output in simpler form for CLI"""
-    fn_names = []
-    all_defs = []
-    unknown_names = []
-    for fn in ast.CONTRACT_FNS:
-        fn_names.append(get_name(fn))
-    for known in ast.FUNCTION_DEFS.keys():
-        all_defs.append(known)
-    for unknown in ast.UNKNOWN_SYMBOLS.keys():
-        unknown_names.append(unknown)
 
-    return (fn_names, all_defs, unknown_names)
+    return (list(map(get_name, ast.contract_fns)), 
+            list(ast.function_defs),
+            list(ast.unknown_symbols))
 
 
 def get_name(_obj):
@@ -51,15 +44,15 @@ def walk_json(json_arr, parent_ctx, ast):
 
             # filter for the contract functions we support
             if re.match(FN_REGX, fn_name):
-                ast.CONTRACT_FNS.append(_obj)
+                ast.contract_fns.append(_obj)
 
-            ast.FUNCTION_DEFS[fn_name] = parent_ctx
+            ast.function_defs[fn_name] = parent_ctx
             walk_json(_obj["children"], fn_name, ast)
         elif t == "yul_function_call":
             called_name = get_name(_obj)
             # lazy shortcut to avoid checking later for contract functions with defs that haven't been seen yet
-            if called_name not in ast.CONTRACT_FNS and not re.match(FN_REGX, called_name):
-                ast.UNKNOWN_SYMBOLS[called_name] = parent_ctx
+            if called_name not in ast.contract_fns and not re.match(FN_REGX, called_name):
+                ast.unknown_symbols[called_name] = parent_ctx
             walk_json(_obj["children"], called_name, ast)
         elif t == "yul_literal" or t == "yul_identifier":
             pass
@@ -91,5 +84,9 @@ def inspect_json_ast(_file):
 
     walk_json(contract_code, contract_name, ast)
     walk_json(deployed_code, deployed_name, ast)
+
+    # TODO: I'm clearly doing a logic mistake between how I define a known symbol vs uknown symbol and
+    #       supported symbols because the arithmetic doesn't come out correct for this set diff operation
+    # ast.unknown_symbols = {k:v for (k,v) in ast.function_defs.items() if k not in ast.contract_fns }
 
     return generate_output(ast)
