@@ -13,7 +13,7 @@ config.python_executable = "@Python3_EXECUTABLE@"
 config.cpp_src_root = "@CMAKE_SOURCE_DIR@"
 config.cpp_bin_root = "@CMAKE_BINARY_DIR@"
 
-config.extra_suffixes = []
+config.extra_suffixes = ['.txt']
 
 import lit.llvm
 lit.llvm.initialize(lit_config, config)
