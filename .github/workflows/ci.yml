@@ -22,29 +22,15 @@ jobs:
           ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
           ssh-add - <<< '${{ secrets.SSH_PRIVATE_KEY }}'
       # TODO: cache the build
-      - name: Build
+      - name: Build C++ component
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           nix build --print-build-logs .#yul2llvm_cpp
           echo "Done."
-  build-python:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v2.4.0
-      - name: Install and test
+      - name: Build Python component and run tests
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          # Set up venv
-          python3 -m venv .venv
-          source .venv/bin/activate
-          pip install --upgrade pip
-
-          # Install solc
-          curl -LR 'https://github.com/ethereum/solidity/releases/download/v0.8.16/solc-static-linux' -o /usr/local/bin/solc
-          chmod +x /usr/local/bin/solc
-          solc --version
-
-          # Install project
-          pip install -e '.[dev]'
-          pytest
+          nix build --print-build-logs .#yul2llvm
+          echo "Done."

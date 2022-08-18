@@ -16,7 +16,7 @@ eth-abi = "2.1.1"
 # Development dependencies
 pytest = { version = "^7.1", optional = true }
 flake8 = { version = "^4.0.1", optional = true }
-mypy = { version = "0.971", optional = true }
+mypy = { version = "0.961", optional = true } # poetry2nix fails on >= 0.971
 
 [tool.poetry.extras]
 dev = ["flake8", "mypy", "pytest"]
