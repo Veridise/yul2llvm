@@ -2,15 +2,15 @@
 #include <iostream>
 #include <libYulAST/YulNodeBuilder.h>
 
+
 #include <libYulAST/YulAssignmentNode.h>
+#include <libYulAST/YulLeaveNode.h>
+#include <libYulAST/YulVariableDeclarationNode.h>
 #include <libYulAST/YulBlockNode.h>
+#include <libYulAST/YulIfNode.h>
 #include <libYulAST/YulFunctionCallNode.h>
 #include <libYulAST/YulIdentifierNode.h>
-#include <libYulAST/YulIfNode.h>
-#include <libYulAST/YulLeaveNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
-#include <libYulAST/YulSwitchNode.h>
-#include <libYulAST/YulVariableDeclarationNode.h>
 
 using namespace yulast;
 
@@ -32,13 +32,10 @@ YulStatementBuilder::Builder(const json *rawAST) {
         std::make_unique<YulFunctionCallNode>(rawAST));
   } else if (!type.compare(YUL_IF_KEY)) {
     return std::unique_ptr<YulStatementNode>(
-        std::make_unique<YulIfNode>(rawAST));
+      std::make_unique<YulIfNode>(rawAST));
   } else if (!type.compare(YUL_BLOCK_KEY)) {
     return std::unique_ptr<YulStatementNode>(
         std::make_unique<YulBlockNode>(rawAST));
-  } else if (!type.compare(YUL_SWITCH_KEY)) {
-    return std::unique_ptr<YulStatementNode>(
-        std::make_unique<YulSwitchNode>(rawAST));
   }
   std::cout << "Statement node not implemented: " << type << std::endl;
   assert(false && "Statement node not implemented");
