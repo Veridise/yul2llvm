@@ -1,5 +1,6 @@
 from pathlib import Path
 import subprocess
+import tempfile
 
 THIS_DIR = Path(__file__).parent
 
@@ -8,8 +9,11 @@ THIS_DIR = Path(__file__).parent
 # TODO: as of now, this test using the local filesystem to both access the test file and to write.
 # TODO: this command naively assumes solc is available in the path without checking.
 def test_cli_compile():
-    proc = subprocess.run(["pyul", "compile", THIS_DIR.parent / "corpus" / "SimpleAdd.sol"], check=True)
-    assert proc.returncode == 0
+    with tempfile.TemporaryDirectory() as d:
+        proc = subprocess.run(
+            ["pyul", "compile", THIS_DIR / "e2e" / "SimpleAdd.sol", '-o', d],
+            check=True)
+        assert proc.returncode == 0
 
 def test_inspect_ast():
     proc = subprocess.run(["pyul", "inspect-ast", THIS_DIR.parent / "compiled" / "SimpleAdd" / "SimpleAdd.json"], check=True)
