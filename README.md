@@ -60,7 +60,23 @@ Dependencies:
 
 Steps: TODO (this will be very involved)
 
-## Running Pyul
+## Building C++ component
+To build
+
+```
+<yul2llvm-root>$ phases=configurePhase genericBuild
+# This will automatically create and change to the directory to build directory
+```
+To run
+```
+$ <yul2llvm-root>/build$ /bin/yul2llvm_cpp <inputFile> -o <outputFile>
+```
+Where,
+* inputFile: The file containing the AST in json format
+* outputFIle: The generated llvm code
+
+## Running
+
 
 after following [setup](#setup)
 

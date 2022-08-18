@@ -15,3 +15,5 @@ add_custom_target(check-unit
   DEPENDS ${YUL2LLVM_UNITTESTS}
   COMMAND "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target test
 )
+
+add_subdirectory(ASTClassesTest)

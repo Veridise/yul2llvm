@@ -11,3 +11,15 @@ __pycache__/
 
 # Nix
 /outputs/
+
+#build
+/build/*
+
+#vscode
+/.vscode/*
+
+#virtual envs
+/.venv/
+
+#results
+/result*

@@ -4,6 +4,7 @@ target_include_directories(libyul2llvm PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(libyul2llvm PUBLIC
+  libYulAST
   nlohmann_json::nlohmann_json
   LLVMCore
 )
