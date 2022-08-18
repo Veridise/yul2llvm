@@ -58,7 +58,7 @@ llvm_config.use_default_substitutions()
 llvm_config.with_environment('PATH', config.cpp_bin_dir, append_path=True)
 llvm_config.with_environment('PATH', config.llvm_tools_dir, append_path=True)
 
-tool_dirs = [config.cpp_bin_dir, config.llvm_tools_dir]
+tool_dirs = [config.cpp_bin_dir]
 tools = [
     "yul2llvm_cpp"
 ]
