@@ -14,7 +14,15 @@
   outputs = { self, nixpkgs, flake-utils, veridise-pkgs }:
     {
       # First, we define the packages used in this repository/flake
-      overlays.default = final: prev: {
+      overlays.default =
+        let
+          yul2llvm_srcs = final:
+            final.lib.cleanSourceWith {
+              filter = name: type: !(final.lib.strings.hasSuffix ".nix" name);
+              src = final.lib.cleanSource ./.;
+            };
+        in
+        final: prev: {
         # Fix the version of LLVM being used.
         yul2llvm_libllvm = final.llvmPackages_13.tools.libllvm;
 
@@ -23,7 +31,17 @@
           name = "yul2llvm-cpp";
           version = "0.1.0";
           src = builtins.path {
-            path = final.lib.cleanSource ./.;
+            # Exclude python files
+            path =
+              let src0 = yul2llvm_srcs final;
+              in
+                final.lib.cleanSourceWith {
+                  filter = path: type: !(
+                    (type == "directory" && path == toString (src0.origSrc + "/src")) ||
+                    (path == toString (src0.origSrc + "/pyproject.toml"))
+                  );
+                  src = src0;
+                };
             name = "yul2llvm-source";
           };
 
@@ -39,23 +57,51 @@
         };
 
         # Yul2LLVM python component
-        # Note that this is not really packaged in a nix-compatible way;
-        # this is merely a stopgap for now. The right way should be to use
-        # something like poetry2nix
-        yul2llvm = final.python3.pkgs.buildPythonPackage {
+        yul2llvm = (final.poetry2nix.mkPoetryApplication {
           name = "yul2llvm";
           version = "0.1.0";
+          projectDir = ./.;
           src = builtins.path {
-            path = final.lib.cleanSource ./.;
+            # Don't include C++ parts
+            path =
+              let src0 = yul2llvm_srcs final;
+              in
+                final.lib.cleanSourceWith {
+                  filter = path: type: !(final.lib.lists.any (x: x) [
+                    (baseNameOf path == "CMakeLists.txt")
+                    (type == "directory" && path == toString (src0.origSrc + "/lib"))
+                    (type == "directory" && path == toString (src0.origSrc + "/cmake"))
+                  ]);
+                  src = src0;
+                };
             name = "yul2llvm-source";
           };
-          format = "pyproject";
-          buildInputs = [ final.yul2llvm_cpp final.solc_0_8_15 ];
 
-          # Currently, we're using the files generated for Eurus's Yul parser.
-          # Will probably need to add ANTLR if we need to modify the grammar.
-          # nativeBuildInputs = [ final.antlr4_8 ];
-        };
+          overrides = final.poetry2nix.overrides.withDefaults (self: super: {
+            # poetry2nix's mypy override doesn't work
+            mypy = null;
+
+            # cytoolz needs cython to build, and poetry2nix doesn't have an override
+            cytoolz = super.cytoolz.overridePythonAttrs (attrs: {
+              nativeBuildInputs = (attrs.nativeBuildInputs or []) ++ [ self.cython ];
+            });
+          });
+
+          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp ];
+        }).overridePythonAttrs (old: {
+          doCheck = true;
+          checkInputs = [
+            old.passthru.python.pkgs.pytest
+            final.lit
+            final.yul2llvm_libllvm
+            final.yul2llvm_cpp
+          ];
+          checkPhase = ''
+            PATH="$out"/bin:"$PATH" pytest
+
+            PATH="$out"/bin:"$PATH" lit tests
+          '';
+        });
       };
     } //
     (flake-utils.lib.eachSystem ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"] (system:
