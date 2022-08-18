@@ -1,8 +1,8 @@
 import unittest
-from utils.yul_parser import YulPrintListener
-from utils.YulAntlr.YulLexer import YulLexer
-from utils.YulAntlr.YulParser import YulParser
-from utils.YulAntlr.YulListener import YulListener
+from pyul.utils.yul_parser import YulPrintListener
+from pyul.utils.YulAntlr.YulLexer import YulLexer
+from pyul.utils.YulAntlr.YulParser import YulParser
+from pyul.utils.YulAntlr.YulListener import YulListener
 import antlr4
 import pytest
 

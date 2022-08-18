@@ -10,9 +10,9 @@ import os
 import pathlib
 import re
 import antlr4
-from utils.yul_parser import YulPrintListener
-from utils.yul_translator import YulTranslator
-from utils.YulAntlr import YulLexer, YulParser
+from .utils.yul_parser import YulPrintListener
+from .utils.yul_translator import YulTranslator
+from .utils.YulAntlr import YulLexer, YulParser
 from .core import inspect_json_ast
 
 
