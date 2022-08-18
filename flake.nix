@@ -23,7 +23,7 @@
           name = "yul2llvm-cpp";
           version = "0.1.0";
           src = builtins.path {
-            path = ./.;
+            path = final.lib.cleanSource ./.;
             name = "yul2llvm-source";
           };
 
@@ -46,7 +46,7 @@
           name = "yul2llvm";
           version = "0.1.0";
           src = builtins.path {
-            path = ./.;
+            path = final.lib.cleanSource ./.;
             name = "yul2llvm-source";
           };
           format = "pyproject";
