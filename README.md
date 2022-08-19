@@ -2,7 +2,68 @@
 
 A prototype front-end that translates Solidity's Yul IR to LLVM.
 
-## Setup
+This project is broken into two parts:
+
+* `pyul` (Preprocessed Yul): a Python program that takes `.sol` files as input
+  and generates an LLVM IR representation as output.
+* `yul2llvm_cpp`: a C++ program that is invoked by `pyul` that takes a Yul
+  dialect called PYul in JSON format and translates it to LLVM IR.
+
+## Running pyul
+
+### Installing as a user
+
+The easiest way to run `pyul` is through Nix:
+
+```sh
+nix run 'git+ssh://git@github.com/Veridise/yul2llvm?ref=main#yul2llvm'
+```
+
+Otherwise: 1) you will have to compile the `yul2llvm_cpp` from source and put it
+on PATH; 2) you will have to install `pyul` (e.g., by running `pip install`
+locally or with this repository URL).
+
+### Usage
+
+`pyul` takes a source file as an argument and prints out a string representation
+of the final output to stdout:
+
+```sh
+pyul test/e2e/SimpleAdd.sol
+```
+
+* See `pyul -h` for all help options.
+* `pyul` saves intermediate artifacts such as solc output and Yul IR in a
+  so-called artifact directory.
+  By default, this directory is a temporary folder (i.e., deleted after `pyul`
+  finishes).
+  It may be convenient to save this folder by specifying a concrete location
+  with `-o`.
+* In some cases, the `--project-dir` option must be provided, because `solc`
+  expects all source file locations to be provided as relative paths.
+  * By default, the `--project-dir` is set to the current working directory.
+  * All source files must be contained in the project directory.
+  * `pyul` will automatically convert absolute paths into paths relative to the
+    `--project-dir` setting.
+
+### Artifacts
+
+The artifact directory has the following layout:
+
+```plain
+/pyul.log                     - log file of pyul
+/solc_input.json              - input command provided to solc --standard-json
+/solc_output.json             - JSON output produced by solc
+/relative/path/to/file.sol/   - folder corresponding to each source file
+  ContractName/               - each contract in each source file has a sub folder
+    abi.json                  - abi info output by solc
+    storageLayout.json        - storage layout info output by solc
+    ir.yul                    - textual Yul IR output by solc
+    ir_prepreprocess.yul      - textual Yul IR after some cleanup
+    yul.json                  - preprocessed Yul IR in JSON format
+```
+
+## Development Setup
 
 Two methods: Nix (recommended for end-to-end and C++ component) and manual
 (easier for Python component only).
@@ -32,24 +93,23 @@ Once in the shell:
 
 Top level requirements:
 
-- Python >= 3.9
+- Python >= 3.8
 - pip
-- a virtual env setup of your choice
 
-with these, activate your virtual env (let's call it `pyul`) and install `poetry`.
+Inside of a virtual environment, install in editable mode with:
 
+```sh
+pip install -e '.[dev]'
 ```
-(pyul) $ pip install -U pip poetry # this updates pip in addition to installing poetry
+
+The development environment can also be set up with `poetry` as follows:
+
+```sh
+poetry install --extras dev
 ```
 
-if you made as far as acquiring pip and your own virtual env setup, the above command should work. if it doesn't, try
-the same command but with `--user` in addition to `-U`.
-
-after successfully installing poetry, install the project:
-
-```
-(pyul) $ poetry install --extras dev
-```
+* Run tests with `pytest`
+* Run mypy with `mypy src --package-root src`
 
 #### C++ component
 
@@ -75,57 +135,51 @@ Where,
 * inputFile: The file containing the AST in json format
 * outputFIle: The generated llvm code
 
-## Running
+## Testing
 
+Testing for this project takes place in three locations:
+* pytest unit tests for Python
+* lit tests for C++
+* lit tests for end-to-end
 
-after following [setup](#setup)
+### Running lit tests
 
-you can now run `pyul` as follows:
+One of the main test suites is the lit test suite located in `tests/`. This is
+broken up into two folders:
 
-```
-(pyul) $ pyul --help
-```
+* `tests/e2e`: end-to-end tests from `pyul` and `solc` to LLVM IR.
+* `tests/cpp`: lit tests for exclusively testing the C++ component. The C++
+  `check-lit` target only executes the tests in this folder.
 
-this should give you a print out of the existing commands and their descriptions.
+To run the lit tests, start the `nix develop` shell and run:
 
-### commands
+```bash
+lit ./tests -v
 
-- **compile**: compiles a `.sol` file into its Yul IR equivalent along with its storage layout and ABI files.
-- **parse**: parses a Yul file (pre-processed) and generates the corresponding JSON AST.
-- **inspect-ast**: Extracts function and identifier information from a JSON AST for Yul.
-- **all**: Runs `compile`, `parse`, and `inspect-ast` in one pass on a .sol file and its intermediate forms.
-- **init**: helps setup a dev environment for handling Solidity files. WIP.
-
-### processing file example
-
-For some Solidity contract, let's say [`SimpleAdd.sol`](./corpus/SimpleAdd.sol), we can compile the file as follows:
-
-```
-(pyul) $ pyul compile corpus/SimpleAdd.sol
-```
-by default, this will generate a directory path of `compiled/SimpleAdd_${RANDOM_INT}/` where `SimpleAdd.yul` will be found. Run the following to perform some preprocessing of our new Yul file before generating our final JSON. For the sake of simplicity, assume our path is `compiled/SimpleAdd_1000/`.
-
-```
-(pyul) $ pyul translate -P compiled/SimpleAdd_1000/SimpleAdd.yul
+# If you need to debug test failures, set the environment variable Y2L_TEST_RUN
+# to a path to save the test artifacts.
+# NOTE: the provided directory must exist!
+Y2L_TEST_RUN=/tmp/dir/to/save/artifacts lit ./tests -v
 ```
 
-This will do two things for us:
-1. Preprocess our Yul file in preparation of it's parsing into a JSON AST.
-2. the `-P` flag automatically parses our file for us and generates the aforementioned AST.
+### Writing lit tests
 
-You will now find two new files under `compiled/SimpleAdd_1000/`, `SimpleAdd.yul.tmp` and `SimpleAdd.yul.tmp.json` which contain the processed Yul and the respective JSON AST.
+Resources:
+* [LLVM lit](https://llvm.org/docs/CommandGuide/lit.html)
+* [LLVM FileCheck](https://llvm.org/docs/CommandGuide/FileCheck.html)
+* [LLVM Testing Infrastructure](https://llvm.org/docs/TestingGuide.html#writing-new-regression-tests)
+  (note: this guide is specific to the LLVM project, but much of the information
+  is relevant to lit use cases outside of LLVM).
 
-## development
+To write end-to-end tests, run `pyul` as follows:
 
-### testing pyul
-
-As of now, it is assumed that solc is installed on your path and with the correct permissions. Please either install solc manually or try `pyul init`. After that, try:
 ```
-(pyul) $  poetry run pytest
+// RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 ```
 
-This will test the `pyul compile` command on your system as shown above.
-
-#### more
-
-see [notes.org](notes.org) for more on pyul.
+This instructs `pyul` to:
+* take the current file as input
+* save the artifacts in the temporary location corresponding to the file
+  (typically `${filename}.tmp`)
+* resolve source paths relative to the current file's directory, so as to enable should
+  enable support for `import` statements (this needs to be checked, however)
