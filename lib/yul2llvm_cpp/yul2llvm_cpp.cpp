@@ -52,23 +52,7 @@ int main(int argc, char **argv) {
 
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
-
-  std::error_code fileOpeningError;
-  if (outputFile == "-") {
-    translator.dumpFunctions(llvm::outs());
-    llvm::errs() << "llvm successfully generated\n";
-  } else {
-    llvm::raw_fd_ostream fstream(outputFile, fileOpeningError);
-    if (fileOpeningError) {
-      llvm::WithColor::error(llvm::errs())
-          << "Could not open output file for writing: "
-          << fileOpeningError.message() << "\n";
-      return EXIT_FAILURE;
-    } else {
-      translator.dumpFunctions(fstream);
-      llvm::errs() << "llvm successfully generated\n";
-    }
-  }
-
+  translator.dumpFunctionsToFile(outputFile);
+  llvm::outs() << "llvm successfully generated";
   return EXIT_SUCCESS;
 }
