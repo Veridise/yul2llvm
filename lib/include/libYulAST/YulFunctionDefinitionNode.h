@@ -28,7 +28,7 @@ public:
   virtual std::string to_string() override;
   YulFunctionDefinitionNode(const json *rawAST);
   llvm::Function *getLLVMFunction();
-
+  std::string getName();
   void dump(llvm::raw_ostream &os = llvm::errs()) const;
 };
 }; // namespace yulast
