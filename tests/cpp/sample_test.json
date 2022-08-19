@@ -1,4 +1,0 @@
-// RUN: yul2llvm_cpp %s | FileCheck %s
-{}
-
-// CHECK: llvm successfully generated

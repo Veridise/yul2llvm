@@ -10,6 +10,7 @@ class YulIfNode : public YulStatementNode {
 protected:
   std::unique_ptr<YulExpressionNode> condition;
   std::unique_ptr<YulBlockNode> thenBody;
+
 public:
   void createPrototype();
   std::string str = "";
@@ -17,7 +18,7 @@ public:
   virtual void parseRawAST(const json *rawAST) override;
   virtual std::string to_string() override;
   YulIfNode(const json *rawAST);
-  std::unique_ptr<YulExpressionNode>& getCondition();
-  std::unique_ptr<YulBlockNode>& getThenBody();
+  std::unique_ptr<YulExpressionNode> &getCondition();
+  std::unique_ptr<YulBlockNode> &getThenBody();
 };
 }; // namespace yulast
