@@ -6,7 +6,6 @@ authors = ["elias <elias.jm.garcia@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-click = "^8.1.3"
 antlr4-python3-runtime = "4.8"
 
 # TODO: these belong to Eurus' python scripts, do we need them?
@@ -22,7 +21,7 @@ mypy = { version = "0.961", optional = true } # poetry2nix fails on >= 0.971
 dev = ["flake8", "mypy", "pytest"]
 
 [tool.poetry.scripts]
-pyul = "pyul.cli:run"
+pyul = "pyul.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

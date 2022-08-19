@@ -2,15 +2,89 @@
 
 import click
 
+import argparse
 import subprocess
 import os
-import pathlib
 import re
 import antlr4
+import sys
+import logging
+import shutil
+import shlex
+import tempfile
+import json
+from pathlib import Path
+import dataclasses
+from dataclasses import dataclass
 from .utils.yul_parser import YulPrintListener
 from .utils.yul_translator import YulTranslator
 from .utils.YulAntlr import YulLexer, YulParser
 from .core import inspect_json_ast
+from typing import Dict, List
+import importlib.metadata
+
+
+# TODO: move into separate file
+@dataclass
+class ContractData(object):
+    '''solc output for one contract'''
+    abi: List[dict]
+    storageLayout: List[dict]
+    yul_text: str
+
+
+@dataclass
+class SolcOutput(object):
+    contracts: Dict[str, Dict[str, ContractData]] = dataclasses.field(default_factory=dict)
+
+
+def exit_error(msg: str):
+    sys.exit('error: ' + msg)
+
+
+def main():
+    pipeline = ['compile', 'preprocess', 'translate']
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--version', action='version',
+                        version=f'{importlib.metadata.version("pyul")}')
+    parser.add_argument('--stop-after', choices=list(pipeline), default='translate')
+    parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
+                        type=Path, default=None)
+    parser.add_argument('input_file', type=Path, help='Input .sol file')
+    args = parser.parse_args()
+
+    # Validate arguments
+    if not args.input_file.exists():
+        exit_error(f'file does not exist: {args.input_file}')
+
+    if args.output_dir is not None and args.output_dir.is_file():
+        exit_error(f'file is not a directory: {args.output_dir}')
+
+    # Create artifact directory if necessary
+    if args.output_dir is None:
+        _tmp_dir = tempfile.TemporaryDirectory()
+        args.output_dir = Path(_tmp_dir.name)
+    else:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Begin frontend pipeline
+    logging.basicConfig(filename=args.output_dir / 'pyul.log', filemode='w',
+                        level=logging.INFO)
+    logger = logging.getLogger('pyul')
+    logger.addHandler(logging.StreamHandler())
+
+    solc_output = solc_compile(logger, args.input_file, args.output_dir)
+    if solc_output is None:
+        exit_error('failed to execute solc, aborting')
+
+    if args.stop_after == 'compile':
+        return
+
+    sys.exit('todo')
+
+    if args.stop_after == 'preprocess':
+        return
+
 
 
 @click.group()
@@ -96,87 +170,89 @@ def parse(_file, verbose, dry_run):
         click.echo(parsed_yul)
 
 
-@run.command()
-@click.argument("_file", metavar="FILE")
-@click.option("--verbose", "-V", is_flag=True, help="Enable logging of results to stdout while running pyul.")
-@click.option("--output", "-o", default="compiled", type=str, help="output directory")
-def compile(_file, verbose, output):
-    """compile sol file to yul"""
+def solc_compile(logger, src_path: Path, artifact_dir: Path):
+    '''Invoke solc'''
 
-    if verbose: click.echo(f"Compiling {_file} to yul...")
+    solc_bin = shutil.which('solc')
+    if solc_bin is None:
+        logger.error('solc not found on path')
+        return None
+    logger.info(f'Using solc at {solc_bin}')
 
-    # get the output directories setup
-    cwd = os.getcwd()
-    if verbose: click.echo(f"cwd: {cwd}")
-    file_name = pathlib.Path(_file).stem
-    if verbose: click.echo(f"file name: {file_name}")
+    solc_opts = {
+        'language': 'Solidity',
+        'sources': {
+            str(src_path): {
+                'urls': [str(src_path)],
+            }
+        },
+        'settings': {
+            'outputSelection': {
+                '*': {
+                    '*': ['ir', 'abi', 'storageLayout']
+                }
+            },
+            'viaIR': True
+        }
+    }
+    solc_input_path = artifact_dir / 'solc_input.json'
+    with open(solc_input_path, 'w') as f:
+        json.dump(solc_opts, f)
 
-    compile_dir = os.path.join(cwd, output)
+    cmd = [solc_bin, '--standard-json', str(solc_input_path)]
+    cmd.extend(['--allow-paths', str(solc_input_path)])
 
-    result_dir = os.path.join(compile_dir, file_name)
-    result_yul = os.path.join(result_dir, file_name + ".yul")
-    result_storage = os.path.join(result_dir, file_name + "_storage")
-    result_abi = os.path.join(result_dir, file_name + "_abi")
-    if verbose: click.echo(f"output dir: {compile_dir}/")
-    if verbose: click.echo(f"result dir: {result_dir}/")
+    logger.info(f'Executing: {shlex.join(cmd)}')
+    solc_proc = subprocess.run(cmd, text=True, capture_output=True)
+    if solc_proc.returncode != 0:
+        logger.error(f'failed to execute command: ${shlex.join(cmd)}')
+        return None
 
-    if not os.path.exists(compile_dir):
-        os.mkdir(compile_dir)
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
+    # Save the output for debugging
+    with open(artifact_dir / 'solc_output.json', 'w') as f:
+        f.write(solc_proc.stdout)
 
-    # generate the yul
-    ir_res = subprocess.run(["solc", "--ir", _file], encoding="utf-8", capture_output=True)
-    # @ejmg TODO: need to figure out error handling given that solc doesn't exit with an error code in many instances that would be considered an error by users
-    # ir_res.returncode gives us the mechanism to check in general, however. how to gracefully exit is another choice to make later.
-    ir_output = ir_res.stdout
-    # trim off the heading included by solc in the Yul output
-    yul_obj = ir_output.split("\n", 2)[2]
-    # grab storage layout for contract
-    storage_res = subprocess.run(["solc", "--storage-layout", _file], encoding="utf-8", capture_output=True)
-    storage_output = storage_res.stdout
-    storage_layout = storage_output.split("\n", 3)[3]
-    # grab the abi specification
-    abi_res = subprocess.run(["solc", "--abi", _file], encoding="utf-8", capture_output=True)
-    abi_output = abi_res.stdout
-    # trim
-    abi_spec = abi_output.split("\n", 3)[3]
+    solc_output = json.loads(solc_proc.stdout)
 
-    if verbose: click.echo("writing results to file...")
-    with open(result_yul, "w") as f:
-        f.writelines(yul_obj)
-        if verbose: click.echo("yul successfully written")
-    with open(result_storage, "w") as f:
-        f.writelines(storage_layout)
-        if verbose: click.echo("storage layout successfully written")
-    with open(result_abi, "w") as f:
-        f.writelines(abi_spec)
-        if verbose: click.echo("abi specification successfully written")
+    # Abort if there were errors
+    for diagnostic in solc_output.get('errors', []):
+        if diagnostic['severity'] == 'error':
+            logger.error('solc returned an error:')
+            for line in diagnostic['formattedMessage'].splitlines():
+                logger.error(line)
+            return None
 
-    if verbose: click.echo("`pyul compile` finished running.")
+    # Save abi, storage layout, and Yul IR for debugging
+    # This uses a layout similar to Hardhat's:
+    # https://hardhat.org/hardhat-runner/docs/advanced/artifacts
+    # TODO: can we just read Hardhat's directory structure?
+    output = SolcOutput()
+    for src_p, src_contents in solc_output['contracts'].items():
+        src_out_dir = artifact_dir / src_p
+        src_out_dir.mkdir(parents=True, exist_ok=True)
+        for name, contract in src_contents.items():
+            c_dir = src_out_dir / name
+            c_dir.mkdir(exist_ok=True)
+
+            with open(c_dir / 'abi.json', 'w') as f:
+                json.dump(contract['abi'], f)
+
+            with open(c_dir / 'ir.yul', 'w') as f:
+                f.write(contract['ir'])
+
+            with open(c_dir / 'storageLayout.json', 'w') as f:
+                json.dump(contract['storageLayout'], f)
+
+            if src_p not in output.contracts:
+                output.contracts[src_p] = {}
+            output.contracts[src_p][name] = ContractData(
+                abi=contract['abi'],
+                storageLayout=contract['storageLayout']['storage'],
+                yul_text=contract['ir']
+            )
+
+    return output
 
 
-@run.command()
-@click.argument("_f", metavar="FILE")
-@click.option("--verbose", "-V", is_flag=True, help="Enable logging of results to stdout while running pyul.")
-@click.option("--dry-run", "-D", is_flag=True, help="Don't write results to file.")
-@click.option("--output", "-o", default="compiled", type=str, help="output directory")
-@click.pass_context
-def all(ctx, _f, verbose, dry_run, output):
-    """runs all pyul commands in sequence for a given .sol file. """
-    # Grabbing path info we'd otherwise get from compile.
-    cwd = os.getcwd()
-    file_name = pathlib.Path(_f).stem
-    compile_dir = os.path.join(cwd, output)
-    result_dir = os.path.join(compile_dir, file_name)
-    yul_file = os.path.join(result_dir, file_name + ".yul")
-    json_file = os.path.join(result_dir, file_name + ".json")
-
-    if verbose: click.echo("Running `pyul compile`")
-    ctx.invoke(compile, _file=_f, verbose=verbose, output=output)
-
-    if verbose: click.echo("Running `pyul parse`")
-    ctx.invoke(parse, _file=yul_file, verbose=verbose, dry_run=dry_run)
-
-    if verbose: click.echo("Running `pyul inspect_ast`")
-    ctx.invoke(inspect_ast, _file=json_file)
+if __name__ == '__main__':
+    main()
