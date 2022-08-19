@@ -28,9 +28,11 @@ import importlib.metadata
 @dataclass
 class ContractData(object):
     '''solc output for one contract'''
+    name: str
     abi: List[dict]
     storageLayout: List[dict]
     yul_text: str
+    out_dir: Path
 
 
 @dataclass
@@ -80,7 +82,13 @@ def main():
     if args.stop_after == 'compile':
         return
 
-    sys.exit('todo')
+    yul_jsons = []
+    for fname, contracts in solc_output.contracts.items():
+        for name, contract in contracts.items():
+            yul_json = preprocess(logger, contract, contract.out_dir)
+            yul_jsons.append(yul_json)
+
+    assert len(yul_jsons) == 1, "TODO: handle more than 1 contract"
 
     if args.stop_after == 'preprocess':
         return
@@ -119,37 +127,28 @@ def inspect_ast(_file, all_fns, contract_fns, unknown_names):
         for fn in unknown: click.echo(fn)
 
 
-@run.command()
-@click.argument("_file", metavar="YUL_FILE")
-@click.option("--verbose", "-V", is_flag=True, help="Enable logging of results to stdout while running pyul.")
-@click.option("--dry-run", "-D", is_flag=True, help="Don't write results to file.")
-def parse(_file, verbose, dry_run):
-    """parse a Yul file into its AST representation"""
+def preprocess(logger, data: ContractData, out_dir: Path):
+    '''Convert Yul IR into a PYul json file
 
-    with open(_file, "r") as f:
-        raw_yul = f.read()
+    :param out_dir: The contract's artifact output directory.
+    '''
 
+    # TODO: do we need this? This seems specific to Eurus...
+    logger.info(f'Running Yul IR pre-preprocess on {data.name}')
     t = YulTranslator()
-    yul_str = t.translate(raw_yul)
+    yul_str = t.translate(data.yul_text)
 
-    file_prefix = os.path.splitext(_file)[0]
-    tmp_file = _file + ".tmp"
-
-    with open(tmp_file, "w") as f:
+    with open(out_dir / 'ir_prepreprocess.yul', 'w') as f:
         f.write(yul_str)
 
-    if verbose:
-        click.echo(yul_str)
-
-    input_stream = antlr4.FileStream(tmp_file)
-
+    # TODO: this is from Eurus. Why do we need this?
     # step 1: make sure there's only one contract in one file (this file)
-    with open(tmp_file, "r") as f:
-        tmp_yul_str = f.read()
-    nobj = re.findall(r"object \".*?\" \{", tmp_yul_str)
+    nobj = re.findall(r"object \".*?\" \{", yul_str)
     if len(nobj) != 2:
-        click.echo("Yul input invalid. Contained more than one contract object. ")
+        logger.warning('Yul input invalid. Contained more than one contract object.')
 
+    # Run parser to get json representation.
+    input_stream = antlr4.InputStream(yul_str)
     lexer = YulLexer.YulLexer(input_stream)
     stream = antlr4.CommonTokenStream(lexer)
     parser = YulParser.YulParser(stream)
@@ -160,14 +159,14 @@ def parse(_file, verbose, dry_run):
     walker.walk(printer, tree)
 
     printer.strip_all_trailing()
-    parsed_yul = printer.built_string
 
-    if not dry_run:
-        with open(file_prefix + '.json', "w") as f:
-            f.write(parsed_yul + "\n")
+    yul_json = printer.built_string
+    yul_json_path = out_dir / 'yul.json'
+    logger.info(f'Dumping Yul IR json to {yul_json_path}')
+    with open(yul_json_path, 'w') as f:
+        f.write(yul_json)
 
-    if verbose:
-        click.echo(parsed_yul)
+    return json.loads(yul_json)
 
 
 def solc_compile(logger, src_path: Path, artifact_dir: Path):
@@ -246,9 +245,11 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path):
             if src_p not in output.contracts:
                 output.contracts[src_p] = {}
             output.contracts[src_p][name] = ContractData(
+                name=name,
                 abi=contract['abi'],
                 storageLayout=contract['storageLayout']['storage'],
-                yul_text=contract['ir']
+                yul_text=contract['ir'],
+                out_dir=c_dir,
             )
 
     return output
