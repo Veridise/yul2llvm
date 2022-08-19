@@ -1,4 +1,4 @@
-// RUN: yul2llvm_cpp %s -o - 2>&1 | FileCheck %s
+// RUN: yul2llvm_cpp %s -o %t | FileCheck %s
 {
   "type": "yul_function_definition",
   "children": [
@@ -438,8 +438,4 @@
 }
 
 
-
-// CHECK: switch
-// CHECK: case
-// CHECK: default
-// CHECK:llvm successfully generated
+// CHECK: llvm successfully generated
