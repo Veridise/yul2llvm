@@ -47,6 +47,8 @@ def main():
     parser.add_argument('--version', action='version',
                         version=f'{importlib.metadata.version("pyul")}')
     parser.add_argument('--stop-after', choices=list(pipeline), default='translate')
+    parser.add_argument('--project-dir', type=Path, default=Path.cwd(),
+                        help='Root directory containing all sources')
     parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
                         type=Path, default=None)
     parser.add_argument('input_file', type=Path, help='Input .sol file')
@@ -72,7 +74,8 @@ def main():
     logger = logging.getLogger('pyul')
     logger.addHandler(logging.StreamHandler())
 
-    solc_output = solc_compile(logger, args.input_file, args.output_dir)
+    solc_output = solc_compile(logger, args.input_file, args.output_dir,
+                               project_dir=args.project_dir)
     if solc_output is None:
         exit_error('failed to execute solc, aborting')
 
@@ -147,8 +150,11 @@ def preprocess(logger, data: ContractData, out_dir: Path):
     return json.loads(yul_json)
 
 
-def solc_compile(logger, src_path: Path, artifact_dir: Path):
+def solc_compile(logger, src_path: Path, artifact_dir: Path,
+                 project_dir: Path = None):
     '''Invoke solc'''
+
+    assert project_dir is not None
 
     solc_bin = shutil.which('solc')
     if solc_bin is None:
@@ -156,11 +162,15 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path):
         return None
     logger.info(f'Using solc at {solc_bin}')
 
+    src_rel_path = src_path.absolute().relative_to(project_dir.absolute())
+    # To avoid "escaping" the artifact dir, check the path
+    assert artifact_dir in (artifact_dir / src_rel_path).parents
+
     solc_opts = {
         'language': 'Solidity',
         'sources': {
-            str(src_path): {
-                'urls': [str(src_path)],
+            str(src_rel_path): {
+                'urls': [str(src_path.absolute())],
             }
         },
         'settings': {
@@ -177,7 +187,7 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path):
         json.dump(solc_opts, f)
 
     cmd = [solc_bin, '--standard-json', str(solc_input_path)]
-    cmd.extend(['--allow-paths', str(solc_input_path)])
+    cmd.extend(['--allow-paths', str(project_dir)])
 
     logger.info(f'Executing: {shlex.join(cmd)}')
     solc_proc = subprocess.run(cmd, text=True, capture_output=True)
