@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
@@ -46,6 +46,6 @@ int main(int argc, char **argv) {
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
   translator.dumpFunctionsToFile(outputFile);
-  llvm::outs()<<"llvm successfully generated";
+  llvm::outs() << "llvm successfully generated";
   return EXIT_SUCCESS;
 }

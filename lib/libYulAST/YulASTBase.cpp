@@ -1,6 +1,6 @@
 #include <iostream>
 #include <libYulAST/YulASTBase.h>
- 
+
 using namespace yulast;
 std::unique_ptr<llvm::LLVMContext> YulASTBase::TheContext =
     std::make_unique<llvm::LLVMContext>();
