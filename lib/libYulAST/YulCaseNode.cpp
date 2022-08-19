@@ -15,7 +15,9 @@ void YulCaseNode::parseRawAST(const json *rawAST) {
 }
 
 YulCaseNode::YulCaseNode(const json *rawAST)
-    : YulASTBase(rawAST, YUL_AST_NODE_TYPE::YUL_AST_NODE_CASE) {
+    : YulASTBase(
+          rawAST,
+          YUL_AST_NODE_TYPE::YUL_AST_NODE_CASE) {
   assert(sanityCheckPassed(rawAST, YUL_CASE_KEY));
   parseRawAST(rawAST);
 }
@@ -33,12 +35,14 @@ std::string YulCaseNode::to_string() {
 }
 
 llvm::Value *YulCaseNode::codegen(llvm::Function *enclosingFunction) {
-  thenBody->codegen(enclosingFunction);
-  return nullptr;
+ thenBody->codegen(enclosingFunction);
+ return nullptr;
 }
 
-std::unique_ptr<YulNumberLiteralNode> &YulCaseNode::getCondition() {
+std::unique_ptr<YulNumberLiteralNode>& YulCaseNode::getCondition() {
   return condition;
 }
 
-std::unique_ptr<YulBlockNode> &YulCaseNode::getThenBody() { return thenBody; }
+std::unique_ptr<YulBlockNode>& YulCaseNode::getThenBody() {
+  return thenBody;
+}
