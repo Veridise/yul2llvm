@@ -37,8 +37,7 @@ llvm::Value *YulIfNode::codegen(llvm::Function *enclosingFunction) {
       llvm::BasicBlock::Create(*TheContext, "then-body", enclosingFunction);
   llvm::BasicBlock *contBlock =
       llvm::BasicBlock::Create(*TheContext, "cont-body");
-  // llvm::BasicBlock *prevBlock = Builder->GetInsertBlock();
-  // calculate condition
+
   llvm::Value *cond = condition->codegen(enclosingFunction);
   // create actual branch on condition
   Builder->CreateCondBr(cond, thenBlock, contBlock);
@@ -47,16 +46,11 @@ llvm::Value *YulIfNode::codegen(llvm::Function *enclosingFunction) {
   Builder->SetInsertPoint(thenBlock);
   thenBody->codegen(enclosingFunction);
   Builder->CreateBr(contBlock);
-  // thenBlock = Builder->GetInsertBlock();
 
   // merge node
   enclosingFunction->getBasicBlockList().push_back(contBlock);
   Builder->SetInsertPoint(contBlock);
   return nullptr;
-  // llvm::PHINode *phi =
-  // Builder->CreatePHI(llvm::Type::getInt32Ty(*TheContext), 2, "if-join");
-  // phi->addIncoming(thenBlock);
-  // phi->addIncoming(prevBlock);
 }
 
 std::unique_ptr<YulExpressionNode> &YulIfNode::getCondition() {
