@@ -28,7 +28,7 @@ public:
   TranslateYulToLLVM(const json rawAST);
   bool areFunctionsBuilt();
   void run();
-  void dumpFunctionsToFile(std::string);
+  void dumpFunctions(llvm::raw_ostream &stream = llvm::errs()) const;
 };
 
 }; // namespace yul2llvm

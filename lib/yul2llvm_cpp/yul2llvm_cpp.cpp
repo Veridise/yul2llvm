@@ -2,21 +2,19 @@
 #include <iostream>
 #include <libyul2llvm/TranslateYulToLLVM.h>
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/WithColor.h>
 #include <llvm/Support/raw_ostream.h>
+#include <system_error>
 
 namespace cl = llvm::cl;
 
-int readJsonData(std::string filename, json &rawAST) {
-  std::ifstream jsonFileStream(filename);
-  try {
-    rawAST = nlohmann::json::parse(jsonFileStream, nullptr, true, true);
-    return 0;
-  } catch (...) {
-    llvm::outs() << "Could not parse json read from ";
-    llvm::outs() << filename << "\n";
-    return -1;
-  }
-  return 0;
+/// @throw std::system_error if the file cannot be opened
+/// @throw nlohmann::json::exception if the JSON cannot be parsed
+void readJsonData(const std::string &filename, nlohmann::json &rawAST) {
+  std::ifstream jsonFileStream;
+  jsonFileStream.exceptions(std::ios::failbit | std::ios::badbit);
+  jsonFileStream.open(filename);
+  rawAST = nlohmann::json::parse(jsonFileStream, nullptr, true, true);
 }
 
 int main(int argc, char **argv) {
@@ -31,7 +29,8 @@ int main(int argc, char **argv) {
 
   // By default, print to stdout. Otherwise, write to this file.
   // @todo There should be a CommandLine API that does this...
-  cl::opt<std::string> outputFile("o", cl::desc("Output file location"));
+  cl::opt<std::string> outputFile("o", cl::desc("Output file location"),
+                                  cl::value_desc("filename"), cl::init("-"));
 
   if (!cl::ParseCommandLineOptions(argc, argv)) {
     return EXIT_FAILURE;
@@ -39,13 +38,38 @@ int main(int argc, char **argv) {
 
   json rawAST;
 
-  if (readJsonData(inputFile, rawAST)) {
+  try {
+    readJsonData(inputFile, rawAST);
+  } catch (const nlohmann::json::exception &err) {
+    llvm::WithColor::error()
+        << "Failed to parse json file: " << err.what() << "\n";
+    return EXIT_FAILURE;
+  } catch (const std::system_error &err) {
+    // the exception error message is not really helpful, so omit it
+    llvm::WithColor::error() << "Failed to open json file\n";
     return EXIT_FAILURE;
   }
 
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
-  translator.dumpFunctionsToFile(outputFile);
-  llvm::outs() << "llvm successfully generated";
+
+  std::error_code fileOpeningError;
+  if (outputFile == "-") {
+    translator.dumpFunctions(llvm::outs());
+    llvm::errs() << "llvm successfully generated\n";
+  } else {
+    llvm::raw_fd_ostream fstream(outputFile, fileOpeningError);
+    if (fileOpeningError) {
+      llvm::WithColor::error(llvm::errs())
+          << "Could not open output file for writing: "
+          << fileOpeningError.message() << "\n";
+      return EXIT_FAILURE;
+    } else {
+      translator.dumpFunctions(fstream);
+      llvm::errs() << "llvm successfully generated\n";
+    }
+  }
+
+  
   return EXIT_SUCCESS;
 }

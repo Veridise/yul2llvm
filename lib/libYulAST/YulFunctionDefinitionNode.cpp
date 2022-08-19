@@ -119,14 +119,10 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   return nullptr;
 }
 
-void YulFunctionDefinitionNode::dumpToFile(std::string outputFileName) {
-  std::error_code fileOpeningError;
-  llvm::raw_fd_ostream f(outputFileName, fileOpeningError);
-  TheModule->print(f, nullptr);
+void YulFunctionDefinitionNode::dump(llvm::raw_ostream &os) const {
+  TheModule->print(os, nullptr);
 }
 
-void YulFunctionDefinitionNode::dumpToStdout() {
-  TheModule->print(llvm::errs(), nullptr);
-}
+void YulFunctionDefinitionNode::dumpToStdout() const { dump(llvm::outs()); }
 
 llvm::Function *YulFunctionDefinitionNode::getLLVMFunction() { return F; }

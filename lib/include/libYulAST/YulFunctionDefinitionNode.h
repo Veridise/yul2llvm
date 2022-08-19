@@ -23,11 +23,12 @@ protected:
   virtual void parseRawAST(const json *rawAst) override;
 
 public:
-  void dumpToStdout();
+  void dumpToStdout() const;
   virtual llvm::Value *codegen(llvm::Function *F) override;
   virtual std::string to_string() override;
   YulFunctionDefinitionNode(const json *rawAST);
-  void dumpToFile(std::string);
   llvm::Function *getLLVMFunction();
+
+  void dump(llvm::raw_ostream &os = llvm::errs()) const;
 };
 }; // namespace yulast

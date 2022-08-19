@@ -42,10 +42,8 @@ void TranslateYulToLLVM::run() {
 
 bool TranslateYulToLLVM::areFunctionsBuilt() { return functionsBuilt; }
 
-void TranslateYulToLLVM::dumpFunctionsToFile(std::string outputFilename) {
-  // std::cout << "[+] Dumping function to file " << std::endl;
+void TranslateYulToLLVM::dumpFunctions(llvm::raw_ostream &stream) const {
   for (auto &f : functions) {
-    f.dumpToFile(outputFilename);
-    // f.dumpToStdout();
+    f.dump(stream);
   }
 }
