@@ -91,6 +91,7 @@ def main():
     assert len(yul_jsons) == 1, "TODO: handle more than 1 contract"
 
     if args.stop_after == 'preprocess':
+        print(yul_jsons[0])
         return
 
     name, contract = next(next(solc_output.contracts.items().__iter__())[1].items().__iter__())
@@ -106,6 +107,23 @@ def main():
     logger.info('Unknown function symbols:')
     for n in unknown:
         logger.info('  ' + n)
+
+    # TODO: move this into a translate() function
+    yul2llvm_cpp_bin = shutil.which('yul2llvm_cpp')
+    if yul2llvm_cpp_bin is None:
+        logger.error('yul2llvm_cpp not found on PATH')
+        sys.exit(1)
+
+    yul2llvm_cpp_cmd = [yul2llvm_cpp_bin, str(contract.out_dir / 'yul.json')]
+    logger.info(f'Running: {shlex.join(yul2llvm_cpp_cmd)}')
+    proc = subprocess.run(yul2llvm_cpp_cmd,
+                          capture_output=True, text=True)
+    if proc.returncode != 0:
+        logger.error('Failed to run yul2llvm_cpp')
+    print(proc.stdout)
+
+    with open(contract.out_dir / 'llvm_ir.ll', 'w') as f:
+        f.write(proc.stdout)
 
 
 def preprocess(logger, data: ContractData, out_dir: Path):
