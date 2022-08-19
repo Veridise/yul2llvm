@@ -21,6 +21,7 @@
 #define YUL_CASE_KEY "yul_case"
 #define YUL_DEFAULT_KEY "yul_default"
 
+
 namespace yulast {
 enum class YUL_AST_NODE_TYPE {
   UNDEFINED_TYPE,
