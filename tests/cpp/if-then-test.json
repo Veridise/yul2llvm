@@ -1,4 +1,4 @@
-// RUN: yul2llvm_cpp %s -o - 2>&1| FileCheck %s
+// RUN: yul2llvm_cpp %s -o %t 2>&1| FileCheck %s
   {
     "type": "yul_function_definition",
     "children": [
@@ -405,7 +405,5 @@
       }
     ]
   }
-// CHECK: br
-// CHECK: then-body
-// CHECK: cont-body
+
 // CHECK: llvm successfully generated
