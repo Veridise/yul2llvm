@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
   std::error_code fileOpeningError;
   if (outputFile == "-") {
     translator.dumpFunctions(llvm::outs());
+    llvm::errs() << "llvm successfully generated\n";
   } else {
     llvm::raw_fd_ostream fstream(outputFile, fileOpeningError);
     if (fileOpeningError) {
@@ -65,9 +66,9 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     } else {
       translator.dumpFunctions(fstream);
+      llvm::errs() << "llvm successfully generated\n";
     }
   }
 
-  llvm::errs() << "llvm successfully generated\n";
   return EXIT_SUCCESS;
 }
