@@ -1,10 +1,7 @@
 """cli driver to configure and run pyul"""
 
-import click
-
 import argparse
 import subprocess
-import os
 import re
 import antlr4
 import sys
@@ -93,38 +90,19 @@ def main():
     if args.stop_after == 'preprocess':
         return
 
-
-
-@click.group()
-def run():
-    """cli command dispatcher for pyul"""
-    pass
-
-
-@run.command()
-@click.argument("_file", metavar="FILE")
-@click.option("--all-fns", is_flag=True, help="Emit all function defs")
-@click.option("--contract-fns", is_flag=True, help="Emit contract functions")
-@click.option("--unknown-names", is_flag=True, help="Emit unknown symbols")
-def inspect_ast(_file, all_fns, contract_fns, unknown_names):
-    """Extract program structure from a Yul AST JSON file. Prints all info by default."""
-    (named_fns, all_defs, unknown) = inspect_json_ast(_file)
-    if all_fns:
-        click.echo("\nAll function definitions:\n")
-        for fn in all_defs: click.echo(fn)
-    elif contract_fns:
-        click.echo("\nAll contract functions:\n")
-        for fn in named_fns: click.echo(fn)
-    elif unknown_names:
-        click.echo("\nAll unknown symbols and function calls:\n")
-        for fn in unknown: click.echo(fn)
-    else:
-        click.echo("\nAll function definitions:\n")
-        for fn in all_defs: click.echo(fn)
-        click.echo("\nAll contract functions:\n")
-        for fn in named_fns: click.echo(fn)
-        click.echo("\nAll unknown symbols and function calls:\n")
-        for fn in unknown: click.echo(fn)
+    name, contract = next(next(solc_output.contracts.items().__iter__())[1].items().__iter__())
+    logger.info(f'Summary of contract {name}:')
+    logger.info('')
+    (named_fns, all_defs, unknown) = inspect_json_ast(contract.out_dir / 'yul.json')
+    logger.info('Functions defined in the Solidity source code:')
+    for n in named_fns:
+        logger.info('  ' + n)
+    logger.info('Functions defined in the Yul IR:')
+    for n in all_defs:
+        logger.info('  ' + n)
+    logger.info('Unknown function symbols:')
+    for n in unknown:
+        logger.info('  ' + n)
 
 
 def preprocess(logger, data: ContractData, out_dir: Path):
