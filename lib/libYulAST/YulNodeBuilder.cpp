@@ -9,7 +9,6 @@
 #include <libYulAST/YulIfNode.h>
 #include <libYulAST/YulLeaveNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
-#include <libYulAST/YulVariableDeclarationNode.h>
 #include <libYulAST/YulSwitchNode.h>
 #include <libYulAST/YulVariableDeclarationNode.h>
 
