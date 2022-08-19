@@ -1,11 +1,8 @@
 """cli driver to configure and run pyul"""
 
-from operator import contains
-from random import randint
 import click
 
 import subprocess
-import shutil
 import os
 import pathlib
 import re
@@ -21,25 +18,6 @@ def run():
     """cli command dispatcher for pyul"""
     pass
 
-@run.command()
-def init():
-    """setup pyul for use"""
-    click.echo("checking for solc on path...")
-    res = shutil.which("solc")
-    if res is None:
-        click.echo(f"solc found at path: {res}")
-    else:
-        # TODO: consider just curl'ing solidity instead of using solc-select. Would require path manipulation and permissions.
-        click.echo("no solc found in path.")
-        prompt = click.prompt("install solc? yes/[N]o", default=False, show_default=False)
-        if prompt:
-            click.echo("using solc-select to install solidity...")
-            # versions of solc must be 0.8.14 or later (see Eurus README)
-            proc = subprocess.run(["solc-select", "install", "0.8.15"], capture_output=True, encoding="utf-8")
-            if proc.returncode != 0:
-                click.echo("Error downloading solc-select and solidity.")
-            else:
-                click.echo(f"{proc.stdout}")
 
 @run.command()
 @click.argument("_file", metavar="FILE")
@@ -65,6 +43,7 @@ def inspect_ast(_file, all_fns, contract_fns, unknown_names):
         for fn in named_fns: click.echo(fn)
         click.echo("\nAll unknown symbols and function calls:\n")
         for fn in unknown: click.echo(fn)
+
 
 @run.command()
 @click.argument("_file", metavar="YUL_FILE")
@@ -115,7 +94,6 @@ def parse(_file, verbose, dry_run):
 
     if verbose:
         click.echo(parsed_yul)
-
 
 
 @run.command()
