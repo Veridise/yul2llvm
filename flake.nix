@@ -97,9 +97,12 @@
             final.yul2llvm_cpp
           ];
           checkPhase = ''
+            echo "Executing pytest"
             PATH="$out"/bin:"$PATH" pytest
 
-            PATH="$out"/bin:"$PATH" lit tests
+            echo
+            echo "Executing lit tests"
+            PATH="$out"/bin:"$PATH" lit ./tests -v
           '';
         });
       };
