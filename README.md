@@ -183,3 +183,14 @@ This instructs `pyul` to:
   (typically `${filename}.tmp`)
 * resolve source paths relative to the current file's directory, so as to enable should
   enable support for `import` statements (this needs to be checked, however)
+
+## Notes
+
+### Helpful jq commands
+
+List all function definitions:
+```
+jq '[.["yul_ast"]["object_body"]["contract_body"]["children"][0]["children"] | .[] | select(.["type"] == "yul_function_definition")]'
+```
+
+(Note: this is because the nested is `start / contract / deployed / body / block`)
