@@ -91,13 +91,17 @@ def main():
     assert len(yul_jsons) == 1, "TODO: handle more than 1 contract"
 
     if args.stop_after == 'preprocess':
-        print(yul_jsons[0])
+        json.dump(yul_jsons[0], sys.stdout)
         return
 
     name, contract = next(next(solc_output.contracts.items().__iter__())[1].items().__iter__())
     logger.info(f'Summary of contract {name}:')
     logger.info('')
     (named_fns, all_defs, unknown) = inspect_json_ast(contract.out_dir / 'yul.json')
+
+    named_fns = set(named_fns)
+    all_defs = set(all_defs)
+    unknown = set(unknown)
     logger.info('Functions defined in the Solidity source code:')
     for n in named_fns:
         logger.info('  ' + n)
@@ -106,6 +110,9 @@ def main():
         logger.info('  ' + n)
     logger.info('Unknown function symbols:')
     for n in unknown:
+        logger.info('  ' + n)
+    logger.info('Dead symbols:')
+    for n in all_defs.difference(unknown).difference(named_fns):
         logger.info('  ' + n)
 
     # TODO: move this into a translate() function
