@@ -1,3 +1,10 @@
+// ERC20 token with some modifications to exercise frontend functionality
+
+// RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+// XFAIL: *
+
+// CHECK-LABEL: define {{.*}} @fun_mint_{{.*}}({{.*}}) {
+
 pragma solidity ^0.8.0;
 
 contract ERC20 {
@@ -13,9 +20,15 @@ contract ERC20 {
     string private _name;
     string private _symbol;
 
-    constructor(string memory name_, string memory symbol_) {
+    constructor(string memory name_, string memory symbol_, uint256 initialSupply) {
         _name = name_;
         _symbol = symbol_;
+
+        _mint(msg.sender, initialSupply);
+
+        // This is unnecessary, but we want to exercise the ability to call
+        // "external" functions.
+        transfer(msg.sender, 0);
     }
 
     function _msgSender() internal view returns (address) {

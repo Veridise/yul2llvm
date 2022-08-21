@@ -64,9 +64,7 @@ def inspect_json_ast(_file):
     ast = AstMeta()
 
     with open(_file, "r") as f:
-        _outer_json = json.load(f)
-        # TODO: remove the outer layer of the AST. useless indirection.
-        yul_json = _outer_json["yul_ast"]
+        yul_json = json.load(f)
 
     # top most level of our JSON:
     # { ..., "object_name":

@@ -19,12 +19,12 @@ class YulPrintListener(YulListener):
         self.built_string = ""
 
     # Enter a parse tree produced by YulParser#start.
-    def enterStart(self, ctx:YulParser.StartContext):
-        self.built_string += '{"type":"start","yul_ast":'
+    def enterStart(self, ctx: YulParser.StartContext):
+        pass
 
     # Exit a parse tree produced by YulParser#start.
-    def exitStart(self, ctx:YulParser.StartContext):
-        self.built_string += '},'
+    def exitStart(self, ctx: YulParser.StartContext):
+        pass
 
     # Enter a parse tree produced by YulParser#yul_object.
     def enterYul_object(self, ctx:YulParser.Yul_objectContext):

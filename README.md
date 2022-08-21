@@ -190,7 +190,7 @@ This instructs `pyul` to:
 
 List all function definitions:
 ```
-jq '[.["yul_ast"]["object_body"]["contract_body"]["children"][0]["children"] | .[] | select(.["type"] == "yul_function_definition")]'
+jq '[.["object_body"]["contract_body"]["children"][0]["children"] | .[] | select(.["type"] == "yul_function_definition")]'
 ```
 
 (Note: this is because the nested is `start / contract / deployed / body / block`)

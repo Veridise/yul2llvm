@@ -8,7 +8,7 @@ THIS_DIR = Path(__file__).parent
 
 def test_walk_dfs():
     # File generated from Yul json using:
-    #   jq '.["yul_ast"]["object_body"]["contract_body"]["children"][0]' -c
+    #   jq '.["object_body"]["contract_body"]["children"][0]' -c
     p = THIS_DIR / 'Inputs' / 'SimpleAdd_deployedbody.json'
     assert p.exists()
 
@@ -26,3 +26,16 @@ def test_walk_dfs():
     walk_dfs(block_node, visit_defs)
     assert len(fun_names) == 17
     assert 'fun_add_21' in fun_names
+
+
+def test_walk_dfs_ERC20():
+    # File generated from Yul json using:
+    #   pyul tests/e2e/ERC20.sol --stop-after preprocess \
+    #     jq '.["object_body"]["contract_body"]["children"][0]' -c
+    p = THIS_DIR / 'Inputs' / 'ERC20_deployedbody.json'
+    assert p.exists()
+
+    with open(p, 'r') as f:
+        block_node = YulNode(json.load(f))
+
+    assert len(block_node.children) > 0
