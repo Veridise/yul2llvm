@@ -438,7 +438,6 @@
 }
 
 
-
 // CHECK: switch
 // CHECK: case
 // CHECK: default
