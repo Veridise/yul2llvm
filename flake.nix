@@ -18,7 +18,10 @@
         let
           yul2llvm_srcs = final:
             final.lib.cleanSourceWith {
-              filter = name: type: !(final.lib.strings.hasSuffix ".nix" name);
+              filter = name: type: !(
+                final.lib.strings.hasSuffix ".nix" name ||
+                baseNameOf name == "flake.lock"
+              );
               src = final.lib.cleanSource ./.;
             };
         in
@@ -33,13 +36,22 @@
           src = builtins.path {
             # Exclude python files
             path =
-              let src0 = yul2llvm_srcs final;
+              let
+                src0 = yul2llvm_srcs final;
+                relPathMatches = re: path:
+                  builtins.match re
+                    (final.lib.removePrefix
+                      (toString src0.origSrc + "/")
+                      (toString path));
               in
                 final.lib.cleanSourceWith {
-                  filter = path: type: !(
-                    (type == "directory" && path == toString (src0.origSrc + "/src")) ||
+                  filter = path: type: !(final.lib.lists.any (x: x) [
+                    (type == "directory" && path == toString (src0.origSrc + "/src"))
                     (path == toString (src0.origSrc + "/pyproject.toml"))
-                  );
+                    (path == toString (src0.origSrc + "/poetry.lock"))
+                    (relPathMatches "^tests/(e2e|py)$" path != null)
+                    (relPathMatches "^tests/test_.*\.py$" path != null)
+                  ]);
                   src = src0;
                 };
             name = "yul2llvm-source";
