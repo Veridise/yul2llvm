@@ -126,7 +126,12 @@ def main():
     proc = subprocess.run(yul2llvm_cpp_cmd,
                           capture_output=True, text=True)
     if proc.returncode != 0:
-        logger.error('Failed to run yul2llvm_cpp')
+        logger.error('Failed to run yul2llvm_cpp:')
+        for line in proc.stderr.splitlines():
+            logger.error(line)
+        logger.error('Aborting pyul!')
+        sys.exit(1)
+
     print(proc.stdout)
 
     with open(contract.out_dir / 'llvm_ir.ll', 'w') as f:
