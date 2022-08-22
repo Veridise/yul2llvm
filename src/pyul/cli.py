@@ -18,6 +18,7 @@ from .utils.yul_translator import YulTranslator
 from .utils.YulAntlr import YulLexer, YulParser
 from .core import inspect_json_ast
 from .ast import ContractData
+from . import preprocess
 from typing import Dict, List
 import importlib.metadata
 
@@ -79,10 +80,12 @@ def main():
     the_contract = None
     for fname, contracts in solc_output.contracts.items():
         for name, contract in contracts.items():
-            yul_json = preprocess(logger, contract, contract.out_dir)
+            yul_json = preprocess_ir(logger, contract, contract.out_dir)
             contract.yul_ast = yul_json
             assert the_contract is None, "TODO: handle more than 1 contract"
             the_contract = contract
+
+    preprocess.prune_deploy_obj(the_contract, logger=logger)
 
     if args.stop_after == 'preprocess':
         json.dump(the_contract.yul_ast, sys.stdout)
@@ -133,7 +136,7 @@ def main():
         f.write(proc.stdout)
 
 
-def preprocess(logger, data: ContractData, out_dir: Path):
+def preprocess_ir(logger, data: ContractData, out_dir: Path):
     '''Convert Yul IR into a PYul json file
 
     :param out_dir: The contract's artifact output directory.

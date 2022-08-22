@@ -47,6 +47,11 @@ class YulNode(object):
     def is_fun_call(self) -> bool:
         return self.type == 'yul_function_call'
 
+    def get_fun_name(self) -> str:
+        # FIXME: this should be part of the object, not its child.
+        # First child is yul identifier node containing the name
+        return self.obj['children'][0]['children'][0]
+
 
 def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[bool]]):
     '''Walk the AST in depth-first order.

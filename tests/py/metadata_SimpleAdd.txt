@@ -1,0 +1,1 @@
+RUN: pyul %S/../e2e/SimpleAdd.sol --project-dir %S/../e2e
