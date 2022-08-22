@@ -52,6 +52,8 @@ def main():
     parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
                         type=Path, default=None)
     parser.add_argument('input_file', type=Path, help='Input .sol file')
+    parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
+                        default='info', help='Log level to show in console output')
     args = parser.parse_args()
 
     # Validate arguments
@@ -70,9 +72,11 @@ def main():
 
     # Begin frontend pipeline
     logging.basicConfig(filename=args.output_dir / 'pyul.log', filemode='w',
-                        level=logging.INFO)
+                        level=logging.DEBUG)
     logger = logging.getLogger('pyul')
-    logger.addHandler(logging.StreamHandler())
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(args.log_level.upper())
+    logger.addHandler(stream_handler)
 
     solc_output = solc_compile(logger, args.input_file, args.output_dir,
                                project_dir=args.project_dir)
