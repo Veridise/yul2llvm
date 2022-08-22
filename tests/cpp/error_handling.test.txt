@@ -6,7 +6,7 @@
 // JSON: error
 // JSON-SAME: parse
 
-// RUN: (yul2llvm_cpp %S/if-then-else-test.json -o /sldkf/dfglk || true) 2>&1 | FileCheck %s --check-prefix=WRITE
+// RUN: (yul2llvm_cpp %S/sample_test.json -o /sldkf/dfglk || true) 2>&1 | FileCheck %s --check-prefix=WRITE
 // WRITE: error
 // WRITE-SAME: open
 // WRITE-SAME: writing

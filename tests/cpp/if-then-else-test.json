@@ -438,4 +438,7 @@
 }
 
 
-// CHECK: llvm successfully generated
+// CHECK: switch
+// CHECK: case
+// CHECK: default
+// CHECK:llvm successfully generated
