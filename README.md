@@ -60,7 +60,8 @@ The artifact directory has the following layout:
     storageLayout.json        - storage layout info output by solc
     ir.yul                    - textual Yul IR output by solc
     ir_prepreprocess.yul      - textual Yul IR after some cleanup
-    yul.json                  - preprocessed Yul IR in JSON format
+    input_yul.json            - prepreprocessed Yul IR in JSON format
+    yul.json                  - final preprocessed Yul IR in JSON format
 ```
 
 ### Metadata

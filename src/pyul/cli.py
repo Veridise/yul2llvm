@@ -87,8 +87,14 @@ def main():
 
     preprocess.prune_deploy_obj(the_contract, logger=logger)
 
+    # Save the processed Yul AST
     dumped_obj = the_contract.yul_ast.copy()
     dumped_obj['metadata'] = dataclasses.asdict(the_contract.metadata)
+    yul_json_path = the_contract.out_dir / 'yul.json'
+    logger.info(f'Dumping processed Yul AST json to {yul_json_path}')
+    with open(yul_json_path, 'w') as f:
+        json.dump(dumped_obj, f)
+
     if args.stop_after == 'preprocess':
         json.dump(dumped_obj, sys.stdout)
         return
@@ -172,8 +178,8 @@ def preprocess_ir(logger, data: ContractData, out_dir: Path):
     printer.strip_all_trailing()
 
     yul_json = printer.built_string
-    yul_json_path = out_dir / 'yul.json'
-    logger.info(f'Dumping Yul IR json to {yul_json_path}')
+    yul_json_path = out_dir / 'input_yul.json'
+    logger.info(f'Dumping input Yul IR json to {yul_json_path}')
     with open(yul_json_path, 'w') as f:
         f.write(yul_json)
 
