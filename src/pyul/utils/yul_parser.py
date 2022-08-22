@@ -91,7 +91,7 @@ class YulPrintListener(YulListener):
     def enterYul_break(self, ctx:YulParser.Yul_breakContext):
         # leave as nothing but as a leaf of the concrete value in the AST. possibly remove if the semantics of a break
         # don't actually matter at this phase but I doubt?
-        self.built_string += '{"type":"yul_break"},'
+        self.built_string += '{"type":"yul_break","children":[]},'
 
     # Exit a parse tree produced by YulParser#yul_break.
     def exitYul_break(self, ctx:YulParser.Yul_breakContext):
@@ -101,7 +101,7 @@ class YulPrintListener(YulListener):
     # Enter a parse tree produced by YulParser#yul_continue.
     def enterYul_continue(self, ctx:YulParser.Yul_continueContext):
         # leaf of literal value in AST
-        self.built_string += '{"type":"yul_continue"},'
+        self.built_string += '{"type":"yul_continue","children":[]},'
 
     # Exit a parse tree produced by YulParser#yul_continue.
     def exitYul_continue(self, ctx:YulParser.Yul_continueContext):
@@ -111,7 +111,7 @@ class YulPrintListener(YulListener):
     # Enter a parse tree produced by YulParser#yul_leave.
     def enterYul_leave(self, ctx:YulParser.Yul_leaveContext):
         # leaf of literal value in AST
-        self.built_string += '{"type":"yul_leave"},'
+        self.built_string += '{"type":"yul_leave","children":[]},'
 
     # Exit a parse tree produced by YulParser#yul_leave.
     def exitYul_leave(self, ctx:YulParser.Yul_leaveContext):
