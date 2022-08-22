@@ -38,7 +38,7 @@ config.name = 'yul2llvm'
 config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files.
-config.suffixes = ['.sol', '.yul', '.json']
+config.suffixes = ['.sol', '.yul', '.json', '.js', '.txt']
 config.suffixes.extend(config.extra_suffixes)
 
 # test_source_root: The root path where tests are located.

@@ -23,7 +23,7 @@ config.test_exec_root = os.path.join(config.cpp_build_root, 'tests')
 # test_source_root: The root path where tests are located.
 config.test_source_root = os.path.join("@CMAKE_CURRENT_SOURCE_DIR@", "cpp")
 
-config.extra_suffixes = ['.txt']
+config.extra_suffixes = []
 
 import lit.llvm
 lit.llvm.initialize(lit_config, config)

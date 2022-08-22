@@ -83,6 +83,7 @@
                     (baseNameOf path == "CMakeLists.txt")
                     (type == "directory" && path == toString (src0.origSrc + "/lib"))
                     (type == "directory" && path == toString (src0.origSrc + "/cmake"))
+                    (type == "directory" && path == toString (src0.origSrc + "/tests/cpp"))
                   ]);
                   src = src0;
                 };
@@ -107,6 +108,7 @@
             final.lit
             final.yul2llvm_libllvm
             final.yul2llvm_cpp
+            final.jq
           ];
           checkPhase = ''
             echo "Executing pytest"
@@ -150,6 +152,7 @@
                 p.venvShellHook
               ]))
               solc_0_8_15
+              jq
 
               # C++ dev tools
               doxygen
