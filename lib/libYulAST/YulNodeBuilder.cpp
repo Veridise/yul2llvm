@@ -9,6 +9,7 @@
 #include <libYulAST/YulIfNode.h>
 #include <libYulAST/YulLeaveNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
+#include <libYulAST/YulSwitchNode.h>
 #include <libYulAST/YulVariableDeclarationNode.h>
 
 using namespace yulast;
@@ -35,6 +36,9 @@ YulStatementBuilder::Builder(const json *rawAST) {
   } else if (!type.compare(YUL_BLOCK_KEY)) {
     return std::unique_ptr<YulStatementNode>(
         std::make_unique<YulBlockNode>(rawAST));
+  } else if (!type.compare(YUL_SWITCH_KEY)) {
+    return std::unique_ptr<YulStatementNode>(
+        std::make_unique<YulSwitchNode>(rawAST));
   }
   std::cout << "Statement node not implemented: " << type << std::endl;
   assert(false && "Statement node not implemented");
@@ -54,6 +58,7 @@ YulExpressionBuilder::Builder(const json *rawAST) {
   } else if (!type.compare(YUL_LITERAL_KEY)) {
     return YulLiteralBuilder::Build(&(rawAST->at("children")[0]));
   }
+  std::cout << "Expression node not implemented: " << type << std::endl;
   assert(false && "Encountered an unimplemented Expression");
   return NULL;
 }
@@ -65,6 +70,7 @@ std::unique_ptr<YulLiteralNode> YulLiteralBuilder::Build(const json *rawAST) {
     return std::unique_ptr<YulLiteralNode>(
         std::make_unique<YulNumberLiteralNode>(rawAST));
   }
+  std::cout << "Literal node not implemented: " << type << std::endl;
   assert(false && "Encountered an unimplemented literal node");
   return NULL;
 }

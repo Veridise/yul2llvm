@@ -37,7 +37,7 @@ llvm::Value *YulIfNode::codegen(llvm::Function *enclosingFunction) {
       llvm::BasicBlock::Create(*TheContext, "then-body", enclosingFunction);
   llvm::BasicBlock *contBlock =
       llvm::BasicBlock::Create(*TheContext, "cont-body");
-
+  // calculate condition
   llvm::Value *cond = condition->codegen(enclosingFunction);
   // create actual branch on condition
   Builder->CreateCondBr(cond, thenBlock, contBlock);
