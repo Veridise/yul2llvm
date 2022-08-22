@@ -35,7 +35,7 @@ std::string YulSwitchNode::to_string() {
     str.append("(");
     str.append(condition->to_string());
     str.append(")");
-    for(auto &c:cases){
+    for (auto &c : cases) {
       str.append("{");
       str.append(c->to_string());
       str.append("}");
