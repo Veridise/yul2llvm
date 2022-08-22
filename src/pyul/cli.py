@@ -17,22 +17,9 @@ from .utils.yul_parser import YulPrintListener
 from .utils.yul_translator import YulTranslator
 from .utils.YulAntlr import YulLexer, YulParser
 from .core import inspect_json_ast
-from .ast import YulMetadata
+from .ast import ContractData
 from typing import Dict, List
 import importlib.metadata
-
-
-# TODO: move into separate file
-@dataclass
-class ContractData(object):
-    '''solc output for one contract'''
-    name: str
-    abi: List[dict]
-    storageLayout: List[dict]
-    yul_text: str
-    out_dir: Path
-    yul_ast: dict = dataclasses.field(default_factory=dict)
-    metadata: YulMetadata = dataclasses.field(default_factory=YulMetadata)
 
 
 @dataclass

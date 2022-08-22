@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable, List, Union, Optional
 
 
@@ -73,3 +74,16 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
 class YulMetadata(object):
     main_ctor: str = ''
     external_fns: List[str] = field(default_factory=list)
+
+
+@dataclass
+class ContractData(object):
+    '''solc output for one contract'''
+    name: str
+    abi: List[dict]
+    storageLayout: List[dict]
+    yul_text: str
+    out_dir: Path
+    yul_ast: dict = field(default_factory=dict)
+    metadata: YulMetadata = field(default_factory=YulMetadata)
+
