@@ -31,13 +31,15 @@ YulSwitchNode::YulSwitchNode(const json *rawAST)
 
 std::string YulSwitchNode::to_string() {
   if (!str.compare("")) {
-    str.append("if");
+    str.append("switch");
     str.append("(");
     str.append(condition->to_string());
     str.append(")");
-    str.append("{");
-    // str.append(thenBody->to_string());
-    str.append("}");
+    for(auto &c:cases){
+      str.append("{");
+      str.append(c->to_string());
+      str.append("}");
+    }
   }
   return str;
 }
