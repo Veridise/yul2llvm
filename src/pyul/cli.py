@@ -87,8 +87,10 @@ def main():
 
     preprocess.prune_deploy_obj(the_contract, logger=logger)
 
+    dumped_obj = the_contract.yul_ast.copy()
+    dumped_obj['metadata'] = dataclasses.asdict(the_contract.metadata)
     if args.stop_after == 'preprocess':
-        json.dump(the_contract.yul_ast, sys.stdout)
+        json.dump(dumped_obj, sys.stdout)
         return
 
     name = the_contract.name

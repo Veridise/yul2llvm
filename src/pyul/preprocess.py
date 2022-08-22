@@ -83,6 +83,7 @@ def prune_deploy_obj(contract: ContractData,
         f'expected only 1 main constructor, got {len(ctor_calls)}'
     )
     main_ctor: str = ctor_calls[0].get_fun_name()
+    contract.metadata.main_ctor = main_ctor
     if logger:
         logger.debug(f'Main constructor is: {main_ctor}')
 

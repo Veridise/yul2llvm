@@ -63,6 +63,21 @@ The artifact directory has the following layout:
     yul.json                  - preprocessed Yul IR in JSON format
 ```
 
+### Metadata
+
+The top-level JSON object created by `pyul` will contain a `"metadata"` object
+with the following schema:
+
+```javascript
+{
+  // The name of the main constructor function.
+  "main_ctor": "constructor_AdditionContract_21",
+
+  // The list of the functions (names) that are part of the contract's ABI
+  "external_funs": [],
+}
+```
+
 ## Development Setup
 
 Two methods: Nix (recommended for end-to-end and C++ component) and manual
