@@ -10,6 +10,7 @@
 #include <libYulAST/YulLeaveNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
 #include <libYulAST/YulSwitchNode.h>
+#include <libYulAST/YulVariableDeclarationNode.h>
 
 using namespace yulast;
 
