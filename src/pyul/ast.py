@@ -67,3 +67,9 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
                 # FIXME: don't add the literal values as children...
                 if isinstance(child.obj, dict):
                     to_visit.append(child)
+
+
+@dataclass
+class YulMetadata(object):
+    main_ctor: str = ''
+    external_fns: List[str] = field(default_factory=list)

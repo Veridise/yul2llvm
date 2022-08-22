@@ -17,6 +17,7 @@ from .utils.yul_parser import YulPrintListener
 from .utils.yul_translator import YulTranslator
 from .utils.YulAntlr import YulLexer, YulParser
 from .core import inspect_json_ast
+from .ast import YulMetadata
 from typing import Dict, List
 import importlib.metadata
 
@@ -30,6 +31,8 @@ class ContractData(object):
     storageLayout: List[dict]
     yul_text: str
     out_dir: Path
+    yul_ast: dict = dataclasses.field(default_factory=dict)
+    metadata: YulMetadata = dataclasses.field(default_factory=YulMetadata)
 
 
 @dataclass
@@ -86,19 +89,20 @@ def main():
     if args.stop_after == 'compile':
         return
 
-    yul_jsons = []
+    the_contract = None
     for fname, contracts in solc_output.contracts.items():
         for name, contract in contracts.items():
             yul_json = preprocess(logger, contract, contract.out_dir)
-            yul_jsons.append(yul_json)
-
-    assert len(yul_jsons) == 1, "TODO: handle more than 1 contract"
+            contract.yul_ast = yul_json
+            assert the_contract is None, "TODO: handle more than 1 contract"
+            the_contract = contract
 
     if args.stop_after == 'preprocess':
-        json.dump(yul_jsons[0], sys.stdout)
+        json.dump(the_contract.yul_ast, sys.stdout)
         return
 
-    name, contract = next(next(solc_output.contracts.items().__iter__())[1].items().__iter__())
+    name = the_contract.name
+    contract = the_contract
     logger.info(f'Summary of contract {name}:')
     logger.info('')
     (named_fns, all_defs, unknown) = inspect_json_ast(contract.out_dir / 'yul.json')
