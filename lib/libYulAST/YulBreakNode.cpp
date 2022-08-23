@@ -13,7 +13,7 @@ llvm::Value *YulBreakNode::codegen(llvm::Function *enclosingFunction) {
   llvm::BasicBlock *breakBB = Builder->GetInsertBlock();
   llvm::BasicBlock *currentBB = breakBB;
   llvm::BasicBlock *contBB = nullptr;
-  u_long lineNumberLength;
+  std::string::size_type lineNumberLength;
   std::string loopName;
   while (currentBB && (!currentBB->hasName() ||
                        (lineNumberLength = currentBB->getName().find("for-")) ==

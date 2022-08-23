@@ -83,8 +83,7 @@ std::string YulForNode::to_string() {
  */
 std::unique_ptr<YulExpressionNode> &YulForNode::getCondition() {
   std::unique_ptr<YulStatementNode> &lastNode =
-      conditionNode->getStatements().at(conditionNode->getStatements().size() -
-                                        1);
+      conditionNode->getStatements().back();
   assert(lastNode->statementType ==
          YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_IF);
   std::unique_ptr<YulIfNode> &ifNode = (std::unique_ptr<YulIfNode> &)lastNode;

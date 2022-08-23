@@ -38,9 +38,9 @@ std::string YulIfNode::to_string() {
 
 llvm::Value *YulIfNode::codegen(llvm::Function *enclosingFunction) {
   llvm::BasicBlock *thenBlock = llvm::BasicBlock::Create(
-      *TheContext, std::to_string(ifId) + "-if-taken-body", enclosingFunction);
+      *TheContext,  "if-taken-body"+ std::to_string(ifId), enclosingFunction);
   llvm::BasicBlock *contBlock = llvm::BasicBlock::Create(
-      *TheContext, std::to_string(ifId) + "-if-not-taken-body");
+      *TheContext, "if-not-taken-body"+std::to_string(ifId));
   llvm::Value *cond = condition->codegen(enclosingFunction);
   // create actual branch on condition
   Builder->CreateCondBr(cond, thenBlock, contBlock);
