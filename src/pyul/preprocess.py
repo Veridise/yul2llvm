@@ -1,4 +1,4 @@
-from .ast import ContractData, YulNode, walk_dfs
+from .ast import ContractData, YulNode, walk_dfs, create_yul_node
 import functools
 from typing import List, Dict, Set, Optional, Iterable
 import logging
@@ -103,5 +103,66 @@ def prune_deploy_obj(contract: ContractData,
     if logger:
         logger.debug('Stmt count after removing non-function-def statements: '
                      f'{cnt_stmts_after} -> {cnt_stmts_after2}')
-
         logger.debug('END PASS prune_deploy_obj')
+
+
+def prune_deployed_code(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    '''Move the selector into a separate function, and then remove redundant
+    functions.
+
+    This also populates the "external_fun" metadata.
+
+    '''
+
+    if logger:
+        logger.debug('BEGIN PASS prune_deployed_code')
+
+    obj_node: YulNode = YulNode(contract.yul_ast['object_body']['contract_body'])
+    blk_node: YulNode = obj_node.children[0]
+    assert blk_node.type == 'yul_block'
+
+    stmt_cnt_begin = len(blk_node.children)
+
+    # Delete the memory guard
+    mem_guard_stmt = blk_node.children[0]
+    if mem_guard_stmt.is_fun_call() and mem_guard_stmt.get_fun_name() == 'mstore':
+        blk_node.children.underlying.remove(mem_guard_stmt.obj)
+    elif logger:
+        logger.warning('Memory guard not found, skipping memory guard delete')
+
+    # Move all free-standing stmts into a selector function
+    to_move = [(i, s) for i, s in enumerate(blk_node.children)
+               if not s.is_fun_def()]
+    for i, s in reversed(to_move):
+        blk_node.children.underlying.pop(i)
+
+    selector_fun_name = '_pyul_selector'
+    new_selector_fun = create_yul_node('yul_function_definition', [
+        create_yul_node('yul_identifier', [selector_fun_name]),
+        create_yul_node('yul_block', [s for _, s in to_move])
+    ])
+    assert new_selector_fun.is_fun_def()
+    blk_node.children.underlying.insert(0, new_selector_fun.obj)
+
+    # Populate the metadata
+    def walk_selector(node: YulNode):
+        # TODO: store the selector
+        if node.type == 'yul_case':
+            # FIXME: flatten yul_literal->yul_number_literal->yul_hex_literal
+            selector: str = node.children[0].children[0].children[0].children[0].obj
+            case_body = node.children[1].children[0]
+            assert case_body.is_fun_call(), f'got {node.children[0].type}'
+            contract.metadata.external_fns[selector] = case_body.get_fun_name()
+
+    walk_dfs(new_selector_fun, walk_selector)
+
+    # Prune any dead functions
+    prune_dead_functions(blk_node, [selector_fun_name])
+
+    stmt_cnt_end = len(blk_node.children)
+
+    if logger:
+        logger.debug('Stmt count change: '
+                     f'{stmt_cnt_begin} -> {stmt_cnt_end}')
+        logger.debug('END PASS prune_deployed_code')

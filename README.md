@@ -64,6 +64,21 @@ The artifact directory has the following layout:
     yul.json                  - final preprocessed Yul IR in JSON format
 ```
 
+### Preprocessing
+
+`pyul` will perform the following preprocessing.
+
+#### Deploy code
+
+* All top-level statements that are not function definitions
+  will be deleted. Functions not reachable from the constructor will be deleted.
+
+#### Deployed code
+
+* The memory initialization code at the beginning will be removed.
+* The selector code will be moved into a special top-level function named
+  `_pyul_selector`.
+
 ### Metadata
 
 The top-level JSON object created by `pyul` will contain a `"metadata"` object

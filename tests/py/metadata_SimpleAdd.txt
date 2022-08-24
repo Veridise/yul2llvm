@@ -1,4 +1,9 @@
 RUN: pyul %S/../e2e/SimpleAdd.sol --project-dir %S/../e2e --stop-after preprocess > %t
-RUN: jq '.["metadata"]' < %t | FileCheck %s
+RUN: jq -S '.["metadata"]' < %t | FileCheck %s
 
-CHECK: "main_ctor": "constructor_AdditionContract_{{[0-9]+}}"
+CHECK-LABEL: "external_fns":
+CHECK-DAG: "0x771602f7"
+CHECK-SAME: "external_fun_add_{{[0-9]+}}"
+
+CHECK-LABEL: "main_ctor":
+CHECK-SAME: "constructor_AdditionContract_{{[0-9]+}}"

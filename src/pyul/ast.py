@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, List, Union, Optional
+from typing import Callable, Dict, Iterable, List, Optional, Union
 
 
 @dataclass
@@ -75,10 +75,18 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
                     to_visit.append(child)
 
 
+def create_yul_node(type: str,
+                    children: Iterable[Union[dict, YulNode, str]]) -> YulNode:
+    return YulNode({
+        'type': type,
+        'children': [c.obj if isinstance(c, YulNode) else c for c in children]
+    })
+
+
 @dataclass
 class YulMetadata(object):
     main_ctor: str = ''
-    external_fns: List[str] = field(default_factory=list)
+    external_fns: Dict[str, str] = field(default_factory=dict)
 
 
 @dataclass

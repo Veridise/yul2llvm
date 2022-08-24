@@ -86,6 +86,7 @@ def main():
             the_contract = contract
 
     preprocess.prune_deploy_obj(the_contract, logger=logger)
+    preprocess.prune_deployed_code(the_contract, logger=logger)
 
     # Save the processed Yul AST
     dumped_obj = the_contract.yul_ast.copy()
