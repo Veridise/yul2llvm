@@ -5,7 +5,7 @@
 pragma solidity ^0.8.10;
 
 
-contract IfThenElseContract {
+contract ForLoopTestContract {
     uint256 x;
 
     constructor(){
@@ -29,6 +29,7 @@ contract IfThenElseContract {
     }
 }
 
+//CHECK: define {{.* @fun_loop_.*}}
 //CHECK: for-cond
 //CHECK: for-body
 //CHECK: for-incr

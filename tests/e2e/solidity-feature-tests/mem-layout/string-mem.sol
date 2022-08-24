@@ -2,13 +2,13 @@
 pragma solidity ^0.8.10;
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 // XFAIL: *
-contract AdditionContract {
+contract StorageLocationMemoryTest {
 
     constructor(){
     }
 
 
-    function add() external returns(string memory) {
+    function echo() external returns(string memory) {
         return "Hello World!";
     }
     

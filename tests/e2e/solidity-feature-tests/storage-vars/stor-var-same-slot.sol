@@ -10,7 +10,7 @@ This testcase targets storage vaiable in same slot
 pragma solidity ^0.8.10;
 
 
-contract StorageVariableTestcase {
+contract SameSlotStorageVariableTestcase {
     uint32 x;
     uint32 y;
 

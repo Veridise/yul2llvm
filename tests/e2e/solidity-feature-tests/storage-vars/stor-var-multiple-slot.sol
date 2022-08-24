@@ -9,7 +9,7 @@ This testcase targets storage vaiable in different slot
 pragma solidity ^0.8.10;
 
 
-contract StorageVariableTestcase {
+contract MultipleSlotStorageVariableTestcase {
     uint256 x;
     uint32 y;
 

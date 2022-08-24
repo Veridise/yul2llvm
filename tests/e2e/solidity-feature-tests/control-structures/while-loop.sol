@@ -5,7 +5,7 @@
 pragma solidity ^0.8.10;
 
 
-contract IfThenElseContract {
+contract WhileTestContract {
 
     function loop() external returns (uint256) {
         int i = 0;
@@ -19,7 +19,7 @@ contract IfThenElseContract {
     
 }
 
-// CHECK: function {{fun_loop_[0-9]+}}
+// CHECK: define {{.*@fun_loop_.*\(\)}}
 // CHECK: for-cond
 // CHECK: for-body
 // CHECK: for-incr

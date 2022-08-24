@@ -31,7 +31,6 @@ assert hasattr(config, 'extra_suffixes')
 assert hasattr(config, 'test_exec_root')
 assert hasattr(config, 'test_source_root')
 
-
 # name: The name of this test suite.
 config.name = 'yul2llvm'
 

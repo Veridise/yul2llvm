@@ -169,6 +169,9 @@
               source ${pkgs.python3Packages.venvShellHook}/nix-support/setup-hook
               export venvDir="$PWD"/.venv
               runHook venvShellHook
+
+              # setup path for yul2llvm_cpp
+              export PATH=$PWD/build/bin:$PATH
             '';
 
             postVenvCreation = ''

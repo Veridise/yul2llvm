@@ -7,7 +7,7 @@ interface ExtCont{
     function foo() external payable;
 }
 
-contract AdditionContract {
+contract ExternalCallTest {
 
     constructor(){
 

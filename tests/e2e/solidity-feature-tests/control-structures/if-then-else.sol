@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-// RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+// COM: RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+// COM: RUN: pyul %s --project-dir %S | FileCheck %s
 
 pragma solidity ^0.8.10;
 
@@ -21,5 +22,6 @@ contract IfThenElseContract {
     
 }
 
+//CHECK: define {{.* @fun_max_.*}}
 //CHECK: switch
 //check: case
