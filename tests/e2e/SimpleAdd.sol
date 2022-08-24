@@ -15,6 +15,9 @@ contract AdditionContract {
     
 }
 
+// CHECK-LABEL: define {{.*}} @_pyul_selector({{.*}}) {
+// CHECK: }
+
 // CHECK-LABEL: define {{.*}} @fun_add_{{.*}}({{.*}}) {
 // CHECK: %{{.*}} = add
 // CHECK: }
