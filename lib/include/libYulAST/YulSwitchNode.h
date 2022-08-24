@@ -13,6 +13,8 @@ protected:
   std::unique_ptr<YulIdentifierNode> condition;
   std::vector<std::unique_ptr<YulCaseNode>> cases;
   std::unique_ptr<YulDefaultNode> defaultNode;
+  static int switchesCreated;
+  int switchId;
 
 public:
   std::string str = "";

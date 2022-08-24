@@ -47,3 +47,9 @@ void TranslateYulToLLVM::dumpFunctions(llvm::raw_ostream &stream) const {
     f.dump(stream);
   }
 }
+
+void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
+  for (auto &f : functions) {
+    stream << f.to_string();
+  }
+}

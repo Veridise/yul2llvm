@@ -16,5 +16,6 @@ public:
   virtual llvm::Value *codegen(llvm::Function *F) override;
   virtual std::string to_string() override;
   YulBlockNode(const json *rawAST);
+  std::vector<std::unique_ptr<YulStatementNode>> &getStatements();
 };
 }; // namespace yulast

@@ -13,18 +13,22 @@ std::map<std::string, llvm::AllocaInst *> YulASTBase::NamedValues;
 bool YulASTBase::sanityCheckPassed(const json *rawAST, std::string key) {
   if (!rawAST->contains("type")) {
     std::cout << "type not present" << std::endl;
+    std::cout << rawAST->dump() << std::endl;
     return false;
   }
   if (!rawAST->contains("children")) {
     std::cout << "children not present" << std::endl;
+    std::cout << rawAST->dump() << std::endl;
     return false;
   }
   if ((rawAST->size() != 2)) {
     std::cout << "size not equal 2" << std::endl;
+    std::cout << rawAST->dump() << std::endl;
     return false;
   }
   if ((*rawAST)["type"].get<std::string>().compare(key)) {
     std::cout << "wrong key" << std::endl;
+    std::cout << rawAST->dump() << std::endl;
     return false;
   }
   return true;
