@@ -30,18 +30,15 @@ std::string YulBlockNode::to_string() {
     for (auto it = statements.begin(); it != statements.end(); it++) {
       str.append((*it)->to_string()).append("\n");
     }
-    str.append("}\n");
+    str.append("\n");
   }
   return str;
 }
 
 llvm::Value *YulBlockNode::codegen(llvm::Function *F) {
   for (auto &s : statements) {
+    // std::cout<<s->to_string()<<std::endl;
     s->codegen(F);
   }
   return nullptr;
-}
-
-std::vector<std::unique_ptr<YulStatementNode>> &YulBlockNode::getStatements() {
-  return statements;
 }

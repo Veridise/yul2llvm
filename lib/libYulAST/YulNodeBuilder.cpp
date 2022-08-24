@@ -4,9 +4,6 @@
 
 #include <libYulAST/YulAssignmentNode.h>
 #include <libYulAST/YulBlockNode.h>
-#include <libYulAST/YulBreakNode.h>
-#include <libYulAST/YulContinueNode.h>
-#include <libYulAST/YulForNode.h>
 #include <libYulAST/YulFunctionCallNode.h>
 #include <libYulAST/YulIdentifierNode.h>
 #include <libYulAST/YulIfNode.h>
@@ -42,15 +39,6 @@ YulStatementBuilder::Builder(const json *rawAST) {
   } else if (!type.compare(YUL_SWITCH_KEY)) {
     return std::unique_ptr<YulStatementNode>(
         std::make_unique<YulSwitchNode>(rawAST));
-  } else if (!type.compare(YUL_BREAK_KEY)) {
-    return std::unique_ptr<YulStatementNode>(
-        std::make_unique<YulBreakNode>(rawAST));
-  } else if (!type.compare(YUL_CONTINUE_KEY)) {
-    return std::unique_ptr<YulStatementNode>(
-        std::make_unique<YulContinueNode>(rawAST));
-  } else if (!type.compare(YUL_FOR_KEY)) {
-    return std::unique_ptr<YulStatementNode>(
-        std::make_unique<YulForNode>(rawAST));
   }
   std::cout << "Statement node not implemented: " << type << std::endl;
   assert(false && "Statement node not implemented");

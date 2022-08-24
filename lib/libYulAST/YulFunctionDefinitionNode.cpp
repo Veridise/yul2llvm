@@ -126,7 +126,3 @@ void YulFunctionDefinitionNode::dump(llvm::raw_ostream &os) const {
 void YulFunctionDefinitionNode::dumpToStdout() const { dump(llvm::outs()); }
 
 llvm::Function *YulFunctionDefinitionNode::getLLVMFunction() { return F; }
-
-std::string YulFunctionDefinitionNode::getName() {
-  return functionName->getIdentfierValue();
-}

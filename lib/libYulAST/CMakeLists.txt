@@ -20,9 +20,6 @@ add_library(libYulAST
   YulSwitchNode.cpp
   YulCaseNode.cpp
   YulDefaultNode.cpp
-  YulBreakNode.cpp
-  YulContinueNode.cpp
-  YulForNode.cpp
   )
 target_include_directories(libYulAST PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>

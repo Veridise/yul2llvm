@@ -33,8 +33,11 @@ std::string YulVariableDeclarationNode::to_string() {
 
 void YulVariableDeclarationNode::codeGenForOneVar(
     std::unique_ptr<YulIdentifierNode> &id, llvm::Function *F) {
-  if (NamedValues[id->getIdentfierValue()] != nullptr)
-    return;
+  if (NamedValues[id->getIdentfierValue()] != NULL) {
+    // std::cout << "Error redeclaration of variable " <<
+    // id->getIdentfierValue()
+    //           << std::endl;
+  }
   llvm::AllocaInst *v = CreateEntryBlockAlloca(F, id->getIdentfierValue());
   NamedValues[id->getIdentfierValue()] = v;
 }

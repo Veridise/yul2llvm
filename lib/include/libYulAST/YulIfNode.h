@@ -10,8 +10,6 @@ class YulIfNode : public YulStatementNode {
 protected:
   std::unique_ptr<YulExpressionNode> condition;
   std::unique_ptr<YulBlockNode> thenBody;
-  static int ifsCreated;
-  int ifId;
 
 public:
   void createPrototype();

@@ -20,9 +20,6 @@
 #define YUL_SWITCH_KEY "yul_switch"
 #define YUL_CASE_KEY "yul_case"
 #define YUL_DEFAULT_KEY "yul_default"
-#define YUL_BREAK_KEY "yul_break"
-#define YUL_CONTINUE_KEY "yul_continue"
-#define YUL_FOR_KEY "yul_for_loop"
 
 namespace yulast {
 enum class YUL_AST_NODE_TYPE {
@@ -44,10 +41,7 @@ enum class YUL_AST_STATEMENT_NODE_TYPE {
   YUL_AST_STATEMENT_EXPRESSION,
   YUL_AST_STATEMENT_LEAVE,
   YUL_AST_STATEMENT_IF,
-  YUL_AST_STATEMENT_SWITCH,
-  YUL_AST_STATEMENT_BREAK,
-  YUL_AST_STATEMENT_CONTINUE,
-  YUL_AST_STATEMENT_FOR,
+  YUL_AST_STATEMENT_SWITCH
 };
 
 enum class YUL_AST_EXPRESSION_NODE_TYPE {
