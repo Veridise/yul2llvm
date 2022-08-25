@@ -1,3 +1,4 @@
+from . import ast
 from .ast import ContractData, YulNode, walk_dfs, create_yul_node
 import functools
 from typing import List, Dict, Set, Optional, Iterable
@@ -166,3 +167,65 @@ def prune_deployed_code(contract: ContractData,
         logger.debug('Stmt count change: '
                      f'{stmt_cnt_begin} -> {stmt_cnt_end}')
         logger.debug('END PASS prune_deployed_code')
+
+
+def attach_storage_layout(contract: ContractData,
+                          logger: Optional[logging.Logger] = None):
+    """Attaches the storage layout information to the metadata node.
+
+    This populates the state variable list and the type information dictionary.
+    """
+
+    contract.metadata.state_vars.extend(
+        ast.YulStateVar(
+            name=entry['label'],
+            type=entry['type'],
+            offset=int(entry['offset']),
+            slot=int(entry['slot']),
+        )
+        for entry in contract.storageLayout['storage']
+    )
+
+    def parse_type(type_dict: dict) -> ast.YulType:
+        if type_dict['encoding'] == 'inplace':
+            if type_dict['label'].startswith('struct '):
+                return ast.YulStructType(
+                    pretty_name=type_dict['label'],
+                    fields={
+                        td['label']: ast.YulStateVar(
+                            name=td['label'],
+                            type=td['type'],
+                            slot=int(td['slot']),
+                            offset=int(td['offset']),
+                        )
+                        for td in type_dict['members']
+                    }
+                )
+            else:
+                return ast.YulIntType(
+                    pretty_name=type_dict['label'],
+                    size=int(type_dict['numberOfBytes'])
+                )
+        elif type_dict['encoding'] == 'mapping':
+            return ast.YulMappingType(
+                pretty_name=type_dict['label'],
+                key=type_dict['key'],
+                value=type_dict['value'],
+            )
+        elif type_dict['encoding'] == 'bytes':
+            return ast.YulBytesType(
+                pretty_name=type_dict['label'],
+                size=type_dict['numberOfBytes'],
+            )
+
+        if logger:
+            logger.error(f'Unknown type: {type_dict}')
+        raise NotImplementedError
+
+    typs: Optional[dict] = contract.storageLayout.get('types', {})
+    # This can be None for some reason, so explicitly guard against it.
+    if typs is not None:
+        contract.metadata.types.update({
+            name: parse_type(entry)
+            for name, entry in typs.items()
+        })

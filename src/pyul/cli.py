@@ -87,6 +87,7 @@ def main():
 
     preprocess.prune_deploy_obj(the_contract, logger=logger)
     preprocess.prune_deployed_code(the_contract, logger=logger)
+    preprocess.attach_storage_layout(the_contract, logger=logger)
 
     # Save the processed Yul AST
     dumped_obj = the_contract.yul_ast.copy()
@@ -272,7 +273,7 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path,
             output.contracts[src_p][name] = ContractData(
                 name=name,
                 abi=contract['abi'],
-                storageLayout=contract['storageLayout']['storage'],
+                storageLayout=contract['storageLayout'],
                 yul_text=contract['ir'],
                 out_dir=c_dir,
             )

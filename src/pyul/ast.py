@@ -1,6 +1,8 @@
+import dataclasses
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Union
+import enum
 
 
 @dataclass
@@ -77,16 +79,69 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
 
 def create_yul_node(type: str,
                     children: Iterable[Union[dict, YulNode, str]]) -> YulNode:
+
     return YulNode({
         'type': type,
         'children': [c.obj if isinstance(c, YulNode) else c for c in children]
     })
 
 
+class YulTypeKind(str, enum.Enum):
+    INT_LIKE = 'intlike'
+    MAPPING = 'mapping'
+    STRUCT = 'struct'
+    ARRAY = 'array'
+    BYTES = 'bytes'
+
+
+@dataclass
+class YulType(object):
+    pretty_name: str
+    kind: YulTypeKind = field(kw_only=True, init=False)
+
+
+@dataclass
+class YulIntType(YulType):
+    _: dataclasses.KW_ONLY
+    size: int
+    kind: YulTypeKind = YulTypeKind.INT_LIKE
+
+
+@dataclass
+class YulStructType(YulType):
+    _: dataclasses.KW_ONLY
+    fields: Dict[str, 'YulStateVar']
+    kind: YulTypeKind = YulTypeKind.STRUCT
+
+
+@dataclass
+class YulMappingType(YulType):
+    _: dataclasses.KW_ONLY
+    key: str
+    value: str
+    kind: YulTypeKind = YulTypeKind.MAPPING
+
+@dataclass
+class YulBytesType(YulType):
+    size: int
+    _: dataclasses.KW_ONLY
+    kind: YulTypeKind = YulTypeKind.BYTES
+
+
+@dataclass
+class YulStateVar(object):
+    name: str
+    type: str
+    offset: int
+    slot: int
+
+
 @dataclass
 class YulMetadata(object):
     main_ctor: str = ''
     external_fns: Dict[str, str] = field(default_factory=dict)
+    state_vars: List[YulStateVar] = field(default_factory=list)
+    types: Dict[str, YulType] = field(default_factory=dict)
 
 
 @dataclass
@@ -94,7 +149,7 @@ class ContractData(object):
     '''solc output for one contract'''
     name: str
     abi: List[dict]
-    storageLayout: List[dict]
+    storageLayout: dict
     yul_text: str
     out_dir: Path
     yul_ast: dict = field(default_factory=dict)
