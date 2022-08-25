@@ -8,8 +8,8 @@ pragma solidity ^0.8.10;
 contract WhileTestContract {
 
     function loop() external returns (uint256) {
-        int i = 0;
-	    int a = 1;
+        uint256 i = 0;
+	    uint256 a = 1;
         while(i<10){
             a=a+1;
             i=i+1;

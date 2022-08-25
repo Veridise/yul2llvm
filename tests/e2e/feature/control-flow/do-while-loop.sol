@@ -19,7 +19,7 @@ contract DoWhileTestContract {
     
 }
 //CHECK: define {{.* @fun_loop_.*\(\)}}
-//CHECK: store i32 1, {{i32*.*}}
+//CHECK: store {{.* 1, .*\*.*}}
 //CHECK: for-cond
 //CHECK: for-body
 //CHECK: for-incr
