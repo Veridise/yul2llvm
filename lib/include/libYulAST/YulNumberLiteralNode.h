@@ -5,7 +5,7 @@
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {
 protected:
-  std::unique_ptr<llvm::APInt> literalValue = nullptr;
+  llvm::APInt literalValue;
   void parseRawAST(const json *rawAst) override;
 
 public:

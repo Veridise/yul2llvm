@@ -4,7 +4,7 @@
 #include <string>
 using namespace yulast;
 
-llvm::APInt &YulNumberLiteralNode::getLiteralValue() { return *literalValue; }
+llvm::APInt &YulNumberLiteralNode::getLiteralValue() { return literalValue; }
 
 void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   assert(sanityCheckPassed(rawAST, YUL_NUMBER_LITERAL_KEY));
@@ -23,17 +23,13 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   std::string valString = child["children"][0].get<std::string>();
 
   if (child["type"] == YUL_DEC_NUMBER_LITERAL_KEY) {
-    try {
-      literalValue = std::make_unique<llvm::APInt>(256, valString, 10);
-    } catch (std::exception e) {
-      assert(false && "Could not parse decimal number literal");
-    }
+    assert(!llvm::StringRef(valString).getAsInteger(10, literalValue) &&
+           "Could not parse dec literal");
+    literalValue = literalValue.zextOrTrunc(256);
   } else if (child["type"] == YUL_HEX_NUMBER_LITERAL_KEY) {
-    try {
-      literalValue = std::make_unique<llvm::APInt>(256, valString, 16);
-    } catch (std::exception e) {
-      assert(false && "Could not parse hex-number literal");
-    }
+    assert(!llvm::StringRef(valString).getAsInteger(0, literalValue) &&
+           "Could not parse hex literal");
+    literalValue = literalValue.zextOrTrunc(256);
   } else {
     assert(false && "Unimplemented type of number node");
   }
@@ -46,11 +42,11 @@ YulNumberLiteralNode::YulNumberLiteralNode(const json *rawAST)
 }
 
 llvm::Value *YulNumberLiteralNode::codegen(llvm::Function *F) {
-  return llvm::ConstantInt::get(*TheContext, *literalValue);
+  return llvm::ConstantInt::get(*TheContext, literalValue);
 }
 
 std::string YulNumberLiteralNode::to_string() {
   llvm::SmallString<256> litStr;
-  literalValue->toStringUnsigned(litStr, 16);
-  return (std::string)litStr;
+  literalValue.toStringUnsigned(litStr, 16);
+  return "0x" + (std::string)litStr;
 }

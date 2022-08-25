@@ -5,7 +5,9 @@ pragma solidity ^0.8.10;
 
 
 contract AdditionContract {
-    function add(uint256 a, uint256 b) external returns (uint256) {
+    function add(int a, int b) external returns (int) {
+        if(a>-2)
+            return 0;
         return a+b;
     }
 }
