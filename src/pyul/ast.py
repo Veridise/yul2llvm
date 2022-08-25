@@ -54,6 +54,17 @@ class YulNode(object):
         # First child is yul identifier node containing the name
         return self.obj['children'][0]['children'][0]
 
+    def get_literal_value(self) -> Union[str, int]:
+        """Returns the value of a yul_literal node."""
+        assert self.type == 'yul_literal'
+        lit_node = self.obj['children'][0]
+        # FIXME: yul_parser should generate a flat literal node.
+        if lit_node['type'] == 'yul_number_literal':
+            n_node = lit_node['children'][0]
+            if n_node['type'] == 'yul_hex_number':
+                return int(n_node['children'][0], base=16)
+        raise NotImplementedError(f'unknown literal node: {lit_node}')
+
 
 def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[bool]]):
     '''Walk the AST in depth-first order.
@@ -79,11 +90,26 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
 
 def create_yul_node(type: str,
                     children: Iterable[Union[dict, YulNode, str]]) -> YulNode:
-
     return YulNode({
         'type': type,
         'children': [c.obj if isinstance(c, YulNode) else c for c in children]
     })
+
+
+def create_yul_fun_call(fname: str,
+                        args: Iterable[Union[dict, YulNode, str]]) -> YulNode:
+    arg_nodes = [create_yul_identifier(fname)]
+    arg_nodes.extend(args)
+    return create_yul_node('yul_function_call', arg_nodes)
+
+
+def create_yul_identifier(name: str) -> YulNode:
+    return create_yul_node('yul_identifier', [name])
+
+
+def create_yul_string_literal(name: str) -> YulNode:
+    return create_yul_node('yul_literal',
+                           [create_yul_node('yul_string_literal', [name])])
 
 
 class YulTypeKind(str, enum.Enum):

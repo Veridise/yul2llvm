@@ -88,6 +88,7 @@ def main():
     preprocess.prune_deploy_obj(the_contract, logger=logger)
     preprocess.prune_deployed_code(the_contract, logger=logger)
     preprocess.attach_storage_layout(the_contract, logger=logger)
+    preprocess.rewrite_storage_ops(the_contract, logger=logger)
 
     # Save the processed Yul AST
     dumped_obj = the_contract.yul_ast.copy()

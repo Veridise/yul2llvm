@@ -4,18 +4,29 @@ This testcase targets storage vaiable in different slot
 
  */
 
+// RUN: pyul %s --project-dir %S --stop-after preprocess > %t.pre
 
-// pyul %s -o %t --project-dir %S | FileCheck %s
+/////
+// Storage vars should be contained in metadata
 
-// RUN: pyul %s --project-dir %S --stop-after preprocess \
-// RUN:   | jq '.["metadata"]["state_vars"]' -S \
+// RUN: jq '.["metadata"]["state_vars"]' -S < %t.pre \
+// RUN:   | FileCheck %s --check-prefix META
+
+// META-LABEL: "name": "x"
+// META: "type": "t_uint256"
+
+// META-LABEL: "name": "y"
+// META: "type": "t_uint32"
+/////
+
+/////
+// Storage reads should be rewritten
+
+// RUN: jq '.. | select(.type? == "yul_function_call" and (.children[0].children[0] | startswith("pyul_"))) | .children[0].children[0]' -S < %t.pre \
 // RUN:   | FileCheck %s --check-prefix PRE
 
-// PRE-LABEL: "name": "x"
-// PRE: "type": "t_uint256"
-
-// PRE-LABEL: "name": "y"
-// PRE: "type": "t_uint32"
+// PRE: pyul_storage_var_load
+/////
 
 pragma solidity ^0.8.10;
 

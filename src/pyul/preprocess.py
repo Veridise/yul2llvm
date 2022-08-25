@@ -3,6 +3,7 @@ from .ast import ContractData, YulNode, walk_dfs, create_yul_node
 import functools
 from typing import List, Dict, Set, Optional, Iterable
 import logging
+import re
 
 
 def prune_dead_functions(block_node: YulNode, roots: Iterable[str]):
@@ -48,6 +49,19 @@ def prune_dead_functions(block_node: YulNode, roots: Iterable[str]):
         if not YulNode(n).is_fun_def()
         or YulNode(n).get_fun_name() in reachable
     )
+
+
+def _prune_dead_functions_logging(blk_node: YulNode,
+                                  root_nodes: Iterable[str],
+                                  logger: Optional[logging.Logger]):
+    """Prune dead functions, logging the change in statement count."""
+    assert blk_node.type == 'yul_block'
+    cnt_stmts_before = len(blk_node.children)
+    prune_dead_functions(blk_node, root_nodes)
+    cnt_stmts_after = len(blk_node.children)
+    if logger:
+        logger.debug('Stmt count after removing unreachable functions: '
+                     f'{cnt_stmts_before} -> {cnt_stmts_after}')
 
 
 def prune_deploy_obj(contract: ContractData,
@@ -229,3 +243,70 @@ def attach_storage_layout(contract: ContractData,
             name: parse_type(entry)
             for name, entry in typs.items()
         })
+
+
+def rewrite_storage_ops(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    '''Rewrites all sload/store operations into higher level operations.
+
+    * The storage layout will be used to rewrite sload/store of constants into
+      `pyul_sload` and `pyul_sstore` ops.
+    '''
+
+    # Create a map of storage (slots, offsets) to storage vars
+    svars = {
+        (v.slot, v.offset): (v.name, v.type) for v in contract.metadata.state_vars
+    }
+
+    # Regexes for rewrite rules
+    # Note: we don't handle the following variants:
+    # - read_from_storage_offset_dynamic
+    load_re = re.compile('^read_from_storage(?P<issplit>_split)?_offset_(?P<offset>[0-9]+)_(?P<type>.*)$')
+    # update_re = re.compile('^update_storage_value_(offset_[0-9]+)?.*_to_')
+    update_re = re.compile('^update_storage_value_')
+
+    def rewrite_storage_ops(node: YulNode) -> bool:
+        if not node.is_fun_call():
+            return True
+
+        # rewrite load from storage --> pyul_storage_var_load()
+        fname = node.get_fun_name()
+        if ((match := load_re.match(fname))
+           and node.children[1].type == 'yul_literal'):
+            d = match.groupdict()
+            slot = node.children[1].get_literal_value()
+            assert isinstance(slot, int)
+            offset = int(d['offset'])
+
+            svar_entry = svars.get((slot, offset))
+            # TODO: deal with sizes that are not uint256?
+            if svar_entry is None or svar_entry[1] != 't_uint256':
+                if logger:
+                    logger.warning(f'Unknown storage load from: slot={slot} offset={offset}')
+            else:
+                name, ty = svars[(slot, offset)]
+                # Rewrite to function call: pyul_storage_var_load(name, ty)
+                node.obj['children'][:] = ast.create_yul_fun_call(
+                    'pyul_storage_var_load',
+                    [
+                        ast.create_yul_string_literal(name),
+                        ast.create_yul_string_literal(ty),
+                    ]
+                ).obj['children']
+                if logger:
+                    logger.debug(f'Rewrite storage load slot={slot} offset={offset} => '
+                                 f'{svars[(slot, offset)]}')
+
+        return True
+
+    walk_dfs(contract.yul_ast['contract_body'], rewrite_storage_ops)
+    walk_dfs(contract.yul_ast['object_body']['contract_body'], rewrite_storage_ops)
+
+    # If all storage helpers are removed, we should be able to prune a lot of
+    # other helpers.
+    _prune_dead_functions_logging(
+        YulNode(contract.yul_ast['object_body']['contract_body']).children[0],
+        {'_pyul_selector'}, logger)
+    _prune_dead_functions_logging(
+        YulNode(contract.yul_ast['contract_body']).children[0],
+        {contract.metadata.main_ctor}, logger)
