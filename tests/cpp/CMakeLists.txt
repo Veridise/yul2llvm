@@ -16,4 +16,3 @@ add_custom_target(check-unit
   COMMAND "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target test
 )
 
-add_subdirectory(ASTClassesTest)

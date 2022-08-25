@@ -1,0 +1,320 @@
+// RUN: yul2llvm_cpp %s -o - 2>&1 | FileCheck %s
+{
+  "type": "yul_function_definition",
+  "children": [
+    {
+      "type": "yul_identifier",
+      "children": [
+        "fun_decrement_18"
+      ]
+    },
+    {
+      "type": "yul_function_arg_list",
+      "children": [
+        {
+          "type": "yul_typed_identifier_list",
+          "children": [
+            {
+              "type": "yul_identifier",
+              "children": [
+                "var_a_3"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "yul_function_ret_list",
+      "children": [
+        {
+          "type": "yul_typed_identifier_list",
+          "children": [
+            {
+              "type": "yul_identifier",
+              "children": [
+                "var__6"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "yul_block",
+      "children": [
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "zero_t_int256_1"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_call",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "zero_value_for_split_t_int256"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_assignment",
+          "children": [
+            {
+              "type": "yul_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "var__6"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "zero_t_int256_1"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_11"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_literal",
+              "children": [
+                {
+                  "type": "yul_number_literal",
+                  "children": [
+                    {
+                      "type": "yul_hex_number",
+                      "children": [
+                        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "var_diff_9"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_call",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "convert_t_rational_minus_16_by_1_to_t_int256"
+                  ]
+                },
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_11"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "_2"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "var_a_3"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_13"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "_2"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "_3"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "var_diff_9"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_14"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "_3"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_variable_declaration",
+          "children": [
+            {
+              "type": "yul_typed_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_15"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_call",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "checked_add_t_int256"
+                  ]
+                },
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_13"
+                  ]
+                },
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "expr_14"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_assignment",
+          "children": [
+            {
+              "type": "yul_identifier_list",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "var__6"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_identifier",
+              "children": [
+                "expr_15"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "yul_leave",
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+
+// CHECK-LABEL: define {{i256 @fun_decrement_[0-9]+.*}}
+// CHECK: {{store i256 -16, i256\* .*}}
+

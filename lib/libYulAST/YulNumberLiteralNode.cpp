@@ -19,16 +19,35 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
    * @todo If the uint256 literals are encountered, they are
    * set to int max.
    *
+   * @note We are assuming input yul code has only one type i.e.
+   * uint256. Therefore, negative numbers in yul are encoded in 2s complement.
+   * While using getAsInteger parses it correctly and thereofre `We dont have
+   * to worry about sign-bit and types`
+   *
+   * Further down the line we will have to argue in code about these things and
+   * Carefully extend the correct sign bit to the bitwidth to represent the
+   * correct number.
+   *
+   * We will need to propagate types to literals, to form a well-typed ast.
+   *
    */
   std::string valString = child["children"][0].get<std::string>();
 
   if (child["type"] == YUL_DEC_NUMBER_LITERAL_KEY) {
-    assert(!llvm::StringRef(valString).getAsInteger(10, literalValue) &&
-           "Could not parse dec literal");
+    bool literalParseError =
+        llvm::StringRef(valString).getAsInteger(10, literalValue);
+    assert(!literalParseError && "Could not parse dec literal");
+    if (literalParseError) {
+      llvm::WithColor::error() << "Could not parse dec literal";
+    }
     literalValue = literalValue.zextOrTrunc(256);
   } else if (child["type"] == YUL_HEX_NUMBER_LITERAL_KEY) {
-    assert(!llvm::StringRef(valString).getAsInteger(0, literalValue) &&
-           "Could not parse hex literal");
+    bool literalParseError =
+        llvm::StringRef(valString).getAsInteger(0, literalValue);
+    assert(!literalParseError && "Could not parse hex literal");
+    if (literalParseError) {
+      llvm::WithColor::error() << "Could not parse hex literal";
+    }
     literalValue = literalValue.zextOrTrunc(256);
   } else {
     assert(false && "Unimplemented type of number node");
