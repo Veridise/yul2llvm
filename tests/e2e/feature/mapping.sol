@@ -15,9 +15,6 @@ contract MappingTestCase {
     function mappingWrite(uint256 k, uint256 v) {
         return map[k]=v;
     }
-
-    
-    
 }
 
 //CHECK: define {{fun_add_[0-9]+}}

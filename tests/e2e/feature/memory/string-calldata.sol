@@ -5,13 +5,8 @@ pragma solidity ^0.8.10;
 
 
 contract StorageLocationCallDataTest {
-
-    constructor(){
-    }
-
-
     function echo(string calldata a) external returns(string  calldata) {
-    	     return a;
+        return a;
     }
     
     

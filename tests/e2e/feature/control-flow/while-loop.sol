@@ -9,11 +9,12 @@ contract WhileTestContract {
 
     function loop() external returns (uint256) {
         int i = 0;
-	int a = 1;
+	    int a = 1;
         while(i<10){
-	  a=a+1;
-	  i=i+1;
-	}
+            a=a+1;
+            i=i+1;
+        }
+        return a;
     }
     
     

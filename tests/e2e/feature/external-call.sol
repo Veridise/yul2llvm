@@ -8,14 +8,7 @@ interface ExtCont{
 }
 
 contract ExternalCallTest {
-
-    constructor(){
-
-    }
-
     function add(address addr) external returns (uint256) {
         ExtCont(addr).foo{value:10}();
     }
-    
-    
 }

@@ -8,8 +8,8 @@ contract IfThenTestContract {
 
     function max(uint256 a, uint256 b) external returns (uint256) {
         if(a>b)
-	  return a;
-	return b;
+	        return a;
+	    return b;
     }
     
     
