@@ -5,7 +5,7 @@
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {
 protected:
-  std::int32_t literalValue = 0;
+  llvm::APInt literalValue;
   void parseRawAST(const json *rawAst) override;
 
 public:
@@ -16,6 +16,6 @@ public:
   /** @todo Currently literals only a data type of 32 bits is assumed
    * Needs to account for other datatypes (more subclasses maybe)
    */
-  std::int32_t getLiteralValue();
+  llvm::APInt &getLiteralValue();
 };
 }; // namespace yulast

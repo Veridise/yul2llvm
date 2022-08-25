@@ -53,6 +53,6 @@ YulASTBase::CreateEntryBlockAlloca(llvm::Function *TheFunction,
                                    const std::string &VarName) {
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
-  return TmpB.CreateAlloca(llvm::Type::getInt32Ty(*TheContext), 0,
+  return TmpB.CreateAlloca(llvm::Type::getIntNTy(*TheContext, 256), 0,
                            VarName.c_str());
 }

@@ -41,10 +41,10 @@ void YulFunctionCallNode::createPrototype() {
   else
     numargs = getArgs().size();
 
-  std::vector<llvm::Type *> funcArgTypes(numargs,
-                                         llvm::Type::getInt32Ty(*TheContext));
+  std::vector<llvm::Type *> funcArgTypes(
+      numargs, llvm::Type::getIntNTy(*TheContext, 256));
 
-  FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+  FT = llvm::FunctionType::get(llvm::Type::getIntNTy(*TheContext, 256),
                                funcArgTypes, false);
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,

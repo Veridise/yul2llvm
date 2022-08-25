@@ -18,7 +18,7 @@ YulIdentifierNode::YulIdentifierNode(const json *rawAST)
 }
 
 llvm::Value *YulIdentifierNode::codegen(llvm::Function *F) {
-  llvm::Type *inttype = llvm::Type::getInt32Ty(*TheContext);
+  llvm::Type *inttype = llvm::Type::getIntNTy(*TheContext, 256);
   if (NamedValues.find(identifierValue) == NamedValues.end()) {
     for (auto &arg : F->args()) {
       if (!std::string(arg.getName()).compare(identifierValue)) {

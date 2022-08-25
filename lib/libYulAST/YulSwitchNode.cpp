@@ -62,10 +62,8 @@ llvm::Value *YulSwitchNode::codegen(llvm::Function *enclosingFunction) {
         *TheContext,
         switchIdString + "-" + c->getCondition()->to_string() + "-case",
         enclosingFunction);
-    int32_t literal = c->getCondition()->getLiteralValue();
-    sw->addCase(
-        llvm::ConstantInt::get(*TheContext, llvm::APInt(32, literal, 10)),
-        caseBB);
+    llvm::APInt &literal = c->getCondition()->getLiteralValue();
+    sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
     Builder->SetInsertPoint(caseBB);
     c->codegen(enclosingFunction);
     Builder->CreateBr(cont);
