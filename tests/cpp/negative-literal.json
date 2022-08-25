@@ -315,6 +315,6 @@
   ]
 }
 
-// CHECK-LABEL: define {{i256 @fun_decrement_[0-9]+.*}}
-// CHECK: {{store i256 -16, i256\* .*}}
+// CHECK-LABEL: define i256 @fun_decrement_
+// CHECK: store i256 -16, i256
 
