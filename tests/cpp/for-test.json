@@ -703,7 +703,7 @@
   ]
 }
 
-
+// CHECK: define i256 {{.*@fun_loop_.*}}
 // CHECK: for-cond
 // CHECK: for-body
 // CHECK: for-incr

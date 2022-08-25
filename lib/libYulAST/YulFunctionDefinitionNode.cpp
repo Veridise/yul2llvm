@@ -54,10 +54,10 @@ void YulFunctionDefinitionNode::createPrototype() {
   else
     numargs = args->getIdentifiers().size();
 
-  std::vector<llvm::Type *> funcArgTypes(numargs,
-                                         llvm::Type::getInt32Ty(*TheContext));
+  std::vector<llvm::Type *> funcArgTypes(
+      numargs, llvm::Type::getIntNTy(*TheContext, 256));
 
-  FT = llvm::FunctionType::get(llvm::Type::getInt32Ty(*TheContext),
+  FT = llvm::FunctionType::get(llvm::Type::getIntNTy(*TheContext, 256),
                                funcArgTypes, false);
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
@@ -110,7 +110,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   } else {
     // @todo assuming rets has only a single element
     llvm::Value *v = Builder->CreateLoad(
-        llvm::Type::getInt32Ty(*TheContext),
+        llvm::Type::getIntNTy(*TheContext, 256),
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
   }

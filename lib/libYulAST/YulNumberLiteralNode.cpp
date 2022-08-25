@@ -4,7 +4,7 @@
 #include <string>
 using namespace yulast;
 
-std::int32_t YulNumberLiteralNode::getLiteralValue() { return literalValue; }
+llvm::APInt &YulNumberLiteralNode::getLiteralValue() { return *literalValue; }
 
 void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   assert(sanityCheckPassed(rawAST, YUL_NUMBER_LITERAL_KEY));
@@ -24,15 +24,15 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
 
   if (child["type"] == YUL_DEC_NUMBER_LITERAL_KEY) {
     try {
-      literalValue = std::stoi(valString);
+      literalValue = std::make_unique<llvm::APInt>(256, valString, 10);
     } catch (std::exception e) {
-      literalValue = INT32_MAX;
+      assert(false && "Could not parse decimal number literal");
     }
   } else if (child["type"] == YUL_HEX_NUMBER_LITERAL_KEY) {
     try {
-      literalValue = std::stoi(valString, nullptr, 16);
+      literalValue = std::make_unique<llvm::APInt>(256, valString, 16);
     } catch (std::exception e) {
-      literalValue = INT32_MAX;
+      assert(false && "Could not parse hex-number literal");
     }
   } else {
     assert(false && "Unimplemented type of number node");
@@ -46,10 +46,11 @@ YulNumberLiteralNode::YulNumberLiteralNode(const json *rawAST)
 }
 
 llvm::Value *YulNumberLiteralNode::codegen(llvm::Function *F) {
-  llvm::Type *int32Type = llvm::Type::getInt32Ty(*TheContext);
-  return llvm::ConstantInt::get(int32Type, literalValue, true);
+  return llvm::ConstantInt::get(*TheContext, *literalValue);
 }
 
 std::string YulNumberLiteralNode::to_string() {
-  return std::to_string(literalValue);
+  llvm::SmallString<256> litStr;
+  literalValue->toStringUnsigned(litStr, 16);
+  return (std::string)litStr;
 }
