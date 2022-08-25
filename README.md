@@ -91,6 +91,49 @@ with the following schema:
 
   // The list of the functions (names) that are part of the contract's ABI
   "external_funs": [],
+
+  // List of state variables
+  "state_vars": [
+    {
+      "name": "debt", // name of the storage variable
+      "type": "t_uint256", // name of the type (corresponding to "types" entry)
+      "slot": 0, // offset into space of uint256 storage values
+      "offset": 7 // byte offset into the uint256 storing this value
+    }
+  ],
+
+  // Information about the types in this contract
+  "types": {
+    "t_address": {
+      "pretty_name": "address", // Human readable name
+      "kind": "intlike", // Represents an integer-like type
+      "size": 20 // Size of this integer in bytes.
+    },
+    "t_mapping(t_address,t_uint256)": {
+      "pretty_name": "mapping(address => uint256)",
+      "kind": "mapping", // Represents a mapping type
+      "key": "t_address",
+      "value": "t_uint256"
+    },
+    "t_struct(Urn)136_storage": {
+      "pretty_name": "struct Vat.Urn",
+      "kind": "struct", // Represents a struct type
+      "fields": {
+        "ink": { // similar schema to state_vars
+          "name": "ink", // same as the key
+          "type": "t_uint256",
+          "offset": 0,
+          "slot": 0
+        },
+        "art": {
+          "name": "art",
+          "type": "t_uint256",
+          "offset": 0,
+          "slot": 1
+        }
+      }
+    },
+  }
 }
 ```
 
