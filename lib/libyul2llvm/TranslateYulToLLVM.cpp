@@ -11,33 +11,33 @@
 
 using namespace yul2llvm;
 
-TranslateYulToLLVM::TranslateYulToLLVM(json inputRawAST)
-    : rawAST(inputRawAST) {}
+TranslateYulToLLVM::TranslateYulToLLVM(const json rawContract, const json rawStorageLayout)
+    : rawContract(rawContract), rawStorageLayout(rawStorageLayout) {}
 
-void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
-  if (j.is_array()) {
-    for (nlohmann::json::iterator it = j.begin(); it != j.end(); it++)
-      traverseJson(*it);
-  } else if (j.is_object()) {
-    if (j.contains("type")) {
-      if (!j["type"].get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)) {
-        yulast::YulFunctionDefinitionNode fundef(&j);
-        fundef.codegen(nullptr);
-        functions.push_back(std::move(fundef));
-        llvmFunctions.push_back(fundef.getLLVMFunction());
-        return;
-      }
-    }
-    for (nlohmann::json::iterator it = j.begin(); it != j.end(); it++) {
-      traverseJson(it.value());
+bool TranslateYulToLLVM::sanityCheck(){
+  if(!rawContract.contains("type") && rawContract["type"] != "yul_object"){
+    llvm::WithColor::error()<<"Ill-formed yul_object";
+    // @todo Need better error reporting use llvm::Error s?
+    return true;
+  }
+  if(!rawStorageLayout.is_null()){
+    if(!rawContract.contains("storage")){
+      llvm::WithColor::error()<<"Ill-formed storageLayout";
+      // @todo Need better error reporting use llvm::Error s?
+      return true;
     }
   }
-  functionsBuilt = true;
 }
+
+void TranslateYulToLLVM::buildContract() {
+  
+}
+
+
 
 void TranslateYulToLLVM::run() {
   // std::cout << "[+] Traversing json " << std::endl;
-  traverseJson(rawAST);
+  llvm::ExitOnError(buildContracts());
 }
 
 bool TranslateYulToLLVM::areFunctionsBuilt() { return functionsBuilt; }
