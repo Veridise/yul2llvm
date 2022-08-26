@@ -30,5 +30,11 @@ public:
   virtual std::string to_string();
   YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType);
   bool sanityCheckPassed(const json *rawAST, std::string);
+  llvm::Module &getModule();
+  llvm::IRBuilder<> &getBuilder();
+  llvm::LLVMContext &getContext();
+  std::map<std::string, llvm::AllocaInst *> &getNamedValuesMap();
+  
+
 };
 }; // namespace yulast
