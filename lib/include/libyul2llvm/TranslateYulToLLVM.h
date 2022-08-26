@@ -12,7 +12,8 @@ namespace yul2llvm {
 class TranslateYulToLLVM {
 
   json rawContract;
-  bool buildContract();
+  json rawStorageLayout;
+  void buildContract();
   /**
    * @todo The vecotr function contianing ast definitions of functions is kept
    * here intentionally. We might need access to a metadata/information about
@@ -21,13 +22,14 @@ class TranslateYulToLLVM {
    * features that are currently not supporeted in llvm.
    *
    */
-  std::unique_ptr<yulast::YulContractNode> contract;
-
+  std::vector<yulast::YulFunctionDefinitionNode> functions;
+  std::vector<llvm::Function *> llvmFunctions;
+  bool functionsBuilt = false;
   bool sanityCheck();
-
 public:
-  TranslateYulToLLVM(const json rawAST);
-  bool run();
+  TranslateYulToLLVM(const json rawAST, const json storageLayout);
+  bool areFunctionsBuilt();
+  void run();
   void dumpFunctions(llvm::raw_ostream &stream = llvm::errs()) const;
   void prettyPrintFunctions(llvm::raw_ostream &stream = llvm::errs());
   void dumpModule(llvm::raw_ostream &stream) const;
