@@ -38,6 +38,8 @@ public:
   llvm::Module &getModule();
   llvm::IRBuilder<> &getBuilder();
   llvm::LLVMContext &getContext();
-  llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
+  std::map<std::string, llvm::AllocaInst *> &getNamedValuesMap();
+  
+
 };
 }; // namespace yulast

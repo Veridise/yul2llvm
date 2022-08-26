@@ -10,18 +10,11 @@ namespace cl = llvm::cl;
 
 /// @throw std::system_error if the file cannot be opened
 /// @throw nlohmann::json::exception if the JSON cannot be parsed
-void readContract(const std::string &filename, nlohmann::json &rawAST) {
+void readJsonFile(const std::string &filename, nlohmann::json &json) {
   std::ifstream jsonFileStream;
   jsonFileStream.exceptions(std::ios::failbit | std::ios::badbit);
   jsonFileStream.open(filename);
   json = nlohmann::json::parse(jsonFileStream, nullptr, true, true);
-}
-
-void readStorageLayout(const std::string &storageLayoutFilename, nlohmann::json &storageLayout) {
-  std::ifstream jsonFileStream;
-  jsonFileStream.exceptions(std::ios::failbit | std::ios::badbit);
-  jsonFileStream.open(storageLayoutFilename);
-  storageLayout = nlohmann::json::parse(jsonFileStream, nullptr, true, true);
 }
 
 int main(int argc, char **argv) {
@@ -39,18 +32,14 @@ int main(int argc, char **argv) {
   cl::opt<std::string> outputFile("o", cl::desc("Output file location"),
                                   cl::value_desc("filename"), cl::init("-"));
 
-  cl::opt<std::string> storageLayoutFile("s", cl::desc("Storage layout files"),
-                                  cl::value_desc("storage-layout"), cl::init("-"), cl::ValueOptional);
-
   if (!cl::ParseCommandLineOptions(argc, argv)) {
     return EXIT_FAILURE;
   }
 
   json rawAST;
-  json storageLayout;
 
   try {
-    readContract(inputFile, rawAST);
+    readJsonFile(inputFile, rawAST);
   } catch (const nlohmann::json::exception &err) {
     llvm::WithColor::error()
         << "Failed to parse contract json file: " << err.what() << "\n";
@@ -61,20 +50,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if(storageLayoutFile != "-"){
-    try {
-      readStorageLayout(storageLayoutFile, storageLayout);
-    } catch (const nlohmann::json::exception &err) {
-      llvm::WithColor::error()
-          << "Failed to parse storageLayout json file: when provided" << err.what() << "\n";
-      return EXIT_FAILURE;
-    } catch (const std::system_error &err) {
-      // the exception error message is not really helpful, so omit it
-      llvm::WithColor::error() << "Failed to open json file\n";
-      return EXIT_FAILURE;
-    }
-  }
-  yul2llvm::TranslateYulToLLVM translator(rawAST, storageLayout);
+  yul2llvm::TranslateYulToLLVM translator(rawAST);
   translator.run();
 
   std::error_code fileOpeningError;
