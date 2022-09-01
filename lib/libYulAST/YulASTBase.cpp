@@ -1,5 +1,5 @@
 #include <iostream>
-#include <libYulAST/YulASTBase.h> 
+#include <libYulAST/YulASTBase.h>
 
 using namespace yulast;
 std::unique_ptr<llvm::LLVMContext> YulASTBase::TheContext =
@@ -51,23 +51,15 @@ llvm::Value *YulASTBase::codegen(llvm::Function *F) {
   return nullptr;
 }
 
-llvm::Module &YulASTBase::getModule(){
-  return *TheModule;
-}
+llvm::Module &YulASTBase::getModule() { return *TheModule; }
 
-llvm::IRBuilder<> &YulASTBase::getBuilder(){
-  return *Builder;
-}
+llvm::IRBuilder<> &YulASTBase::getBuilder() { return *Builder; }
 
-llvm::LLVMContext &YulASTBase::getContext(){
-  return *TheContext;
-}
+llvm::LLVMContext &YulASTBase::getContext() { return *TheContext; }
 
-std::map<std::string, llvm::AllocaInst *> &YulASTBase::getNamedValuesMap(){
+llvm::StringMap<llvm::AllocaInst *> &YulASTBase::getNamedValuesMap() {
   return NamedValues;
 }
-
-
 
 YulASTBase::YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType)
     : nodeType(nodeType) {}

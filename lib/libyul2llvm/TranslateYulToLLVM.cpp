@@ -1,27 +1,25 @@
+#include "libyul2llvm/TranslateYulToLLVM.h"
 #include <fstream>
 #include <iostream>
-#include "libyul2llvm/TranslateYulToLLVM.h"
-
 
 using namespace yul2llvm;
 
 TranslateYulToLLVM::TranslateYulToLLVM(const json rawContract)
     : rawContract(rawContract) {}
 
-bool TranslateYulToLLVM::sanityCheck(){
-  if(!rawContract.contains("type") && rawContract["type"] != "yul_object"){
-    llvm::WithColor::error()<<"Ill-formed yul_object";
+bool TranslateYulToLLVM::sanityCheck() {
+  if (!rawContract.contains("type") && rawContract["type"] != "yul_object") {
+    llvm::WithColor::error() << "Ill-formed yul_object";
     // @todo Need better error reporting use llvm::Error s?
     return false;
   }
-  if(!rawContract.contains("metadata")){
+  if (!rawContract.contains("metadata")) {
     return false;
-  }
-  else {
-    if(!rawContract["metadata"].contains("state_vars") || 
-        !rawContract["metadata"].contains("types")){
-      llvm::WithColor::error()<<"Ill-formed storageLayout";
-      llvm::WithColor::error()<<rawContract["metadata"].dump();
+  } else {
+    if (!rawContract["metadata"].contains("state_vars") ||
+        !rawContract["metadata"].contains("types")) {
+      llvm::WithColor::error() << "Ill-formed storageLayout";
+      llvm::WithColor::error() << rawContract["metadata"].dump();
       // @todo Need better error reporting use llvm::Error s?
       return false;
     }
@@ -29,20 +27,21 @@ bool TranslateYulToLLVM::sanityCheck(){
   return true;
 }
 
-void TranslateYulToLLVM::buildContract() {
+bool TranslateYulToLLVM::buildContract() {
   bool sanityCheckResult = sanityCheck();
-  if(!sanityCheckResult){
-    llvm::WithColor::error()<<"Raw json sanity check failed\n";
-    exit(3);
+  if (!sanityCheckResult) {
+    llvm::WithColor::error() << "Raw json sanity check failed\n";
+    return false;
   }
   contract = std::make_unique<yulast::YulContractNode>(&rawContract);
+  return true;
 }
 
-
-
-void TranslateYulToLLVM::run() {
+bool TranslateYulToLLVM::run() {
   // std::cout << "[+] Traversing json " << std::endl;
-  buildContract();
+  if (!buildContract())
+    return false;
+  return true;
 }
 
 void TranslateYulToLLVM::dumpModule(llvm::raw_ostream &stream) const {
