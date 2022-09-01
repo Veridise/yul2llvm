@@ -1,0 +1,3109 @@
+// RUN: yul2llvm_cpp -o - %s 2>&1 | FileCheck %s
+{
+  "type": "yul_object",
+  "object_name": {
+    "type": "yul_string_literal",
+    "children": [
+      "StorageVariableTestcase_22"
+    ]
+  },
+  "contract_body": {
+    "type": "yul_code",
+    "children": [
+      {
+        "type": "yul_block",
+        "children": [
+          {
+            "type": "yul_function_definition",
+            "children": [
+              {
+                "type": "yul_identifier",
+                "children": [
+                  "constructor_StorageVariableTestcase_22"
+                ]
+              },
+              {
+                "type": "yul_block",
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "object_body": {
+    "type": "yul_object",
+    "object_name": {
+      "type": "yul_string_literal",
+      "children": [
+        "StorageVariableTestcase_22_deployed"
+      ]
+    },
+    "contract_body": {
+      "type": "yul_code",
+      "children": [
+        {
+          "type": "yul_block",
+          "children": [
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "_pyul_selector"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "iszero"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "lt"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_function_call",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "calldatasize"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_number_literal",
+                                      "children": [
+                                        {
+                                          "type": "yul_dec_number",
+                                          "children": [
+                                            "4"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_variable_declaration",
+                              "children": [
+                                {
+                                  "type": "yul_typed_identifier_list",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "selector"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_function_call",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "shift_right_224_unsigned"
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_function_call",
+                                      "children": [
+                                        {
+                                          "type": "yul_identifier",
+                                          "children": [
+                                            "calldataload"
+                                          ]
+                                        },
+                                        {
+                                          "type": "yul_literal",
+                                          "children": [
+                                            {
+                                              "type": "yul_number_literal",
+                                              "children": [
+                                                {
+                                                  "type": "yul_dec_number",
+                                                  "children": [
+                                                    "0"
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_switch",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "selector"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_case",
+                                  "children": [
+                                    {
+                                      "type": "yul_literal",
+                                      "children": [
+                                        {
+                                          "type": "yul_number_literal",
+                                          "children": [
+                                            {
+                                              "type": "yul_hex_number",
+                                              "children": [
+                                                "0xe41816de"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_block",
+                                      "children": [
+                                        {
+                                          "type": "yul_function_call",
+                                          "children": [
+                                            {
+                                              "type": "yul_identifier",
+                                              "children": [
+                                                "external_fun_writeStorageVariable_21"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_case",
+                                  "children": [
+                                    {
+                                      "type": "yul_literal",
+                                      "children": [
+                                        {
+                                          "type": "yul_number_literal",
+                                          "children": [
+                                            {
+                                              "type": "yul_hex_number",
+                                              "children": [
+                                                "0xf86de945"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_block",
+                                      "children": [
+                                        {
+                                          "type": "yul_function_call",
+                                          "children": [
+                                            {
+                                              "type": "yul_identifier",
+                                              "children": [
+                                                "external_fun_readStorageVariable_11"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_default",
+                                  "children": [
+                                    {
+                                      "type": "yul_block",
+                                      "children": [
+                                        {
+                                          "type": "yul_function_call",
+                                          "children": [
+                                            {
+                                              "type": "yul_identifier",
+                                              "children": [
+                                                "eurus_dispatcher_miss"
+                                              ]
+                                            },
+                                            {
+                                              "type": "yul_identifier",
+                                              "children": [
+                                                "selector"
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "shift_right_224_unsigned"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "newValue"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "newValue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "shr"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "224"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "allocate_unbounded"
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "memPtr"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPtr"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "mload"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "64"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "revert"
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "revert"
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "cleanup_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "cleaned"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "cleaned"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "validator_revert_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "iszero"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "eq"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "value"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_function_call",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "cleanup_t_uint256"
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "value"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "revert"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_number_literal",
+                                      "children": [
+                                        {
+                                          "type": "yul_dec_number",
+                                          "children": [
+                                            "0"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_number_literal",
+                                      "children": [
+                                        {
+                                          "type": "yul_dec_number",
+                                          "children": [
+                                            "0"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_decode_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "offset"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "end"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "calldataload"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "offset"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "validator_revert_t_uint256"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_decode_tuple_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "headStart"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "dataEnd"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "slt"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "sub"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "dataEnd"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "headStart"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "32"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_block",
+                      "children": [
+                        {
+                          "type": "yul_variable_declaration",
+                          "children": [
+                            {
+                              "type": "yul_typed_identifier_list",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "offset"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "0"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_assignment",
+                          "children": [
+                            {
+                              "type": "yul_identifier_list",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "value0"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "abi_decode_t_uint256"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_function_call",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "add"
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "headStart"
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "offset"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "dataEnd"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_encode_tuple__to__fromStack"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "headStart"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "tail"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "tail"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "add"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "headStart"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "0"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "external_fun_writeStorageVariable_21"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "callvalue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "param_0"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "abi_decode_tuple_t_uint256"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "4"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "calldatasize"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "fun_writeStorageVariable_21"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "param_0"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "allocate_unbounded"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memEnd"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "abi_encode_tuple__to__fromStack"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "return"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "memPos"
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "sub"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memEnd"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_decode_tuple_"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "headStart"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "dataEnd"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "slt"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "sub"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "dataEnd"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "headStart"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "0"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_encode_t_uint256_to_t_uint256_fromStack"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "pos"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "mstore"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "pos"
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "cleanup_t_uint256"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "abi_encode_tuple_t_uint256__to_t_uint256__fromStack"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "headStart"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "tail"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "tail"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "add"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "headStart"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "32"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "abi_encode_t_uint256_to_t_uint256_fromStack"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value0"
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "add"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "headStart"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "0"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "external_fun_readStorageVariable_11"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_if",
+                      "children": [
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "callvalue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_block",
+                          "children": [
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "abi_decode_tuple_"
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "4"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "calldatasize"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "ret_0"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "fun_readStorageVariable_11"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "allocate_unbounded"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memEnd"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "abi_encode_tuple_t_uint256__to_t_uint256__fromStack"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "ret_0"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "return"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "memPos"
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "sub"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memEnd"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "memPos"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "revert_error_42b3090547df1d2001c96683413b8cf91c1b902ef5e3cb8d9f6f304cf7446f74"
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "eurus_dispatcher_revert"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "zero_value_for_split_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "ret"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "ret"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_dec_number",
+                                  "children": [
+                                    "0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "fun_readStorageVariable_11"
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "var__6"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "zero_t_uint256_1"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "zero_value_for_split_t_uint256"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "var__6"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "zero_t_uint256_1"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "_2"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "pyul_storage_var_load"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_string_literal",
+                                  "children": [
+                                    "x"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_string_literal",
+                                  "children": [
+                                    "t_uint256"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "expr_8"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "_2"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "var__6"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "expr_8"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_leave",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "shift_left_0"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "newValue"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "newValue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "shl"
+                              ]
+                            },
+                            {
+                              "type": "yul_literal",
+                              "children": [
+                                {
+                                  "type": "yul_number_literal",
+                                  "children": [
+                                    {
+                                      "type": "yul_dec_number",
+                                      "children": [
+                                        "0"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "update_byte_slice_32_shift_0"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "toInsert"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "result"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "mask"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_hex_number",
+                                  "children": [
+                                    "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "toInsert"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "shift_left_0"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "toInsert"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "and"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "not"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "mask"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "result"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "or"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "and"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "toInsert"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "mask"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "identity"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "ret"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "ret"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "convert_t_uint256_to_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "converted"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "converted"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "cleanup_t_uint256"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "identity"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_function_call",
+                                  "children": [
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "cleanup_t_uint256"
+                                      ]
+                                    },
+                                    {
+                                      "type": "yul_identifier",
+                                      "children": [
+                                        "value"
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "prepare_store_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_function_ret_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "ret"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_assignment",
+                      "children": [
+                        {
+                          "type": "yul_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "ret"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "update_storage_value_offset_0t_uint256_to_t_uint256"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "slot"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "value_0"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "convertedValue_0"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "convert_t_uint256_to_t_uint256"
+                              ]
+                            },
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "value_0"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "sstore"
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "slot"
+                          ]
+                        },
+                        {
+                          "type": "yul_function_call",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "update_byte_slice_32_shift_0"
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "sload"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "slot"
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "yul_function_call",
+                              "children": [
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "prepare_store_t_uint256"
+                                  ]
+                                },
+                                {
+                                  "type": "yul_identifier",
+                                  "children": [
+                                    "convertedValue_0"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "yul_function_definition",
+              "children": [
+                {
+                  "type": "yul_identifier",
+                  "children": [
+                    "fun_writeStorageVariable_21"
+                  ]
+                },
+                {
+                  "type": "yul_function_arg_list",
+                  "children": [
+                    {
+                      "type": "yul_typed_identifier_list",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "var_y_13"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "yul_block",
+                  "children": [
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "_3"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "var_y_13"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "expr_17"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "_3"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_function_call",
+                      "children": [
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "update_storage_value_offset_0t_uint256_to_t_uint256"
+                          ]
+                        },
+                        {
+                          "type": "yul_literal",
+                          "children": [
+                            {
+                              "type": "yul_number_literal",
+                              "children": [
+                                {
+                                  "type": "yul_hex_number",
+                                  "children": [
+                                    "0x00"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "expr_17"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "yul_variable_declaration",
+                      "children": [
+                        {
+                          "type": "yul_typed_identifier_list",
+                          "children": [
+                            {
+                              "type": "yul_identifier",
+                              "children": [
+                                "expr_18"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "yul_identifier",
+                          "children": [
+                            "expr_17"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "main_ctor": "constructor_StorageVariableTestcase_22",
+    "external_fns": {
+      "0xf86de945": "external_fun_readStorageVariable_11",
+      "0xe41816de": "external_fun_writeStorageVariable_21"
+    },
+    "state_vars": [
+      {
+        "name": "x",
+        "type": "t_uint256",
+        "offset": 0,
+        "slot": 0
+      }
+    ],
+    "types": {
+      "t_uint256": {
+        "pretty_name": "uint256",
+        "kind": "intlike",
+        "size": 32
+      }
+    }
+  }
+}
+// CHECK: {{c"x.*}}
+// CHECK: {{c"t_uint256.*}}

@@ -22,6 +22,7 @@ public:
   static std::unique_ptr<llvm::Module> TheModule;
   static std::unique_ptr<llvm::IRBuilder<>> Builder;
   static std::map<std::string, llvm::AllocaInst *> NamedValues;
+  static std::map<std::string, std::string> literalNames; 
 
   bool llvmInitialized = false;
   virtual ~YulASTBase(){};

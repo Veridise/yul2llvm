@@ -12,10 +12,7 @@ public:
   std::string str = "";
   virtual std::string to_string() override;
   virtual llvm::Value *codegen(llvm::Function *F) override;
-  YulStringLiteralNode(const json *rawAST);
-  /** @todo Currently literals only a data type of 32 bits is assumed
-   * Needs to account for other datatypes (more subclasses maybe)
-   */
+  YulStringLiteralNode(const json *rawAST); 
   std::string &getLiteralValue();
 };
 }; // namespace yulast

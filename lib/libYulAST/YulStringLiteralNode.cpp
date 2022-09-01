@@ -1,6 +1,8 @@
 #include <cassert>
 #include <iostream>
 #include <libYulAST/YulStringLiteralNode.h>
+#include <llvm/Support/Base64.h>
+#include <llvm/Support/SHA1.h>
 #include <string>
 using namespace yulast;
 
@@ -18,10 +20,18 @@ YulStringLiteralNode::YulStringLiteralNode(const json *rawAST)
 }
 
 llvm::Value *YulStringLiteralNode::codegen(llvm::Function *F) {
-  int len = literalValue.length();
-  llvm::Type *litType = llvm::ArrayType::get(llvm::Type::getInt8PtrTy(*TheContext), len);
-  std::string literalName="internal_literal_"+literalValue;
-  return TheModule->getOrInsertGlobal(literalName, litType);
+  /**
+   * @todo @Reviewer: possible perf sink. Any suggestion!
+   */
+  llvm::SHA1 hasher;
+  hasher.update(literalValue);
+  std::string literalName = "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0,6);
+  if( auto x = literalNames.find(literalValue) != literalNames.end()){
+    std::string globalName = literalNames[literalValue];
+    return TheModule->getOrInsertGlobal(globalName, llvm::Type::getInt8Ty(*TheContext));
+  }
+  literalNames[literalValue] = literalName;
+  return Builder->CreateGlobalString(literalValue, literalName);
 }
 
 std::string YulStringLiteralNode::to_string() {
