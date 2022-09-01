@@ -10,6 +10,7 @@ class YulFunctionCallNode : public YulExpressionNode {
 protected:
   std::unique_ptr<YulIdentifierNode> callee;
   std::vector<std::unique_ptr<YulExpressionNode>> args;
+  llvm::Value *emitStorageLoadIntrinsic();
 
 public:
   void createPrototype();

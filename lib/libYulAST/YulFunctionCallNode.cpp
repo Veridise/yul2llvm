@@ -2,6 +2,7 @@
 #include <iostream>
 #include <libYulAST/YulFunctionCallNode.h>
 #include <libYulAST/YulNodeBuilder.h>
+#include <libYulAST/YulStringLiteralNode.h>
 
 using namespace yulast;
 
@@ -51,7 +52,40 @@ void YulFunctionCallNode::createPrototype() {
                              callee->getIdentfierValue(), TheModule.get());
 }
 
+llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
+  assert(args.size() == 2);
+  assert(args[0]->expressionType ==
+         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
+  assert(args[1]->expressionType ==
+         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
+  YulLiteralNode &lit0 = (YulLiteralNode &)(*(args[0]));
+  YulLiteralNode &lit1 = (YulLiteralNode &)(*(args[1]));
+  assert(lit0.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
+  assert(lit1.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
+  YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
+  YulStringLiteralNode &typeLit = (YulStringLiteralNode &)(*(args[1]));
+  auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
+                           varLit.to_string());
+  assert(fieldIt != structFieldOrder.end());
+  int structIndex = fieldIt - structFieldOrder.begin();
+  llvm::SmallVector<llvm::Value *> indices;
+  indices.push_back(
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, false)));
+  indices.push_back(
+      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, structIndex, false)));
+  llvm::Value *ptr = Builder->CreateGEP(selfType, (llvm::Value *)self, indices,
+                                        "ptr_self_" + varLit.to_string());
+  /**
+   * @todo fix all bit widths;
+   */
+  return Builder->CreateLoad(llvm::Type::getIntNTy(*TheContext, 256), ptr,
+                             "self_" + varLit.to_string());
+}
+
 llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
+  if (callee->getIdentfierValue() == "pyul_storage_var_load") {
+    return emitStorageLoadIntrinsic();
+  }
   if (!F)
     F = TheModule->getFunction(callee->getIdentfierValue());
 

@@ -25,15 +25,15 @@ llvm::Value *YulStringLiteralNode::codegen(llvm::Function *F) {
    */
   llvm::SHA1 hasher;
   hasher.update(literalValue);
-  std::string literalName = "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0,6);
-  if( auto x = literalNames.find(literalValue) != literalNames.end()){
-    std::string globalName = literalNames[literalValue];
-    return TheModule->getOrInsertGlobal(globalName, llvm::Type::getInt8Ty(*TheContext));
+  std::string literalName =
+      "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0, 6);
+  if (auto x =
+          stringLiteralNames.find(literalValue) != stringLiteralNames.end()) {
+    std::string globalName = stringLiteralNames[literalValue];
+    return TheModule->getOrInsertGlobal(globalName,
+                                        llvm::Type::getInt8Ty(*TheContext));
   }
-  literalNames[literalValue] = literalName;
-  return Builder->CreateGlobalString(literalValue, literalName);
+  return CreateGlobalStringLiteral(literalValue, literalName);
 }
 
-std::string YulStringLiteralNode::to_string() {
-  return literalValue;
-}
+std::string YulStringLiteralNode::to_string() { return literalValue; }

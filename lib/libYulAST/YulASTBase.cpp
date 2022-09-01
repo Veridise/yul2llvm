@@ -1,5 +1,5 @@
 #include <iostream>
-#include <libYulAST/YulASTBase.h> 
+#include <libYulAST/YulASTBase.h>
 
 using namespace yulast;
 std::unique_ptr<llvm::LLVMContext> YulASTBase::TheContext =
@@ -8,9 +8,13 @@ std::unique_ptr<llvm::Module> YulASTBase::TheModule =
     std::make_unique<llvm::Module>("yul", *TheContext);
 std::unique_ptr<llvm::IRBuilder<>> YulASTBase::Builder =
     std::make_unique<llvm::IRBuilder<>>(*TheContext);
-std::map<std::string, llvm::AllocaInst *> YulASTBase::NamedValues;
-std::map<std::string, std::string> YulASTBase::literalNames; 
+llvm::StringMap<llvm::AllocaInst *> YulASTBase::NamedValues;
+llvm::StringMap<std::string> YulASTBase::stringLiteralNames;
 
+llvm::SmallVector<std::string> YulASTBase::structFieldOrder;
+llvm::StringMap<std::tuple<std::string, int>> YulASTBase::typeMap;
+llvm::StructType *YulASTBase::selfType;
+llvm::GlobalVariable *YulASTBase::self;
 
 bool YulASTBase::sanityCheckPassed(const json *rawAST, std::string key) {
   if (!rawAST->contains("type")) {
@@ -47,23 +51,15 @@ llvm::Value *YulASTBase::codegen(llvm::Function *F) {
   return nullptr;
 }
 
-llvm::Module &YulASTBase::getModule(){
-  return *TheModule;
-}
+llvm::Module &YulASTBase::getModule() { return *TheModule; }
 
-llvm::IRBuilder<> &YulASTBase::getBuilder(){
-  return *Builder;
-}
+llvm::IRBuilder<> &YulASTBase::getBuilder() { return *Builder; }
 
-llvm::LLVMContext &YulASTBase::getContext(){
-  return *TheContext;
-}
+llvm::LLVMContext &YulASTBase::getContext() { return *TheContext; }
 
-std::map<std::string, llvm::AllocaInst *> &YulASTBase::getNamedValuesMap(){
+llvm::StringMap<llvm::AllocaInst *> &YulASTBase::getNamedValuesMap() {
   return NamedValues;
 }
-
-
 
 YulASTBase::YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType)
     : nodeType(nodeType) {}
@@ -75,4 +71,11 @@ YulASTBase::CreateEntryBlockAlloca(llvm::Function *TheFunction,
                          TheFunction->getEntryBlock().begin());
   return TmpB.CreateAlloca(llvm::Type::getIntNTy(*TheContext, 256), 0,
                            VarName.c_str());
+}
+
+llvm::GlobalVariable *
+YulASTBase::CreateGlobalStringLiteral(std::string literalValue,
+                                      std::string literalName) {
+  stringLiteralNames[literalValue] = literalName;
+  return Builder->CreateGlobalString(literalValue, literalName);
 }
