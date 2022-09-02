@@ -12,9 +12,9 @@
 #include <libYulAST/YulIfNode.h>
 #include <libYulAST/YulLeaveNode.h>
 #include <libYulAST/YulNumberLiteralNode.h>
+#include <libYulAST/YulStringLiteralNode.h>
 #include <libYulAST/YulSwitchNode.h>
 #include <libYulAST/YulVariableDeclarationNode.h>
-#include <libYulAST/YulStringLiteralNode.h>
 
 using namespace yulast;
 
@@ -82,7 +82,7 @@ std::unique_ptr<YulLiteralNode> YulLiteralBuilder::Build(const json *rawAST) {
   if (!type.compare(YUL_NUMBER_LITERAL_KEY)) {
     return std::unique_ptr<YulLiteralNode>(
         std::make_unique<YulNumberLiteralNode>(rawAST));
-  } else if(!type.compare(YUL_STRING_LITERAL_KEY)) {
+  } else if (!type.compare(YUL_STRING_LITERAL_KEY)) {
     return std::unique_ptr<YulLiteralNode>(
         std::make_unique<YulStringLiteralNode>(rawAST));
   }

@@ -1,55 +1,62 @@
 #include "libyul2llvm/TranslateYulToLLVM.h"
 #include <fstream>
 #include <iostream>
-#include <libYulAST/YulConstants.h>
-#include <libYulAST/YulFunctionDefinitionNode.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Type.h>
 
 using namespace yul2llvm;
 
-TranslateYulToLLVM::TranslateYulToLLVM(json inputRawAST)
-    : rawAST(inputRawAST) {}
+TranslateYulToLLVM::TranslateYulToLLVM(const json rawContract)
+    : rawContract(rawContract) {}
 
-void TranslateYulToLLVM::traverseJson(nlohmann::json j) {
-  if (j.is_array()) {
-    for (nlohmann::json::iterator it = j.begin(); it != j.end(); it++)
-      traverseJson(*it);
-  } else if (j.is_object()) {
-    if (j.contains("type")) {
-      if (!j["type"].get<std::string>().compare(YUL_FUNCTION_DEFINITION_KEY)) {
-        yulast::YulFunctionDefinitionNode fundef(&j);
-        fundef.codegen(nullptr);
-        functions.push_back(std::move(fundef));
-        llvmFunctions.push_back(fundef.getLLVMFunction());
-        return;
-      }
-    }
-    for (nlohmann::json::iterator it = j.begin(); it != j.end(); it++) {
-      traverseJson(it.value());
+bool TranslateYulToLLVM::sanityCheck() {
+  if (!rawContract.contains("type") && rawContract["type"] != "yul_object") {
+    llvm::WithColor::error() << "Ill-formed yul_object";
+    // @todo Need better error reporting use llvm::Error s?
+    return false;
+  }
+  if (!rawContract.contains("metadata")) {
+    llvm::WithColor::error() << "Metadata node not present in the contract ast";
+    return false;
+  } else {
+    if (!rawContract["metadata"].contains("state_vars") ||
+        !rawContract["metadata"].contains("types")) {
+      llvm::WithColor::error() << "Ill-formed storageLayout";
+      llvm::WithColor::error() << rawContract["metadata"].dump();
+      // @todo Need better error reporting use llvm::Error s?
+      return false;
     }
   }
-  functionsBuilt = true;
+  return true;
 }
 
-void TranslateYulToLLVM::run() {
+bool TranslateYulToLLVM::buildContract() {
+  bool sanityCheckResult = sanityCheck();
+  if (!sanityCheckResult) {
+    llvm::WithColor::error() << "Raw json sanity check failed\n";
+    return false;
+  }
+  contract = std::make_unique<yulast::YulContractNode>(&rawContract);
+  return true;
+}
+
+bool TranslateYulToLLVM::run() {
   // std::cout << "[+] Traversing json " << std::endl;
-  traverseJson(rawAST);
+  if (!buildContract())
+    return false;
+  return true;
 }
 
-bool TranslateYulToLLVM::areFunctionsBuilt() { return functionsBuilt; }
+void TranslateYulToLLVM::dumpModule(llvm::raw_ostream &stream) const {
+  contract->getModule().print(stream, nullptr);
+}
 
 void TranslateYulToLLVM::dumpFunctions(llvm::raw_ostream &stream) const {
-  for (auto &f : functions) {
-    f.dump(stream);
+  for (auto &f : contract->getFunctions()) {
+    f->dump(stream);
   }
 }
 
 void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
-  for (auto &f : functions) {
-    stream << f.to_string();
+  for (auto &f : contract->getFunctions()) {
+    stream << f->to_string();
   }
 }

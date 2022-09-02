@@ -17,18 +17,27 @@ protected:
 public:
   static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
                                                   const std::string &VarName);
-
+  static llvm::GlobalVariable *
+  CreateGlobalStringLiteral(std::string literalValue, std::string literalName);
   static std::unique_ptr<llvm::LLVMContext> TheContext;
   static std::unique_ptr<llvm::Module> TheModule;
   static std::unique_ptr<llvm::IRBuilder<>> Builder;
-  static std::map<std::string, llvm::AllocaInst *> NamedValues;
-  static std::map<std::string, std::string> literalNames; 
-
+  static llvm::StringMap<llvm::AllocaInst *> NamedValues;
+  static llvm::StringMap<std::string> stringLiteralNames;
+  // data structures for self
+  static llvm::SmallVector<std::string> structFieldOrder;
+  static llvm::StringMap<std::tuple<std::string, int>> typeMap;
+  static llvm::StructType *selfType;
+  static llvm::GlobalVariable *self;
   bool llvmInitialized = false;
   virtual ~YulASTBase(){};
   virtual llvm::Value *codegen(llvm::Function *F);
   virtual std::string to_string();
   YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType);
   bool sanityCheckPassed(const json *rawAST, std::string);
+  llvm::Module &getModule();
+  llvm::IRBuilder<> &getBuilder();
+  llvm::LLVMContext &getContext();
+  llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
 };
 }; // namespace yulast
