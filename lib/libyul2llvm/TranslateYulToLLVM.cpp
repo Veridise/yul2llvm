@@ -14,6 +14,7 @@ bool TranslateYulToLLVM::sanityCheck() {
     return false;
   }
   if (!rawContract.contains("metadata")) {
+    llvm::WithColor::error() << "Metadata node not present in the contract ast";
     return false;
   } else {
     if (!rawContract["metadata"].contains("state_vars") ||

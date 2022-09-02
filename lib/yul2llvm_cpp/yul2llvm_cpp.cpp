@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   if (!translator.run()) {
-    exit(-1);
+    return EXIT_FAILURE;
   }
 
   std::error_code fileOpeningError;
