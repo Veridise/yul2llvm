@@ -14,6 +14,7 @@
 #define YUL_VARIABLE_DECLARATION_KEY "yul_variable_declaration"
 #define YUL_LITERAL_KEY "yul_literal"
 #define YUL_NUMBER_LITERAL_KEY "yul_number_literal"
+#define YUL_STRING_LITERAL_KEY "yul_string_literal"
 #define YUL_DEC_NUMBER_LITERAL_KEY "yul_dec_number"
 #define YUL_IF_KEY "yul_if"
 #define YUL_HEX_NUMBER_LITERAL_KEY "yul_hex_number"
@@ -56,5 +57,8 @@ enum class YUL_AST_EXPRESSION_NODE_TYPE {
   YUL_AST_EXPRESSION_LITERAL,
 };
 
-enum class YUL_AST_LITERAL_NODE_TYPE { YUL_AST_LITERAL_NUMBER };
+enum class YUL_AST_LITERAL_NODE_TYPE { 
+  YUL_AST_LITERAL_NUMBER,
+  YUL_AST_LITERAL_STRING
+};
 }; // namespace yulast

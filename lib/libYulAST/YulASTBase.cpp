@@ -9,6 +9,8 @@ std::unique_ptr<llvm::Module> YulASTBase::TheModule =
 std::unique_ptr<llvm::IRBuilder<>> YulASTBase::Builder =
     std::make_unique<llvm::IRBuilder<>>(*TheContext);
 std::map<std::string, llvm::AllocaInst *> YulASTBase::NamedValues;
+std::map<std::string, std::string> YulASTBase::literalNames; 
+
 
 bool YulASTBase::sanityCheckPassed(const json *rawAST, std::string key) {
   if (!rawAST->contains("type")) {
