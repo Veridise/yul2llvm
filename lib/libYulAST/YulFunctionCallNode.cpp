@@ -13,6 +13,9 @@ void YulFunctionCallNode::parseRawAST(const json *rawAST) {
   for (unsigned long i = 1; i < topLevelChildren.size(); i++) {
     args.push_back(YulExpressionBuilder::Builder(&topLevelChildren[i]));
   }
+  if (!callee->getIdentfierValue().compare("revert")) {
+    args.clear();
+  }
 }
 
 YulFunctionCallNode::YulFunctionCallNode(const json *rawAST)
@@ -35,21 +38,31 @@ std::string YulFunctionCallNode::to_string() {
   return str;
 }
 
-void YulFunctionCallNode::createPrototype() {
-  int numargs;
-  if (args.size() == 0)
-    numargs = 0;
-  else
-    numargs = getArgs().size();
-
+std::vector<llvm::Type *> YulFunctionCallNode::getFunctionArgs() {
+  int numargs = args.size();
+  // remove args if function is revert
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(*TheContext, 256));
+  return funcArgTypes;
+}
 
-  FT = llvm::FunctionType::get(llvm::Type::getIntNTy(*TheContext, 256),
-                               funcArgTypes, false);
+llvm::Type *YulFunctionCallNode::getReturnType() {
+  if (!callee->getIdentfierValue().compare("revert"))
+    return llvm::Type::getVoidTy(*TheContext);
+  return llvm::Type::getIntNTy(*TheContext, 256);
+}
+
+void YulFunctionCallNode::createPrototype() {
+  std::vector<llvm::Type *> funcArgTypes = getFunctionArgs();
+  llvm::Type *retType = getReturnType();
+  FT = llvm::FunctionType::get(retType, funcArgTypes, false);
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              callee->getIdentfierValue(), TheModule.get());
+
+  if (!callee->getIdentfierValue().compare("revert")) {
+    F->addAttribute(0, llvm::Attribute::NoReturn);
+  }
 }
 
 llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
@@ -89,10 +102,9 @@ llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
 
   if (!F)
     createPrototype();
-  if (!F) {
-    std::cout << "Function not found and could not be created" << std::endl;
-    exit(1);
-  }
+
+  assert(F && "Function not found and could not be created");
+
   if (!callee->getIdentfierValue().compare("checked_add_t_uint256")) {
     llvm::Value *v1, *v2;
     v1 = args[0]->codegen(enclosingFunction);
@@ -106,7 +118,12 @@ llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
     ArgsV.push_back(lv);
   }
   // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
-  return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
+  if (F->getReturnType() == llvm::Type::getVoidTy(*TheContext)) {
+    Builder->CreateCall(F, ArgsV);
+    return nullptr;
+  } else {
+    return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
+  }
 }
 
 std::string YulFunctionCallNode::getName() {

@@ -57,8 +57,19 @@ void YulFunctionDefinitionNode::createPrototype() {
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(*TheContext, 256));
 
-  FT = llvm::FunctionType::get(llvm::Type::getIntNTy(*TheContext, 256),
-                               funcArgTypes, false);
+  llvm::Type *retType;
+  if (!rets || rets->getIdentifiers().size() == 0)
+    retType = llvm::Type::getVoidTy(*TheContext);
+  else
+    retType = llvm::Type::getIntNTy(*TheContext, 256);
+
+  llvm::Function *oldFunction =
+      TheModule->getFunction(functionName->getIdentfierValue());
+  if (oldFunction) {
+    TheModule->getFunctionList().remove(oldFunction);
+  }
+
+  FT = llvm::FunctionType::get(retType, funcArgTypes, false);
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              functionName->getIdentfierValue(),
@@ -102,6 +113,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   //              << "\nWarnings from verifier:\n";
   if (!F)
     createPrototype();
+
   NamedValues.clear();
   createVarsForArgsAndRets();
   body->codegen(F);
@@ -114,7 +126,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
         NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
     Builder->CreateRet(v);
   }
-  llvm::verifyFunction(*F, &(llvm::nulls()));
+  llvm::verifyFunction(*F, &(llvm::errs()));
 
   return nullptr;
 }
