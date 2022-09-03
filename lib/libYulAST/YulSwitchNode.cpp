@@ -14,7 +14,7 @@ void YulSwitchNode::parseRawAST(const json *rawAST) {
 
   json::size_type i = 1;
   while (i < topLevelChildren.size() - 1) {
-    json rawCase = topLevelChildren[1];
+    json rawCase = topLevelChildren[i];
     std::unique_ptr<YulCaseNode> caseNode =
         std::make_unique<YulCaseNode>(&rawCase);
     cases.push_back(std::move(caseNode));

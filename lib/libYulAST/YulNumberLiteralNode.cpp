@@ -16,9 +16,6 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
   assert(children.size() == 1);
   json child = children[0];
   /**
-   * @todo If the uint256 literals are encountered, they are
-   * set to int max.
-   *
    * @note We are assuming input yul code has only one type i.e.
    * uint256. Therefore, negative numbers in yul are encoded in 2s complement.
    * While using getAsInteger parses it correctly and thereofre `We dont have

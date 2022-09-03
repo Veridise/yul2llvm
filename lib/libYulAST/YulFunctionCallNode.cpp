@@ -69,16 +69,14 @@ llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
   assert(fieldIt != structFieldOrder.end());
   int structIndex = fieldIt - structFieldOrder.begin();
   llvm::SmallVector<llvm::Value *> indices;
+  int bitWidth = std::get<1>(typeMap[*fieldIt]);
   indices.push_back(
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, false)));
   indices.push_back(
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, structIndex, false)));
   llvm::Value *ptr = Builder->CreateGEP(selfType, (llvm::Value *)self, indices,
                                         "ptr_self_" + varLit.to_string());
-  /**
-   * @todo fix all bit widths;
-   */
-  return Builder->CreateLoad(llvm::Type::getIntNTy(*TheContext, 256), ptr,
+  return Builder->CreateLoad(llvm::Type::getIntNTy(*TheContext, bitWidth), ptr,
                              "self_" + varLit.to_string());
 }
 
