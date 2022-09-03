@@ -40,7 +40,6 @@ std::string YulFunctionCallNode::to_string() {
 
 std::vector<llvm::Type *> YulFunctionCallNode::getFunctionArgs() {
   int numargs = args.size();
-  // remove args if function is revert
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(*TheContext, 256));
   return funcArgTypes;
@@ -76,7 +75,6 @@ llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
   assert(lit0.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
   assert(lit1.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
   YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
-  YulStringLiteralNode &typeLit = (YulStringLiteralNode &)(*(args[1]));
   auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
                            varLit.to_string());
   assert(fieldIt != structFieldOrder.end());

@@ -63,8 +63,14 @@ void YulFunctionDefinitionNode::createPrototype() {
   else
     retType = llvm::Type::getIntNTy(*TheContext, 256);
 
+  /**
+   * Note: remove old function declarations created by
+   * yul_function_call nodes encountered before encountering
+   * this yul_function_definition nodes
+   */
   llvm::Function *oldFunction =
       TheModule->getFunction(functionName->getIdentfierValue());
+
   if (oldFunction) {
     TheModule->getFunctionList().remove(oldFunction);
   }
