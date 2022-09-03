@@ -31,6 +31,8 @@ public:
   void dumpFunctions(llvm::raw_ostream &stream = llvm::errs()) const;
   void prettyPrintFunctions(llvm::raw_ostream &stream = llvm::errs());
   void dumpModule(llvm::raw_ostream &stream) const;
+
+  llvm::Module *getModule() const;
 };
 
 }; // namespace yul2llvm

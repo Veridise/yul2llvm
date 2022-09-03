@@ -4,6 +4,7 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/WithColor.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/IR/Verifier.h>
 #include <system_error>
 
 namespace cl = llvm::cl;
@@ -53,6 +54,12 @@ int main(int argc, char **argv) {
   yul2llvm::TranslateYulToLLVM translator(rawAST);
   if (!translator.run()) {
     return EXIT_FAILURE;
+  }
+
+  if (llvm::verifyModule(*translator.getModule(), &llvm::errs())) {
+      llvm::errs() << "\n";
+      llvm::WithColor::error() << "internal error: generated IR is broken!\n";
+      return EXIT_FAILURE;
   }
 
   std::error_code fileOpeningError;
