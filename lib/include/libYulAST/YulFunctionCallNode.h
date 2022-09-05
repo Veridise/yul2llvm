@@ -13,6 +13,7 @@ protected:
   llvm::Value *emitStorageLoadIntrinsic();
   llvm::Type *getReturnType();
   std::vector<llvm::Type *> getFunctionArgs();
+  llvm::Value *emitStorageStoreIntrinsic();
 
 public:
   void createPrototype();

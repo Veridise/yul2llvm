@@ -65,6 +65,12 @@ class YulNode(object):
                 return int(n_node['children'][0], base=16)
         raise NotImplementedError(f'unknown literal node: {lit_node}')
 
+    def get_Identifier(self) -> str:
+        """Returns the value of a yul_literal node."""
+        assert self.type == 'yul_identifier'
+        return self.obj['children'][0]
+        
+
 
 def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[bool]]):
     '''Walk the AST in depth-first order.
