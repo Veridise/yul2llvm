@@ -42,6 +42,9 @@ llvm::Value *YulIfNode::codegen(llvm::Function *enclosingFunction) {
   llvm::BasicBlock *contBlock = llvm::BasicBlock::Create(
       *TheContext, "if-not-taken-body" + std::to_string(ifId));
   llvm::Value *cond = condition->codegen(enclosingFunction);
+  cond = Builder->CreateCast(llvm::Instruction::CastOps::Trunc, cond,
+                             llvm::IntegerType::getInt1Ty(*TheContext));
+
   // create actual branch on condition
   Builder->CreateCondBr(cond, thenBlock, contBlock);
 

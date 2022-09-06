@@ -85,7 +85,7 @@ llvm::Type *YulContractNode::getType(int bitWidth) {
    * @todo fix this for other types
    *
    */
-  bitWidth = 256;
+  assert(bitWidth == 256);
   return llvm::Type::getIntNTy(*TheContext, bitWidth);
 }
 

@@ -11,6 +11,8 @@ protected:
   std::unique_ptr<YulIdentifierNode> callee;
   std::vector<std::unique_ptr<YulExpressionNode>> args;
   llvm::Value *emitStorageLoadIntrinsic();
+  llvm::Type *getReturnType();
+  std::vector<llvm::Type *> getFunctionArgs();
 
 public:
   void createPrototype();

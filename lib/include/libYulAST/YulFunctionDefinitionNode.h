@@ -21,6 +21,7 @@ protected:
   llvm::Function *F = NULL;
   std::string str = "";
   virtual void parseRawAST(const json *rawAst) override;
+  llvm::Type* getReturnType();
 
 public:
   void dumpToStdout() const;
