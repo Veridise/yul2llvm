@@ -47,6 +47,15 @@ std::string YulFunctionDefinitionNode::to_string() {
   return str;
 }
 
+llvm::Type* YulFunctionDefinitionNode::getReturnType(){
+  llvm::Type *retType;
+  if (!rets || rets->getIdentifiers().size() == 0)
+    retType = llvm::Type::getVoidTy(*TheContext);
+  else
+    retType = llvm::Type::getIntNTy(*TheContext, 256);
+  return retType;
+}
+
 void YulFunctionDefinitionNode::createPrototype() {
   int numargs;
   if (args == NULL)
@@ -57,11 +66,8 @@ void YulFunctionDefinitionNode::createPrototype() {
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(*TheContext, 256));
 
-  llvm::Type *retType;
-  if (!rets || rets->getIdentifiers().size() == 0)
-    retType = llvm::Type::getVoidTy(*TheContext);
-  else
-    retType = llvm::Type::getIntNTy(*TheContext, 256);
+  llvm::Type *retType = getReturnType();
+  
 
   /**
    * Note: remove old function declarations created by
