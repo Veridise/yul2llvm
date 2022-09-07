@@ -65,6 +65,12 @@ class YulNode(object):
                 return int(n_node['children'][0], base=16)
         raise NotImplementedError(f'unknown literal node: {lit_node}')
 
+    def get_identifier(self) -> str:
+        """Returns the identifier value of yul_identifier node."""
+        assert self.type == 'yul_identifier'
+        return self.obj['children'][0]
+        
+
 
 def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[bool]]):
     '''Walk the AST in depth-first order.
@@ -94,7 +100,6 @@ def create_yul_node(type: str,
         'type': type,
         'children': [c.obj if isinstance(c, YulNode) else c for c in children]
     })
-
 
 def create_yul_fun_call(fname: str,
                         args: Iterable[Union[dict, YulNode, str]]) -> YulNode:
