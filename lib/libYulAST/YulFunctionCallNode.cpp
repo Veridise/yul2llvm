@@ -64,7 +64,8 @@ void YulFunctionCallNode::createPrototype() {
   }
 }
 
-llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
+llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic(
+    llvm::Function *enclosingFunction) {
   assert(args.size() == 2);
   assert(args[0]->expressionType ==
          YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
@@ -91,24 +92,19 @@ llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic() {
                              "self_" + varLit.to_string());
 }
 
-llvm::Value *YulFunctionCallNode::emitStorageStoreIntrinsic() {
+llvm::Value *YulFunctionCallNode::emitStorageStoreIntrinsic(
+    llvm::Function *enclosingFunction) {
   assert(args.size() == 3);
   assert(args[0]->expressionType ==
          YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
   assert(args[1]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
+         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER);
   assert(args[2]->expressionType ==
          YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
   YulLiteralNode &name = (YulLiteralNode &)(*(args[0]));
-  YulLiteralNode &value = (YulLiteralNode &)(*(args[1]));
-  YulLiteralNode &type = (YulLiteralNode &)(*(args[2]));
   assert(name.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-  assert(value.literalType ==
-         YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-  assert(type.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-
   YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
-  YulStringLiteralNode &valueLit = (YulStringLiteralNode &)(*(args[1]));
+  YulExpressionNode &valueNode = *(args[1]);
   auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
                            varLit.to_string());
   assert(fieldIt != structFieldOrder.end());
@@ -120,26 +116,9 @@ llvm::Value *YulFunctionCallNode::emitStorageStoreIntrinsic() {
       llvm::ConstantInt::get(*TheContext, llvm::APInt(32, structIndex, false)));
   llvm::Value *ptr = Builder->CreateGEP(selfType, (llvm::Value *)self, indices,
                                         "ptr_self_" + varLit.to_string());
-  llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
-  llvm::Value *storeValue;
-  try {
-    /**
-     * @todo handle multiple bytewidths
-     */
-    int value = std::stoi(valueLit.to_string());
-    storeValue = llvm::ConstantInt::get(loadType, llvm::APInt(value, 256));
-  } catch (std::invalid_argument e) {
-    /**
-     * @todo handle multiple bytewidths
-     */
-    auto intrinsicVariable = NamedValues.find(value.to_string());
-    if (intrinsicVariable == NamedValues.end()) {
-      throw std::exception();
-    }
-    storeValue = Builder->CreateLoad(loadType, intrinsicVariable->getValue(),
-                                     false, "intrinsic_load");
-  }
+  llvm::Value *storeValue = valueNode.codegen(enclosingFunction);
   /**
+   * llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
    * @todo fix all bit widths;
    */
   return Builder->CreateStore(storeValue, ptr, false);
@@ -147,9 +126,9 @@ llvm::Value *YulFunctionCallNode::emitStorageStoreIntrinsic() {
 
 llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
   if (callee->getIdentfierValue() == "pyul_storage_var_load") {
-    return emitStorageLoadIntrinsic();
+    return emitStorageLoadIntrinsic(enclosingFunction);
   } else if (callee->getIdentfierValue() == "pyul_storage_var_update") {
-    return emitStorageStoreIntrinsic();
+    return emitStorageStoreIntrinsic(enclosingFunction);
   }
   if (!F)
     F = TheModule->getFunction(callee->getIdentfierValue());

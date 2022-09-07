@@ -264,7 +264,7 @@ def rewrite_storage_ops(contract: ContractData,
     load_re = re.compile('^read_from_storage(?P<issplit>_split)?_offset_(?P<offset>[0-9]+)_(?P<type>.*)$')
     update_re = re.compile('^update_storage_value_offset_(?P<offset>[0-9]+)?(?P<src_type>.*)_to_(?P<dest_type>)')
 
-    def rewrite_load_op(node, match)->bool:
+    def rewrite_load_op(node:YulNode, match)->bool:
         d = match.groupdict()
         slot = node.children[1].get_literal_value()
         assert isinstance(slot, int)
@@ -289,16 +289,9 @@ def rewrite_storage_ops(contract: ContractData,
                 logger.debug(f'Rewrite storage load slot={slot} offset={offset} => '
                                 f'{svars[(slot, offset)]}')        
 
-    def rewrite_store_op(node, match)->bool:
+    def rewrite_store_op(node:YulNode, match)->bool:
         d = match.groupdict()
         slot = node.children[1].get_literal_value()
-
-        # TODO: The argument may be something other than these two node types
-        if(node.children[2].type == 'yul_literal'):
-            value = str(node.children[2].get_literal_value())
-        elif (node.children[2].type == 'yul_identifier'):
-            value = node.children[2].get_Identifier()
-        
         
         assert isinstance(slot, int)
         offset = int(d['offset'])
@@ -310,12 +303,12 @@ def rewrite_storage_ops(contract: ContractData,
                 logger.warning(f'Unknown storage update from: slot={slot} offset={offset}')
         else:
             name, ty = svars[(slot, offset)]
-            # Rewrite to function call: pyul_storage_var_load(name, ty)
+            # Rewrite to function call: pyul_storage_var_update(name, ty)
             node.obj['children'][:] = ast.create_yul_fun_call(
                 'pyul_storage_var_update',
                 [
                     ast.create_yul_string_literal(name),
-                    ast.create_yul_string_literal(value),
+                    node.children[2],
                     ast.create_yul_string_literal(ty),
                 ]
             ).obj['children']
@@ -335,8 +328,7 @@ def rewrite_storage_ops(contract: ContractData,
 
         # rewrite update to storage --> pyul_storage_var_update()
         elif ((match := update_re.match(fname))
-           and node.children[1].type == 'yul_literal'
-           and node.children[1].type == 'yul_identifier'):
+           and node.children[1].type == 'yul_literal'):
            rewrite_store_op(node, match)
 
         return True
