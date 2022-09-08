@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 import re
+from xmlrpc.client import Boolean
 import antlr4
 import sys
 import logging
@@ -43,8 +44,11 @@ def main():
     parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
                         type=Path, default=None)
     parser.add_argument('input_file', type=Path, help='Input .sol file')
+    parser.add_argument('-d', '--disable-module-verification',
+                        action='store_true', default=False, help='Disable verification of generated llvm module')
     parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
                         default='info', help='Log level to show in console output')
+    
     args = parser.parse_args()
 
     # Validate arguments
@@ -131,6 +135,8 @@ def main():
         sys.exit(1)
 
     yul2llvm_cpp_cmd = [yul2llvm_cpp_bin, str(contract.out_dir / 'yul.json')]
+    if(args.disable_module_verification):
+        yul2llvm_cpp_cmd.append('-d')
     logger.info(f'Running: {shlex.join(yul2llvm_cpp_cmd)}')
     proc = subprocess.run(yul2llvm_cpp_cmd,
                           capture_output=True, text=True)

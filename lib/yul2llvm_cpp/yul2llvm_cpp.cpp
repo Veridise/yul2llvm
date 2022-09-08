@@ -32,6 +32,9 @@ int main(int argc, char **argv) {
   // @todo There should be a CommandLine API that does this...
   cl::opt<std::string> outputFile("o", cl::desc("Output file location"),
                                   cl::value_desc("filename"), cl::init("-"));
+                
+  cl::opt<bool> disableVerifier("d", cl::desc("Disable verification of generated llvm module"),
+                                cl::value_desc("disable-verifier"), cl::init(false));
 
   if (!cl::ParseCommandLineOptions(argc, argv)) {
     return EXIT_FAILURE;
@@ -56,7 +59,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (llvm::verifyModule(*translator.getModule(), &llvm::errs())) {
+  if (!disableVerifier && llvm::verifyModule(*translator.getModule(), &llvm::errs())) {
       llvm::errs() << "\n";
       llvm::WithColor::error() << "internal error: generated IR is broken!\n";
       return EXIT_FAILURE;

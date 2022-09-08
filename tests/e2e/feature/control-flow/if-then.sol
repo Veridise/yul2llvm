@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
- // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+ // RUN: pyul %s -o %t --project-dir %S -d | FileCheck %s
 
 pragma solidity ^0.8.10;
 
