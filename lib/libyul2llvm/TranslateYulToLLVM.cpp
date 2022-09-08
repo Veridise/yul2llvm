@@ -60,3 +60,7 @@ void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
     stream << f->to_string();
   }
 }
+
+llvm::Module *TranslateYulToLLVM::getModule() const {
+    return &contract->getModule();
+}
