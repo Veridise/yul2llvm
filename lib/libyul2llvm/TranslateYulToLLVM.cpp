@@ -62,5 +62,5 @@ void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
 }
 
 llvm::Module *TranslateYulToLLVM::getModule() const {
-    return &contract->getModule();
+  return &contract->getModule();
 }
