@@ -11,5 +11,6 @@ public:
   YulExpressionNode(const json *rawAST, YUL_AST_EXPRESSION_NODE_TYPE exprType);
   virtual llvm::Value *codegen(llvm::Function *F) override;
   virtual ~YulExpressionNode(){};
+  YUL_AST_EXPRESSION_NODE_TYPE getExpressionType();
 };
 }; // namespace yulast

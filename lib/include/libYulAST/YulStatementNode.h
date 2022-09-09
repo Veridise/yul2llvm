@@ -11,5 +11,6 @@ public:
   virtual llvm::Value *codegen(llvm::Function *F) override;
   YulStatementNode(const json *rawAST,
                    YUL_AST_STATEMENT_NODE_TYPE statementType);
+  YUL_AST_STATEMENT_NODE_TYPE getStatementType();
 };
 }; // namespace yulast

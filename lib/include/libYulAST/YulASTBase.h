@@ -35,6 +35,7 @@ public:
   virtual std::string to_string();
   YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType);
   bool sanityCheckPassed(const json *rawAST, std::string);
+  YUL_AST_NODE_TYPE getType();
   llvm::Module &getModule();
   llvm::IRBuilder<> &getBuilder();
   llvm::LLVMContext &getContext();

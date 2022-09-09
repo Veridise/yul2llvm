@@ -17,3 +17,7 @@ llvm::Value *YulStatementNode::codegen(llvm::Function *F) {
 std::string YulStatementNode::to_string() {
   return "to_string not implemented for statement";
 }
+
+YUL_AST_STATEMENT_NODE_TYPE YulStatementNode::getStatementType(){
+  return statementType;
+}

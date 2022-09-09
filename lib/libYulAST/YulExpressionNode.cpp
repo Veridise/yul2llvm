@@ -19,3 +19,7 @@ llvm::Value *YulExpressionNode::codegen(llvm::Function *F) {
 std::string YulExpressionNode::to_string() {
   return "Not implemented for Yul Expression";
 }
+
+YUL_AST_EXPRESSION_NODE_TYPE YulExpressionNode::getExpressionType(){
+  return expressionType;
+}

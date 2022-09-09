@@ -30,30 +30,27 @@
 using namespace yulast;
 class YulASTVisitorBase {
 public:
-  llvm::Value *visitYulASTBase(YulASTBase *);
-  virtual llvm::Value *visitYulAssignmentNode(YulAssignmentNode *);
-  virtual void visitYulBlockNode(YulBlockNode *);
-  virtual void visitYulBreakNode(YulBreakNode *);
-  virtual void visitYulCaseNode(YulCaseNode *);
-  virtual void visitYulContinueNode(YulContinueNode *);
-  virtual void visitYulContractNode(YulContractNode *);
-  virtual void visitYulDefaultNode(YulDefaultNode *);
-  virtual llvm::Value *visitYulExpressionNode(YulExpressionNode *);
-  virtual void visitYulForNode(YulForNode *);
-  virtual void visitYulFunctionArgListNode(YulFunctionArgListNode *);
-  virtual llvm::Value *visitYulFunctionCallNode(YulFunctionCallNode *);
-  virtual void visitYulFunctionDefinitionNode(YulFunctionDefinitionNode *);
-  virtual void visitYulFunctionRetListNode(YulFunctionRetListNode *);
-  virtual void visitYulIdentifierListNode(YulIdentifierListNode *);
-  virtual llvm::Value *visitYulIdentifierNode(YulIdentifierNode *);
-  virtual void visitYulIfNode(YulIfNode *);
-  virtual void visitYulLeaveNode(YulLeaveNode *);
-  virtual llvm::Value *visitYulLiteralNode(YulLiteralNode *);
-  virtual llvm::Value *visitYulNumberLiteralNode(YulNumberLiteralNode *);
-  virtual llvm::Value *visitYulStatementNode(YulStatementNode *);
-  virtual llvm::Value *visitYulStringLiteralNode(YulStringLiteralNode *);
-  virtual void visitYulSwitchNode(YulSwitchNode *);
-  virtual void visitYulTypedIdentifierListNode(YulTypedIdentifierListNode *);
-  virtual void visitYulVariableDeclarationNode(YulVariableDeclarationNode *);
-  virtual ~YulASTVisitorBase();
+  llvm::Value *visitYulASTBase(YulASTBase &);
+  llvm::Value *visitYulExpressionNode(YulExpressionNode &);
+  void visitYulStatementNode(YulStatementNode &);
+  llvm::Value *visitYulLiteralNode(YulLiteralNode &);
+
+  virtual void visitYulAssignmentNode(YulAssignmentNode &);
+  virtual void visitYulBlockNode(YulBlockNode &);
+  virtual void visitYulBreakNode(YulBreakNode &);
+  virtual void visitYulCaseNode(YulCaseNode &);
+  virtual void visitYulContinueNode(YulContinueNode &);
+  virtual void visitYulContractNode(YulContractNode &);
+  virtual void visitYulDefaultNode(YulDefaultNode &);
+  virtual void visitYulForNode(YulForNode &);
+  virtual llvm::Value *visitYulFunctionCallNode(YulFunctionCallNode &);
+  virtual void visitYulFunctionDefinitionNode(YulFunctionDefinitionNode &);
+  virtual llvm::Value *visitYulIdentifierNode(YulIdentifierNode &);
+  virtual void visitYulIfNode(YulIfNode &);
+  virtual void visitYulLeaveNode(YulLeaveNode &);
+  virtual llvm::Value *visitYulNumberLiteralNode(YulNumberLiteralNode &);
+  virtual llvm::Value *visitYulStringLiteralNode(YulStringLiteralNode &);
+  virtual void visitYulSwitchNode(YulSwitchNode &);
+  virtual void visitYulVariableDeclarationNode(YulVariableDeclarationNode &);
+  virtual ~YulASTVisitorBase(){}
 };

@@ -1,122 +1,169 @@
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 using namespace yulast;
-llvm::Value *YulASTVisitorBase::visitYulASTBase(YulASTBase *node) {
-  // Dispater Goes here
+llvm::Value *YulASTVisitorBase::visitYulASTBase(YulASTBase &node) {
+  switch (node.getType())
+  {
+  case YUL_AST_NODE_TYPE::YUL_AST_NODE_CONTRACT:
+    visitYulContractNode((YulContractNode&)node);
+    break;
+  case YUL_AST_NODE_TYPE::YUL_AST_NODE_CASE:
+    visitYulCaseNode((YulCaseNode&)node);
+    break;
+  case YUL_AST_NODE_TYPE::YUL_AST_NODE_DEFAULT:
+    visitYulDefaultNode((YulDefaultNode&)node);
+    break;
+  case YUL_AST_NODE_TYPE::YUL_AST_NODE_STATEMENT:
+    visitYulStatementNode((YulStatementNode&)node);
+    break;
+  default:
+    llvm::WithColor::error()
+      << "AstVisitorBase: codegen not implemented";
+  
+  
+  }
   return nullptr;
+}
+void YulASTVisitorBase::visitYulStatementNode(YulStatementNode &node) {
+  switch (node.getStatementType())
+  {
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_ASSIGNMENT :
+    visitYulAssignmentNode((YulAssignmentNode&)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_BLOCK :
+    visitYulBlockNode((YulBlockNode&)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FOR :
+    visitYulForNode((YulForNode&)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_EXPRESSION :
+    visitYulExpressionNode((YulExpressionNode&)node);
+    break;
+
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION :
+    visitYulFunctionDefinitionNode((YulFunctionDefinitionNode&)node);  
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_IF :
+    visitYulIfNode((YulIfNode&)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_SWITCH :
+    visitYulSwitchNode((YulSwitchNode&)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_VARIABLE_DECLARATION :
+    visitYulVariableDeclarationNode((YulVariableDeclarationNode&)node);
+    break;
+  
+  default:
+  llvm::WithColor::error()
+      << "visitYulExpressionNode: YulExpressionNode codegen not implemented";
+    break;
+  }
 }
 llvm::Value *
-YulASTVisitorBase::visitYulAssignmentNode(YulAssignmentNode *node) {
+YulASTVisitorBase::visitYulExpressionNode(YulExpressionNode &node) {
+  switch (node.getExpressionType())
+  {
+  case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL:
+    return visitYulFunctionCallNode((YulFunctionCallNode&)node);
+    break;
+  case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER:
+    return visitYulIdentifierNode((YulIdentifierNode&) node);
+    break;
+  case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL:
+    return visitYulLiteralNode((YulLiteralNode&)node);
+    break;
+  }
   llvm::WithColor::error()
-      << "AstVisitorBase: YulAssignmentNode codegen not implemented";
+      << "visitYulExpressionNode: YulExpressionNode codegen not implemented";
   return nullptr;
 }
-void YulASTVisitorBase::visitYulBlockNode(YulBlockNode *node) {
+llvm::Value *YulASTVisitorBase::visitYulLiteralNode(YulLiteralNode &node) {
+  switch (node.getLiteralType())
+  {
+  case YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_NUMBER:
+    return visitYulNumberLiteralNode((YulNumberLiteralNode&)node);
+    break;
+  case YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING:
+    return visitYulStringLiteralNode((YulStringLiteralNode&)node);
+  }
   llvm::WithColor::error()
-      << "AstVisitorBase: YulBlockNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulBreakNode(YulBreakNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulBreakNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulCaseNode(YulCaseNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulCaseNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulContinueNode(YulContinueNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulContinueNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulContractNode(YulContractNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulContractNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulDefaultNode(YulDefaultNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulDefaultNode codegen not implemented";
-}
-llvm::Value *
-YulASTVisitorBase::visitYulExpressionNode(YulExpressionNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulExpressionNode codegen not implemented";
+      << "visitYulLiteralNode: YulLiteralNode codegen not implemented";
   return nullptr;
 }
-void YulASTVisitorBase::visitYulForNode(YulForNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulForNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulFunctionArgListNode(
-    YulFunctionArgListNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulFunctionArgListNode codegen not implemented";
-}
-llvm::Value *
-YulASTVisitorBase::visitYulFunctionCallNode(YulFunctionCallNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulFunctionCallNode codegen not implemented";
-  return nullptr;
-}
-void YulASTVisitorBase::visitYulFunctionDefinitionNode(
-    YulFunctionDefinitionNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulFunctionDefinitionNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulFunctionRetListNode(
-    YulFunctionRetListNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulFunctionRetListNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulIdentifierListNode(
-    YulIdentifierListNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulIdentifierListNode codegen not implemented";
-}
-llvm::Value *
-YulASTVisitorBase::visitYulIdentifierNode(YulIdentifierNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulIdentifierNode codegen not implemented";
-  return nullptr;
-}
-void YulASTVisitorBase::visitYulIfNode(YulIfNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulIfNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulLeaveNode(YulLeaveNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulLeaveNode codegen not implemented";
-}
-llvm::Value *YulASTVisitorBase::visitYulLiteralNode(YulLiteralNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulLiteralNode codegen not implemented";
-  return nullptr;
-}
-llvm::Value *
-YulASTVisitorBase::visitYulNumberLiteralNode(YulNumberLiteralNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulNumberLiteralNode codegen not implemented";
-  return nullptr;
-}
-llvm::Value *YulASTVisitorBase::visitYulStatementNode(YulStatementNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulStatementNode codegen not implemented";
-  return nullptr;
-}
-llvm::Value *
-YulASTVisitorBase::visitYulStringLiteralNode(YulStringLiteralNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulStringLiteralNode codegen not implemented";
-  return nullptr;
-}
-void YulASTVisitorBase::visitYulSwitchNode(YulSwitchNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulSwitchNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulTypedIdentifierListNode(
-    YulTypedIdentifierListNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulTypedIdentifierListNode codegen not implemented";
-}
-void YulASTVisitorBase::visitYulVariableDeclarationNode(
-    YulVariableDeclarationNode *node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulVariableDeclarationNode codegen not implemented";
-}
+// void YulASTVisitorBase::visitYulAssignmentNode(YulAssignmentNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulAssignmentNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulBlockNode(YulBlockNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulBlockNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulBreakNode(YulBreakNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulBreakNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulCaseNode(YulCaseNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulCaseNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulContinueNode(YulContinueNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulContinueNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulContractNode(YulContractNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulContractNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulDefaultNode(YulDefaultNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulDefaultNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulForNode(YulForNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulForNode codegen not implemented";
+// }
+// llvm::Value *
+// YulASTVisitorBase::visitYulFunctionCallNode(YulFunctionCallNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulFunctionCallNode codegen not implemented";
+//   return nullptr;
+// }
+// void YulASTVisitorBase::visitYulFunctionDefinitionNode(
+//     YulFunctionDefinitionNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulFunctionDefinitionNode codegen not implemented";
+// }
+// llvm::Value *
+// YulASTVisitorBase::visitYulIdentifierNode(YulIdentifierNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulIdentifierNode codegen not implemented";
+//   return nullptr;
+// }
+// void YulASTVisitorBase::visitYulIfNode(YulIfNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulIfNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulLeaveNode(YulLeaveNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulLeaveNode codegen not implemented";
+// }
+// llvm::Value *
+// YulASTVisitorBase::visitYulNumberLiteralNode(YulNumberLiteralNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulNumberLiteralNode codegen not implemented";
+//   return nullptr;
+// }
+// llvm::Value *
+// YulASTVisitorBase::visitYulStringLiteralNode(YulStringLiteralNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulStringLiteralNode codegen not implemented";
+//   return nullptr;
+// }
+// void YulASTVisitorBase::visitYulSwitchNode(YulSwitchNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulSwitchNode codegen not implemented";
+// }
+// void YulASTVisitorBase::visitYulVariableDeclarationNode(
+//     YulVariableDeclarationNode &node) {
+//   llvm::WithColor::error()
+//       << "AstVisitorBase: YulVariableDeclarationNode codegen not implemented";
+// }

@@ -20,3 +20,7 @@ llvm::Value *YulLiteralNode::codegen(llvm::Function *F) {
 }
 
 std::string YulLiteralNode::to_string() { return "Literal base not setup"; }
+
+YUL_AST_LITERAL_NODE_TYPE YulLiteralNode::getLiteralType(){
+  return literalType;
+}

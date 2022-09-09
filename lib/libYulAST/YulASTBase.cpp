@@ -79,3 +79,7 @@ YulASTBase::CreateGlobalStringLiteral(std::string literalValue,
   stringLiteralNames[literalValue] = literalName;
   return Builder->CreateGlobalString(literalValue, literalName);
 }
+
+YUL_AST_NODE_TYPE YulASTBase::getType(){
+  return nodeType;
+}
