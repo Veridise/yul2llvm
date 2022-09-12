@@ -38,12 +38,7 @@ std::string YulFunctionCallNode::to_string() {
   return str;
 }
 
-std::vector<llvm::Type *> YulFunctionCallNode::getFunctionArgs() {
-  int numargs = args.size();
-  std::vector<llvm::Type *> funcArgTypes(
-      numargs, llvm::Type::getIntNTy(*TheContext, 256));
-  return funcArgTypes;
-}
+
 
 llvm::Type *YulFunctionCallNode::getReturnType() {
   if (!callee->getIdentfierValue().compare("revert"))
@@ -64,65 +59,9 @@ void YulFunctionCallNode::createPrototype() {
   }
 }
 
-llvm::Value *YulFunctionCallNode::emitStorageLoadIntrinsic(
-    llvm::Function *enclosingFunction) {
-  assert(args.size() == 2);
-  assert(args[0]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
-  assert(args[1]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
-  YulLiteralNode &lit0 = (YulLiteralNode &)(*(args[0]));
-  YulLiteralNode &lit1 = (YulLiteralNode &)(*(args[1]));
-  assert(lit0.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-  assert(lit1.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-  YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
-  auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
-                           varLit.to_string());
-  assert(fieldIt != structFieldOrder.end());
-  int structIndex = fieldIt - structFieldOrder.begin();
-  llvm::SmallVector<llvm::Value *> indices;
-  int bitWidth = std::get<1>(typeMap[*fieldIt]);
-  indices.push_back(
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, false)));
-  indices.push_back(
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr = Builder->CreateGEP(selfType, (llvm::Value *)self, indices,
-                                        "ptr_self_" + varLit.to_string());
-  return Builder->CreateLoad(llvm::Type::getIntNTy(*TheContext, bitWidth), ptr,
-                             "self_" + varLit.to_string());
-}
 
-llvm::Value *YulFunctionCallNode::emitStorageStoreIntrinsic(
-    llvm::Function *enclosingFunction) {
-  assert(args.size() == 3);
-  assert(args[0]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
-  assert(args[1]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER);
-  assert(args[2]->expressionType ==
-         YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL);
-  YulLiteralNode &name = (YulLiteralNode &)(*(args[0]));
-  assert(name.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
-  YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
-  YulExpressionNode &valueNode = *(args[1]);
-  auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
-                           varLit.to_string());
-  assert(fieldIt != structFieldOrder.end());
-  int structIndex = fieldIt - structFieldOrder.begin();
-  llvm::SmallVector<llvm::Value *> indices;
-  indices.push_back(
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, 0, false)));
-  indices.push_back(
-      llvm::ConstantInt::get(*TheContext, llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr = Builder->CreateGEP(selfType, (llvm::Value *)self, indices,
-                                        "ptr_self_" + varLit.to_string());
-  llvm::Value *storeValue = valueNode.codegen(enclosingFunction);
-  /**
-   * llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
-   * @todo fix all bit widths;
-   */
-  return Builder->CreateStore(storeValue, ptr, false);
-}
+
+
 
 llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
   if (callee->getIdentfierValue() == "pyul_storage_var_load") {
@@ -159,7 +98,7 @@ llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
   }
 }
 
-std::string YulFunctionCallNode::getName() {
+std::string YulFunctionCallNode::getCalleeName() {
   return callee->getIdentfierValue();
 }
 
