@@ -1,4 +1,6 @@
-#include <libYULAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
+
 YulIntrinsicEmitter::YulIntrinsicEmitter(LLVMCodegenVisitor &v):visitor(v){
   
 }
@@ -65,7 +67,7 @@ llvm::Value *YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &
 }
 
 void YulIntrinsicEmitter::emitStorageStoreIntrinsic(YulFunctionCallNode &node) {
-  auto args = node.getArgs();
+  auto &args = node.getArgs();
   assert(args.size() == 3);
   auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
   auto typeMap = visitor.currentContract->getTypeMap();

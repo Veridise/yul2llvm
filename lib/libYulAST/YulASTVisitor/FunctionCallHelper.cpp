@@ -1,12 +1,11 @@
 #include<libYulAST/YulASTVisitor/FunctionCallHelper.h>
-
-YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v):visitor(v),intrinsicEmitter(v){
-
+#include<libYulAST/YulASTVisitor/CodegenVisitor.h>
+YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v):visitor(v), intrinsicEmitter(v) {
 }
 
 llvm::Type *YulFunctionCallHelper::getReturnType(YulFunctionCallNode &node) {
 
-  if (node.getCalleeName().compare("revert"))
+  if (!node.getCalleeName().compare("revert"))
     return llvm::Type::getVoidTy(visitor.getContext());
   return llvm::Type::getIntNTy(visitor.getContext(), 256);
 }
@@ -50,7 +49,7 @@ llvm::Value *YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode
   F = visitor.getModule().getFunction(node.getCalleeName());
   if (!F){
     auto attrList = buildFunctionAttributes(node);
-    createPrototype(node, *attrList );
+    F=createPrototype(node, *attrList );
   }
 
   assert(F && "Function not found and could not be created");

@@ -50,7 +50,6 @@ YulContractNode::YulContractNode(const json *rawAST)
 
   buildTypeMap(rawAST->at("metadata"));
   parseRawAST(rawAST);
-  codegen(nullptr);
 }
 
 std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &

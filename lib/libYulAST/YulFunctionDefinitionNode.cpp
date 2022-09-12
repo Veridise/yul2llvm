@@ -47,29 +47,9 @@ std::string YulFunctionDefinitionNode::to_string() {
   return str;
 }
 
-llvm::Type *YulFunctionDefinitionNode::getReturnType() {
-
-}
-
 void YulFunctionDefinitionNode::createPrototype() {
   
 }
-
-llvm::Value *
-YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
-  // llvm::errs() << "\n[+] Generating function for "
-  //              << functionName->getIdentfierValue()
-  //              << "\nWarnings from verifier:\n";
-  
-}
-
-void YulFunctionDefinitionNode::dump(llvm::raw_ostream &os) const {
-  TheModule->print(os, nullptr);
-}
-
-void YulFunctionDefinitionNode::dumpToStdout() const { dump(llvm::outs()); }
-
-llvm::Function *YulFunctionDefinitionNode::getLLVMFunction() { return F; }
 
 std::string YulFunctionDefinitionNode::getName() {
   return functionName->getIdentfierValue();

@@ -26,13 +26,14 @@
 #include <libYulAST/YulSwitchNode.h>
 #include <libYulAST/YulTypedIdentifierListNode.h>
 #include <libYulAST/YulVariableDeclarationNode.h>
+#include <llvm/IR/Value.h>
 
 using namespace yulast;
 class YulASTVisitorBase {
 public:
   llvm::Value *visit(YulASTBase &);
   llvm::Value *visitYulExpressionNode(YulExpressionNode &);
-  void visitYulStatementNode(YulStatementNode &);
+  llvm::Value * visitYulStatementNode(YulStatementNode &);
   llvm::Value *visitYulLiteralNode(YulLiteralNode &);
 
   virtual void visitYulAssignmentNode(YulAssignmentNode &);

@@ -3,7 +3,7 @@
 #include <nlohmann/json.hpp>
 #include <llvm/Support/WithColor.h>
 #include <llvm/ADT/SmallString.h>
-
+#include <llvm/ADT/APInt.h>
 
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {

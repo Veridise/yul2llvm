@@ -7,7 +7,7 @@ YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v):
 llvm::Type *
 YulFunctionDefinitionHelper::getReturnType(YulFunctionDefinitionNode &node) {
   llvm::Type *retType;
-  if (node.getRets().size() != 0)
+  if (!node.hasRets())
     retType = llvm::Type::getVoidTy(visitor.getContext());
   else
     retType = llvm::Type::getIntNTy(visitor.getContext(), 256);
@@ -58,6 +58,7 @@ llvm::Function *YulFunctionDefinitionHelper::createPrototype(
   for (auto &arg : F->args()) {
     arg.setName(node.getArgs().at(idx++)->getIdentfierValue());
   }
+  return F;
 }
 
 std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>
@@ -88,7 +89,7 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(YulFunctionDefinition
     visitor.getBuilder().CreateStore(&f, visitor.getNamedValuesMap()[f.getName().str()]);
   }
 
-  if (node.hasRets() != NULL) {
+  if (node.hasRets()) {
     for (auto &arg : node.getRets()) {
       llvm::AllocaInst *a = visitor.CreateEntryBlockAlloca(F, arg->getIdentfierValue());
       visitor.getNamedValuesMap()[arg->getIdentfierValue()] = a;
@@ -98,12 +99,9 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(YulFunctionDefinition
 
 void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
-  llvm::Function *F, *enclosingFunction;
-  enclosingFunction = visitor.getBuilder().GetInsertBlock()->getParent();
-  llvm::Function *F = visitor.getModule().getFunction(node.getName());
+  llvm::Function *F;
   llvm::SmallVector<llvm::Attribute::AttrKind> attributes;
-  if (!F)
-    createPrototype(node, attributes);
+  F = createPrototype(node, attributes);
   visitor.currentFunction = F;
   visitor.getNamedValuesMap().clear();
   createVarsForArgsAndRets(node, F);

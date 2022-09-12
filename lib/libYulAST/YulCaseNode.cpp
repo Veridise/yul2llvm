@@ -32,11 +32,6 @@ std::string YulCaseNode::to_string() {
   return str;
 }
 
-llvm::Value *YulCaseNode::codegen(llvm::Function *enclosingFunction) {
-  thenBody->codegen(enclosingFunction);
-  return nullptr;
-}
-
 std::unique_ptr<YulNumberLiteralNode> &YulCaseNode::getCondition() {
   return condition;
 }

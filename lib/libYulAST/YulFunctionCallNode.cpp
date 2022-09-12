@@ -38,66 +38,6 @@ std::string YulFunctionCallNode::to_string() {
   return str;
 }
 
-
-
-llvm::Type *YulFunctionCallNode::getReturnType() {
-  if (!callee->getIdentfierValue().compare("revert"))
-    return llvm::Type::getVoidTy(*TheContext);
-  return llvm::Type::getIntNTy(*TheContext, 256);
-}
-
-void YulFunctionCallNode::createPrototype() {
-  std::vector<llvm::Type *> funcArgTypes = getFunctionArgs();
-  llvm::Type *retType = getReturnType();
-  FT = llvm::FunctionType::get(retType, funcArgTypes, false);
-
-  F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             callee->getIdentfierValue(), TheModule.get());
-
-  if (!callee->getIdentfierValue().compare("revert")) {
-    F->addAttribute(0, llvm::Attribute::NoReturn);
-  }
-}
-
-
-
-
-
-llvm::Value *YulFunctionCallNode::codegen(llvm::Function *enclosingFunction) {
-  if (callee->getIdentfierValue() == "pyul_storage_var_load") {
-    return emitStorageLoadIntrinsic(enclosingFunction);
-  } else if (callee->getIdentfierValue() == "pyul_storage_var_update") {
-    return emitStorageStoreIntrinsic(enclosingFunction);
-  }
-  if (!F)
-    F = TheModule->getFunction(callee->getIdentfierValue());
-
-  if (!F)
-    createPrototype();
-
-  assert(F && "Function not found and could not be created");
-
-  if (!callee->getIdentfierValue().compare("checked_add_t_uint256")) {
-    llvm::Value *v1, *v2;
-    v1 = args[0]->codegen(enclosingFunction);
-    v2 = args[1]->codegen(enclosingFunction);
-    return Builder->CreateAdd(v1, v2);
-  }
-  std::vector<llvm::Value *> ArgsV;
-
-  for (auto &a : args) {
-    llvm::Value *lv = a->codegen(enclosingFunction);
-    ArgsV.push_back(lv);
-  }
-  // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
-  if (F->getReturnType() == llvm::Type::getVoidTy(*TheContext)) {
-    Builder->CreateCall(F, ArgsV);
-    return nullptr;
-  } else {
-    return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
-  }
-}
-
 std::string YulFunctionCallNode::getCalleeName() {
   return callee->getIdentfierValue();
 }

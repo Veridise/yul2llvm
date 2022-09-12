@@ -21,7 +21,7 @@ public:
   virtual void parseRawAST(const json *rawAST) override;
   virtual std::string to_string() override;
   YulForNode(const json *rawAST);
-  std::unique_ptr<YulExpressionNode> &getCondition();
+  YulExpressionNode &getCondition();
   YulBlockNode &getConditionNode();
   YulBlockNode &getInitializationNode();
   YulBlockNode &getIncrementNode();

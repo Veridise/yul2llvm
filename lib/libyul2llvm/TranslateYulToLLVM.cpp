@@ -35,6 +35,7 @@ bool TranslateYulToLLVM::buildContract() {
     return false;
   }
   contract = std::make_unique<yulast::YulContractNode>(&rawContract);
+  visitor.visit(*contract);
   return true;
 }
 
@@ -45,14 +46,8 @@ bool TranslateYulToLLVM::run() {
   return true;
 }
 
-void TranslateYulToLLVM::dumpModule(llvm::raw_ostream &stream) const {
-  contract->getModule().print(stream, nullptr);
-}
-
-void TranslateYulToLLVM::dumpFunctions(llvm::raw_ostream &stream) const {
-  for (auto &f : contract->getFunctions()) {
-    f->dump(stream);
-  }
+void TranslateYulToLLVM::dumpModule(llvm::raw_ostream &stream) {
+  visitor.getModule().print(stream, nullptr);
 }
 
 void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
@@ -61,6 +56,6 @@ void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
   }
 }
 
-llvm::Module *TranslateYulToLLVM::getModule() const {
-  return &contract->getModule();
+llvm::Module &TranslateYulToLLVM::getModule() {
+  return visitor.getModule();
 }

@@ -9,11 +9,6 @@ YulStatementNode::YulStatementNode(const json *rawAST,
     : YulASTBase(rawAST, YUL_AST_NODE_TYPE::YUL_AST_NODE_STATEMENT),
       statementType(statementType) {}
 
-llvm::Value *YulStatementNode::codegen(llvm::Function *F) {
-  std::cout << "Codegen not defined for YulStatementNode Base" << std::endl;
-  return nullptr;
-}
-
 std::string YulStatementNode::to_string() {
   return "to_string not implemented for statement";
 }

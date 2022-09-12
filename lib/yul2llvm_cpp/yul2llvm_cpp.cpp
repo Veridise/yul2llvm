@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   }
 
   if (!disableVerifier &&
-      llvm::verifyModule(*translator.getModule(), &llvm::errs())) {
+      llvm::verifyModule(translator.getModule(), &llvm::errs())) {
     llvm::errs() << "\n";
     llvm::WithColor::error() << "internal error: generated IR is broken!\n";
     return EXIT_FAILURE;

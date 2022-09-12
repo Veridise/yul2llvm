@@ -1,7 +1,7 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
-LLVMCodegenVisitor::LLVMCodegenVisitor():funCallHelper(*this), funDefHelper(*this){
+LLVMCodegenVisitor::LLVMCodegenVisitor(){
   // LLVM functions and datastructures
   TheContext =
       std::make_unique<llvm::LLVMContext>();
@@ -9,7 +9,8 @@ LLVMCodegenVisitor::LLVMCodegenVisitor():funCallHelper(*this), funDefHelper(*thi
       std::make_unique<llvm::Module>("yul", *TheContext);
   Builder =
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  
+  funCallHelper = std::make_unique<YulFunctionCallHelper>(*this);
+  funDefHelper = std::make_unique<YulFunctionDefinitionHelper>(*this);
 }
 
 llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
@@ -75,11 +76,10 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   constructStruct(node);
+  currentContract = &node;
   for (auto &f : node.getFunctions()) {
-    f->codegen(nullptr);
+    visit(*f);
   }
-
-  
 }
 
 void LLVMCodegenVisitor::visitYulDefaultNode(YulDefaultNode &node) {
@@ -122,13 +122,13 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
 }
 
 llvm::Value *LLVMCodegenVisitor::visitYulFunctionCallNode(YulFunctionCallNode &node){
-  funCallHelper.visitYulFunctionCallNode(node);
+  return funCallHelper->visitYulFunctionCallNode(node);
 }
 
 
 void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
-  funDefHelper.visitYulFunctionDefinitionNode(node);
+  funDefHelper->visitYulFunctionDefinitionNode(node);
 }
 
 llvm::Value *
@@ -232,3 +232,35 @@ void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id) {
   llvm::AllocaInst *v = CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue());
   NamedValues[id.getIdentfierValue()] = v;
 }
+
+void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
+  if (node.getStructFieldOrder().size() == 0)
+    return;
+  std::vector<llvm::Type *> memberTypes;
+  for (auto &field : node.getStructFieldOrder()) {
+    std::string typeStr = std::get<0>(node.getTypeMap()[field]);
+    int bitWidth = std::get<1>(node.getTypeMap()[field]);
+    llvm::Type *type = getTypeByBitwidth(bitWidth);
+    memberTypes.push_back(type);
+  }
+  selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
+  llvm::Constant *init = llvm::Constant::getNullValue(selfType);
+  self = new llvm::GlobalVariable(
+      *TheModule, selfType, false,
+      llvm::GlobalValue::LinkageTypes::ExternalLinkage, init, "__self");
+}
+
+llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
+  /**
+   * @todo fix this for other types
+   *
+   */
+  assert(bitWidth == 256);
+  return llvm::Type::getIntNTy(*TheContext, bitWidth);
+}
+
+void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
+  TheModule->print(os, nullptr);
+}
+
+void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }

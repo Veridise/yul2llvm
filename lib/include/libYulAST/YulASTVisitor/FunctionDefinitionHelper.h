@@ -1,4 +1,5 @@
 #pragma once
+class LLVMCodegenVisitor;
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 
 class YulFunctionDefinitionHelper{

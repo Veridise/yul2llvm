@@ -35,13 +35,6 @@ std::string YulBlockNode::to_string() {
   return str;
 }
 
-llvm::Value *YulBlockNode::codegen(llvm::Function *F) {
-  for (auto &s : statements) {
-    s->codegen(F);
-  }
-  return nullptr;
-}
-
 std::vector<std::unique_ptr<YulStatementNode>> &YulBlockNode::getStatements() {
   return statements;
 }

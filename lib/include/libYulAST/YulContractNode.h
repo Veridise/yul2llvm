@@ -2,6 +2,9 @@
 
 #include <libYulAST/YulASTBase.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringMap.h>
+
 
 namespace yulast {
 class YulContractNode : public YulASTBase {
@@ -12,7 +15,6 @@ class YulContractNode : public YulASTBase {
   void buildTypeMap(const json &);
   void allocateSelfStruct();
   virtual void parseRawAST(const json *) override;
-  void constructStruct();
 
 public:
   YulContractNode(const json *);

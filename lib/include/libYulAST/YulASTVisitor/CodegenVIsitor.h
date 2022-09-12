@@ -1,3 +1,6 @@
+#pragma once 
+class YulFunctionCallHelper;
+class YulFunctionDefinitionHelper;
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
@@ -52,8 +55,8 @@ class LLVMCodegenVisitor : public YulASTVisitorBase {
         llvm::Type *getTypeByBitwidth(int bitWidth);
         void constructStruct(YulContractNode &node);
 
-        YulFunctionCallHelper funCallHelper;
-        YulFunctionDefinitionHelper funDefHelper;
+        std::unique_ptr<YulFunctionCallHelper> funCallHelper;
+        std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
         void codeGenForOneVarDeclaration(YulIdentifierNode &id);
 
         llvm::Module &getModule();
@@ -62,4 +65,7 @@ class LLVMCodegenVisitor : public YulASTVisitorBase {
         llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
 
         std::stack<std::tuple<llvm::BasicBlock*, llvm::BasicBlock*>> loopControlFlowBlocks;
+
+       void dump(llvm::raw_ostream &os) const;
+       void dumpToStdout() const;
 };

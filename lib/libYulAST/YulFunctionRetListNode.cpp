@@ -28,6 +28,6 @@ std::string YulFunctionRetListNode::to_string() {
 
 std::vector<std::unique_ptr<YulIdentifierNode>> &
 YulFunctionRetListNode::getIdentifiers() {
-  assert(identifierList != NULL);
+  assert(identifierList != nullptr);
   return identifierList->getIdentifiers();
 }
