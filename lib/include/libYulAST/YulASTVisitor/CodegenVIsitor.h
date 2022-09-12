@@ -1,5 +1,7 @@
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
+#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
@@ -26,6 +28,7 @@ class LLVMCodegenVisitor : public YulASTVisitorBase {
         virtual void visitYulSwitchNode(YulSwitchNode &) override;
         virtual void visitYulVariableDeclarationNode(YulVariableDeclarationNode &) override;
 
+        LLVMCodegenVisitor();
         virtual ~LLVMCodegenVisitor(){}
 
         //LLVM datastructures
@@ -41,10 +44,14 @@ class LLVMCodegenVisitor : public YulASTVisitorBase {
         
         // data structures for self
         YulContractNode *currentContract;
+        llvm::Function *currentFunction;
         llvm::GlobalVariable *self;
         llvm::StructType *selfType;
         llvm::Type *getTypeByBitwidth(int bitWidth);
         void constructStruct(YulContractNode &node);
+
+        YulFunctionCallHelper funCallHelper;
+        YulFunctionDefinitionHelper funDefHelper;
 
         llvm::Module &getModule();
         llvm::IRBuilder<> &getBuilder();

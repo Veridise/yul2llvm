@@ -4,7 +4,6 @@
 class YulFunctionDefinitionHelper{
     LLVMCodegenVisitor &visitor;
     // Intrinsics
-    YulIntrinsicEmitter intrinsicEmitter;
     void createVarsForArgsAndRets(YulFunctionDefinitionNode &node, llvm::Function *F);
     public:
         llvm::Type *getReturnType(YulFunctionDefinitionNode &node);
@@ -12,5 +11,5 @@ class YulFunctionDefinitionHelper{
         llvm::Function *createPrototype(YulFunctionDefinitionNode &node, llvm::SmallVector<llvm::Attribute::AttrKind> &attrs);
         std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>> buildFunctionAttributes(YulFunctionDefinitionNode &node);
         void visitYulFunctionDefinitionNode(YulFunctionDefinitionNode &node);
-        
+        YulFunctionDefinitionHelper(LLVMCodegenVisitor &v);
 };

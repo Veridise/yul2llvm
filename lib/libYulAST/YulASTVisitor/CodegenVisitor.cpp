@@ -1,7 +1,7 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
-LLVMCodegenVisitor::LLVMCodegenVisitor(){
+LLVMCodegenVisitor::LLVMCodegenVisitor():funCallHelper(*this), funDefHelper(*this){
   // LLVM functions and datastructures
   TheContext =
       std::make_unique<llvm::LLVMContext>();
@@ -9,7 +9,7 @@ LLVMCodegenVisitor::LLVMCodegenVisitor(){
       std::make_unique<llvm::Module>("yul", *TheContext);
   Builder =
       std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  NamedValues;
+  
 }
 
 llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
@@ -28,15 +28,17 @@ LLVMCodegenVisitor::CreateGlobalStringLiteral(std::string literalValue,
 }
 
 
-// llvm::Module &YulASTVisitorBase::getModule() { return *TheModule; }
+llvm::Module &LLVMCodegenVisitor::getModule() { return *TheModule; }
 
-// llvm::IRBuilder<> &YulASTVisitorBase::getBuilder() { return *Builder; }
+llvm::IRBuilder<> &LLVMCodegenVisitor::getBuilder() { return *Builder; }
 
-// llvm::LLVMContext &YulASTVisitorBase::getContext() { return *TheContext; }
+llvm::LLVMContext &LLVMCodegenVisitor::getContext() { return *TheContext; }
 
-// llvm::StringMap<llvm::AllocaInst *> &YulASTVisitorBase::getNamedValuesMap() {
-//   return NamedValues;
-// }
+llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
+  return NamedValues;
+}
+
+//visitors
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
   for (auto &var : node.getLHSIdentifiers()) {
@@ -50,8 +52,6 @@ void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
     Builder->CreateStore(rval, lval, false);
   }
 }
-
-
 void LLVMCodegenVisitor::visitYulBlockNode(YulBlockNode &node) {
   for (auto &s : node.getStatements()) {
     visit(*s);
@@ -121,15 +121,28 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   Builder->SetInsertPoint(contBB);
 }
 
+llvm::Value *LLVMCodegenVisitor::visitYulFunctionCallNode(YulFunctionCallNode &node){
+  funCallHelper.visitYulFunctionCallNode(node);
+}
+
+
 void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
-  
+  funDefHelper.visitYulFunctionDefinitionNode(node);
 }
+
 llvm::Value *
 LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulIdentifierNode codegen not implemented";
-  return nullptr;
+  llvm::Type *inttype = llvm::Type::getIntNTy(*TheContext, 256);
+  if (NamedValues.find(node.getIdentfierValue()) == NamedValues.end()) {
+    for (auto &arg : currentFunction->args()) {
+      if (!std::string(arg.getName()).compare(node.getIdentfierValue())) {
+        return &arg;
+      }
+    }
+  }
+  return Builder->CreateLoad(inttype, NamedValues[node.getIdentfierValue()],
+                             node.getIdentfierValue());
 }
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   llvm::WithColor::error()
@@ -159,32 +172,4 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
   llvm::WithColor::error()
       << "AstVisitorBase: YulVariableDeclarationNode codegen not implemented";
-}
-
-llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
-  /**
-   * @todo fix this for other types
-   *
-   */
-  assert(bitWidth == 256);
-  return llvm::Type::getIntNTy(*TheContext, bitWidth);
-}
-
-void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
-  auto structFieldOrder = node.getStructFieldOrder();
-  auto typeMap = node.getTypeMap();
-  if (structFieldOrder.size() == 0)
-    return;
-  std::vector<llvm::Type *> memberTypes;
-  for (auto &field : structFieldOrder) {
-    std::string typeStr = std::get<0>(typeMap[field]);
-    int bitWidth = std::get<1>(typeMap[field]);
-    llvm::Type *type = getTypeByBitwidth(bitWidth);
-    memberTypes.push_back(type);
-  }
-  selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
-  llvm::Constant *selfInit = llvm::Constant::getNullValue(selfType);
-  self = new llvm::GlobalVariable(
-      *TheModule, selfType, false,
-      llvm::GlobalValue::LinkageTypes::ExternalLinkage, selfInit, "__self");
 }

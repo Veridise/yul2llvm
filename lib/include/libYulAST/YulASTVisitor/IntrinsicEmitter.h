@@ -9,4 +9,5 @@ class YulIntrinsicEmitter{
         llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
         llvm::Value *emitStorageLoadIntrinsic(YulFunctionCallNode &node);
         void emitStorageStoreIntrinsic(YulFunctionCallNode &node);
+        YulIntrinsicEmitter(LLVMCodegenVisitor &v);
 };

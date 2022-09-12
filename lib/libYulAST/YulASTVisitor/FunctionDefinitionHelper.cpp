@@ -1,5 +1,9 @@
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
+YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v):visitor(v){
+
+}
+
 llvm::Type *
 YulFunctionDefinitionHelper::getReturnType(YulFunctionDefinitionNode &node) {
   llvm::Type *retType;
@@ -100,6 +104,7 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   llvm::SmallVector<llvm::Attribute::AttrKind> attributes;
   if (!F)
     createPrototype(node, attributes);
+  visitor.currentFunction = F;
   visitor.getNamedValuesMap().clear();
   createVarsForArgsAndRets(node, F);
   visitor.visit(node.getBody());
@@ -112,5 +117,6 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
         visitor.getNamedValuesMap()[node.getRets()[0]->getIdentfierValue()]);
     visitor.getBuilder().CreateRet(v);
   }
+  visitor.currentFunction = nullptr;
 }
 

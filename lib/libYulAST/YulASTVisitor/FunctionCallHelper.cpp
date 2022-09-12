@@ -1,5 +1,9 @@
 #include<libYulAST/YulASTVisitor/FunctionCallHelper.h>
 
+YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v):visitor(v),intrinsicEmitter(v){
+
+}
+
 llvm::Type *YulFunctionCallHelper::getReturnType(YulFunctionCallNode &node) {
 
   if (node.getCalleeName().compare("revert"))

@@ -12,5 +12,6 @@ class YulFunctionCallHelper{
         llvm::Function *createPrototype(YulFunctionCallNode &node, llvm::SmallVector<llvm::Attribute::AttrKind> &attrs);
         std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>> buildFunctionAttributes(YulFunctionCallNode &node);
         llvm::Value *visitYulFunctionCallNode(YulFunctionCallNode &node);
+        YulFunctionCallHelper(LLVMCodegenVisitor &visitor);
         
 };

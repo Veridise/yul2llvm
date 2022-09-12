@@ -1,5 +1,7 @@
 #include <libYULAST/YulASTVisitor/IntrinsicEmitter.h>
-
+YulIntrinsicEmitter::YulIntrinsicEmitter(LLVMCodegenVisitor &v):visitor(v){
+  
+}
 bool YulIntrinsicEmitter::isFunctionCallIntrinsic(std::string calleeName){
   if (calleeName== "pyul_storage_var_load") {
     return true;
