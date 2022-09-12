@@ -145,8 +145,28 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
                              node.getIdentfierValue());
 }
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulIfNode codegen not implemented";
+  llvm::BasicBlock *thenBlock = llvm::BasicBlock::Create(
+      *TheContext, "if-taken-body", currentFunction);
+  llvm::BasicBlock *contBlock = llvm::BasicBlock::Create(
+      *TheContext, "if-not-taken-body");
+  llvm::Value *cond = visit(node.getCondition());
+  cond = Builder->CreateCast(llvm::Instruction::CastOps::Trunc, cond,
+                             llvm::IntegerType::getInt1Ty(*TheContext));
+
+  // create actual branch on condition
+  Builder->CreateCondBr(cond, thenBlock, contBlock);
+
+  // emit then
+  Builder->SetInsertPoint(thenBlock);
+  visit(node.getThenBody());
+  Builder->CreateBr(contBlock);
+
+  // merge node
+  currentFunction->getBasicBlockList().push_back(contBlock);
+  Builder->SetInsertPoint(contBlock);
+  return nullptr;
+
+  
 }
 void LLVMCodegenVisitor::visitYulLeaveNode(YulLeaveNode &node) {
   llvm::WithColor::error()
