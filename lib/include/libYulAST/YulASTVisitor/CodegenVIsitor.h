@@ -2,6 +2,8 @@
 #include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
+#include <llvm/Support/SHA1.h>
+#include <llvm/Support/Base64.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>

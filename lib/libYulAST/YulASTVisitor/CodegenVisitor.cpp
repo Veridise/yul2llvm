@@ -174,9 +174,17 @@ LLVMCodegenVisitor::visitYulNumberLiteralNode(YulNumberLiteralNode &node) {
 }
 llvm::Value *
 LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulStringLiteralNode codegen not implemented";
-  return nullptr;
+  llvm::SHA1 hasher;
+  hasher.update(node.getLiteralValue());
+  std::string literalName =
+      "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0, 6);
+  if (auto x =
+          stringLiteralNames.find(node.getLiteralValue()) != stringLiteralNames.end()) {
+    std::string globalName = stringLiteralNames[node.getLiteralValue()];
+    return TheModule->getOrInsertGlobal(globalName,
+                                        llvm::Type::getInt8Ty(*TheContext));
+  }
+  return CreateGlobalStringLiteral(node.getLiteralValue(), literalName);
 }
 void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
   llvm::WithColor::error()
