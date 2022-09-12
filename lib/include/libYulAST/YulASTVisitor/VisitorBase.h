@@ -30,7 +30,7 @@
 using namespace yulast;
 class YulASTVisitorBase {
 public:
-  llvm::Value *visitYulASTBase(YulASTBase &);
+  llvm::Value *visit(YulASTBase &);
   llvm::Value *visitYulExpressionNode(YulExpressionNode &);
   void visitYulStatementNode(YulStatementNode &);
   llvm::Value *visitYulLiteralNode(YulLiteralNode &);

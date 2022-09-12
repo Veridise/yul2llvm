@@ -1,6 +1,6 @@
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 using namespace yulast;
-llvm::Value *YulASTVisitorBase::visitYulASTBase(YulASTBase &node) {
+llvm::Value *YulASTVisitorBase::visit(YulASTBase &node) {
   switch (node.getType())
   {
   case YUL_AST_NODE_TYPE::YUL_AST_NODE_CONTRACT:
