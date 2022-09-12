@@ -47,35 +47,33 @@ std::string YulFunctionDefinitionNode::to_string() {
   return str;
 }
 
-void YulFunctionDefinitionNode::createPrototype() {
-  
-}
+void YulFunctionDefinitionNode::createPrototype() {}
 
 std::string YulFunctionDefinitionNode::getName() {
   return functionName->getIdentfierValue();
 }
 
-std::vector<std::unique_ptr<YulIdentifierNode>> &YulFunctionDefinitionNode::getRets(){
+std::vector<std::unique_ptr<YulIdentifierNode>> &
+YulFunctionDefinitionNode::getRets() {
   return rets->getIdentifiers();
 }
-std::vector<std::unique_ptr<YulIdentifierNode>> &YulFunctionDefinitionNode::getArgs(){
+std::vector<std::unique_ptr<YulIdentifierNode>> &
+YulFunctionDefinitionNode::getArgs() {
   return args->getIdentifiers();
 }
 
-bool YulFunctionDefinitionNode::hasRets(){
-  if(rets)
+bool YulFunctionDefinitionNode::hasRets() {
+  if (rets)
     return true;
-  else  
+  else
     return false;
 }
 
-bool YulFunctionDefinitionNode::hasArgs(){
-  if(args)
+bool YulFunctionDefinitionNode::hasArgs() {
+  if (args)
     return true;
-  else  
+  else
     return false;
 }
 
-YulBlockNode &YulFunctionDefinitionNode::getBody(){
-  return *body;
-}
+YulBlockNode &YulFunctionDefinitionNode::getBody() { return *body; }

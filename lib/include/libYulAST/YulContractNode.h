@@ -5,7 +5,6 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringMap.h>
 
-
 namespace yulast {
 class YulContractNode : public YulASTBase {
   // map from label -> (type name, bitwidth)
@@ -23,7 +22,7 @@ public:
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
   llvm::SmallVector<std::string> structFieldOrder;
-  llvm::SmallVector<std::string>& getStructFieldOrder();
+  llvm::SmallVector<std::string> &getStructFieldOrder();
   llvm::StringMap<std::tuple<std::string, int>> typeMap;
 };
 

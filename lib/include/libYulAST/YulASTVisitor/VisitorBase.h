@@ -33,7 +33,7 @@ class YulASTVisitorBase {
 public:
   llvm::Value *visit(YulASTBase &);
   llvm::Value *visitYulExpressionNode(YulExpressionNode &);
-  llvm::Value * visitYulStatementNode(YulStatementNode &);
+  llvm::Value *visitYulStatementNode(YulStatementNode &);
   llvm::Value *visitYulLiteralNode(YulLiteralNode &);
 
   virtual void visitYulAssignmentNode(YulAssignmentNode &);
@@ -53,5 +53,5 @@ public:
   virtual llvm::Value *visitYulStringLiteralNode(YulStringLiteralNode &);
   virtual void visitYulSwitchNode(YulSwitchNode &);
   virtual void visitYulVariableDeclarationNode(YulVariableDeclarationNode &);
-  virtual ~YulASTVisitorBase(){}
+  virtual ~YulASTVisitorBase() {}
 };

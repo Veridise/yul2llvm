@@ -17,6 +17,7 @@ protected:
   void createVarsForArgsAndRets();
   std::string str = "";
   virtual void parseRawAST(const json *rawAst) override;
+
 public:
   virtual std::string to_string() override;
   YulFunctionDefinitionNode(const json *rawAST);
@@ -26,7 +27,5 @@ public:
   YulBlockNode &getBody();
   bool hasRets();
   bool hasArgs();
-  
-
 };
 }; // namespace yulast

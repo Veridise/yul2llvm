@@ -1,75 +1,80 @@
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 using namespace yulast;
 llvm::Value *YulASTVisitorBase::visit(YulASTBase &node) {
-  switch (node.getType())
-  {
+  switch (node.getType()) {
   case YUL_AST_NODE_TYPE::YUL_AST_NODE_CONTRACT:
-    visitYulContractNode((YulContractNode&)node);
+    visitYulContractNode((YulContractNode &)node);
     break;
   case YUL_AST_NODE_TYPE::YUL_AST_NODE_CASE:
-    visitYulCaseNode((YulCaseNode&)node);
+    visitYulCaseNode((YulCaseNode &)node);
     break;
   case YUL_AST_NODE_TYPE::YUL_AST_NODE_DEFAULT:
-    visitYulDefaultNode((YulDefaultNode&)node);
+    visitYulDefaultNode((YulDefaultNode &)node);
     break;
   case YUL_AST_NODE_TYPE::YUL_AST_NODE_STATEMENT:
-    return visitYulStatementNode((YulStatementNode&)node);
+    return visitYulStatementNode((YulStatementNode &)node);
     break;
   default:
-    llvm::WithColor::error()
-      << "AstVisitorBase: codegen not implemented";
-  
-  
+    llvm::WithColor::error() << "AstVisitorBase: codegen not implemented";
   }
   return nullptr;
 }
-llvm::Value* YulASTVisitorBase::visitYulStatementNode(YulStatementNode &node) {
-  switch (node.getStatementType())
-  {
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_ASSIGNMENT :
-    visitYulAssignmentNode((YulAssignmentNode&)node);
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_BLOCK :
-    visitYulBlockNode((YulBlockNode&)node);
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FOR :
-    visitYulForNode((YulForNode&)node);
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_EXPRESSION :
-    return visitYulExpressionNode((YulExpressionNode&)node);
-    
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION :
-    visitYulFunctionDefinitionNode((YulFunctionDefinitionNode&)node);  
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_IF :
-    visitYulIfNode((YulIfNode&)node);
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_SWITCH :
-    visitYulSwitchNode((YulSwitchNode&)node);
-    return nullptr; 
-  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_VARIABLE_DECLARATION :
-    visitYulVariableDeclarationNode((YulVariableDeclarationNode&)node);
-    return nullptr; 
-  
+llvm::Value *YulASTVisitorBase::visitYulStatementNode(YulStatementNode &node) {
+  switch (node.getStatementType()) {
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_ASSIGNMENT:
+    visitYulAssignmentNode((YulAssignmentNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_BLOCK:
+    visitYulBlockNode((YulBlockNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FOR:
+    visitYulForNode((YulForNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_EXPRESSION:
+    return visitYulExpressionNode((YulExpressionNode &)node);
+
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_FUNCTION_DEFINITION:
+    visitYulFunctionDefinitionNode((YulFunctionDefinitionNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_IF:
+    visitYulIfNode((YulIfNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_SWITCH:
+    visitYulSwitchNode((YulSwitchNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_VARIABLE_DECLARATION:
+    visitYulVariableDeclarationNode((YulVariableDeclarationNode &)node);
+    return nullptr;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_BREAK:
+    visitYulBreakNode((YulBreakNode &)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_CONTINUE:
+    visitYulContinueNode((YulContinueNode &)node);
+    break;
+  case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_LEAVE:
+    break;
+  // this default throws a warning that all cases in the enum are coverd but ,
+  //  but is kept here in case new nodes are added
   default:
-  llvm::WithColor::error()
-      << "visitYulExpressionNode: YulExpressionNode codegen not implemented";
+    llvm::WithColor::error()
+        << "visitYulStatementNode: YulExpressionNode codegen not implemented, "
+           "statement type " +
+               std::to_string(int(node.getStatementType()));
     break;
   }
   return nullptr;
 }
 llvm::Value *
 YulASTVisitorBase::visitYulExpressionNode(YulExpressionNode &node) {
-  switch (node.getExpressionType())
-  {
+  switch (node.getExpressionType()) {
   case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL:
-    return visitYulFunctionCallNode((YulFunctionCallNode&)node);
+    return visitYulFunctionCallNode((YulFunctionCallNode &)node);
     break;
   case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_IDENTIFIER:
-    return visitYulIdentifierNode((YulIdentifierNode&) node);
+    return visitYulIdentifierNode((YulIdentifierNode &)node);
     break;
   case YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL:
-    return visitYulLiteralNode((YulLiteralNode&)node);
+    return visitYulLiteralNode((YulLiteralNode &)node);
     break;
   }
   llvm::WithColor::error()
@@ -77,13 +82,12 @@ YulASTVisitorBase::visitYulExpressionNode(YulExpressionNode &node) {
   return nullptr;
 }
 llvm::Value *YulASTVisitorBase::visitYulLiteralNode(YulLiteralNode &node) {
-  switch (node.getLiteralType())
-  {
+  switch (node.getLiteralType()) {
   case YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_NUMBER:
-    return visitYulNumberLiteralNode((YulNumberLiteralNode&)node);
+    return visitYulNumberLiteralNode((YulNumberLiteralNode &)node);
     break;
   case YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING:
-    return visitYulStringLiteralNode((YulStringLiteralNode&)node);
+    return visitYulStringLiteralNode((YulStringLiteralNode &)node);
   }
   llvm::WithColor::error()
       << "visitYulLiteralNode: YulLiteralNode codegen not implemented";

@@ -43,13 +43,9 @@ std::string YulSwitchNode::to_string() {
   return str;
 }
 
-YulIdentifierNode &YulSwitchNode::getCondition() {
-  return *condition;
-}
+YulIdentifierNode &YulSwitchNode::getCondition() { return *condition; }
 
-YulDefaultNode &YulSwitchNode::getDefaultNode() {
-  return *defaultNode;
-}
+YulDefaultNode &YulSwitchNode::getDefaultNode() { return *defaultNode; }
 
 std::vector<std::unique_ptr<YulCaseNode>> &YulSwitchNode::getCases() {
   return cases;

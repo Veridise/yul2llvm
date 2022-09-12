@@ -1,20 +1,18 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
-LLVMCodegenVisitor::LLVMCodegenVisitor(){
+LLVMCodegenVisitor::LLVMCodegenVisitor() {
   // LLVM functions and datastructures
-  TheContext =
-      std::make_unique<llvm::LLVMContext>();
-  TheModule =
-      std::make_unique<llvm::Module>("yul", *TheContext);
-  Builder =
-      std::make_unique<llvm::IRBuilder<>>(*TheContext);
+  TheContext = std::make_unique<llvm::LLVMContext>();
+  TheModule = std::make_unique<llvm::Module>("yul", *TheContext);
+  Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   funCallHelper = std::make_unique<YulFunctionCallHelper>(*this);
   funDefHelper = std::make_unique<YulFunctionDefinitionHelper>(*this);
 }
 
-llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                   const std::string &VarName) {
+llvm::AllocaInst *
+LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
+                                           const std::string &VarName) {
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
   return TmpB.CreateAlloca(llvm::Type::getIntNTy(*TheContext, 256), 0,
@@ -23,11 +21,10 @@ llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *The
 
 llvm::GlobalVariable *
 LLVMCodegenVisitor::CreateGlobalStringLiteral(std::string literalValue,
-                                      std::string literalName) {
+                                              std::string literalName) {
   stringLiteralNames[literalValue] = literalName;
   return Builder->CreateGlobalString(literalValue, literalName);
 }
-
 
 llvm::Module &LLVMCodegenVisitor::getModule() { return *TheModule; }
 
@@ -39,14 +36,14 @@ llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
   return NamedValues;
 }
 
-//visitors
+// visitors
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
   for (auto &var : node.getLHSIdentifiers()) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
-      llvm::WithColor::error()<< "undefined variable " << lvalname;
+      llvm::WithColor::error() << "undefined variable " << lvalname;
       exit(1);
     }
     llvm::Value *rval = visit(node.getRHSExpression());
@@ -60,17 +57,16 @@ void LLVMCodegenVisitor::visitYulBlockNode(YulBlockNode &node) {
 }
 
 void LLVMCodegenVisitor::visitYulBreakNode(YulBreakNode &node) {
-  assert(loopControlFlowBlocks.size()>0 && "Break not in loop");
+  assert(loopControlFlowBlocks.size() > 0 && "Break not in loop");
   llvm::BasicBlock *contBB = std::get<0>(loopControlFlowBlocks.top());
   Builder->CreateBr(contBB);
 }
 
 void LLVMCodegenVisitor::visitYulCaseNode(YulCaseNode &node) {
   visit(node.getThenBody());
-  
 }
 void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
-  assert(loopControlFlowBlocks.size()>0 && "Break not in loop");
+  assert(loopControlFlowBlocks.size() > 0 && "Break not in loop");
   llvm::BasicBlock *contBB = std::get<1>(loopControlFlowBlocks.top());
   Builder->CreateBr(contBB);
 }
@@ -91,25 +87,24 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   // initializetion code gen can happen in current basic block
   visit(node.getInitializationNode());
   // create termination condtition basic block
-  llvm::BasicBlock *condBB = llvm::BasicBlock::Create(
-      *TheContext, "loop-cond", enclosingFunction);
-  llvm::BasicBlock *contBB = llvm::BasicBlock::Create(
-      *TheContext, "for-cont", enclosingFunction);
-  llvm::BasicBlock *incrBB = llvm::BasicBlock::Create(
-      *TheContext, "for-incr", enclosingFunction);
-  
+  llvm::BasicBlock *condBB =
+      llvm::BasicBlock::Create(*TheContext, "for-cond", enclosingFunction);
+  llvm::BasicBlock *contBB =
+      llvm::BasicBlock::Create(*TheContext, "for-cont", enclosingFunction);
+  llvm::BasicBlock *incrBB = llvm::BasicBlock::Create(*TheContext, "for-incr");
 
+  loopControlFlowBlocks.push(std::make_tuple(contBB, incrBB));
   Builder->SetInsertPoint(condBB);
   visit(node.getConditionNode());
 
   // create body basic block
   Builder->GetInsertBlock()->setName("for-body");
-  loopControlFlowBlocks.push(std::make_tuple(contBB, incrBB));
   visit(node.getBody());
   loopControlFlowBlocks.pop();
-  
+
   // create increment basic block,
   // creating a separate basic block because cont can jump here
+  enclosingFunction->getBasicBlockList().push_back(incrBB);
   Builder->SetInsertPoint(incrBB);
   visit(node.getIncrementNode());
   Builder->CreateBr(condBB);
@@ -121,10 +116,10 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   Builder->SetInsertPoint(contBB);
 }
 
-llvm::Value *LLVMCodegenVisitor::visitYulFunctionCallNode(YulFunctionCallNode &node){
+llvm::Value *
+LLVMCodegenVisitor::visitYulFunctionCallNode(YulFunctionCallNode &node) {
   return funCallHelper->visitYulFunctionCallNode(node);
 }
-
 
 void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
@@ -145,10 +140,10 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
                              node.getIdentfierValue());
 }
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
-  llvm::BasicBlock *thenBlock = llvm::BasicBlock::Create(
-      *TheContext, "if-taken-body", currentFunction);
-  llvm::BasicBlock *contBlock = llvm::BasicBlock::Create(
-      *TheContext, "if-not-taken-body");
+  llvm::BasicBlock *thenBlock =
+      llvm::BasicBlock::Create(*TheContext, "if-taken-body", currentFunction);
+  llvm::BasicBlock *contBlock =
+      llvm::BasicBlock::Create(*TheContext, "if-not-taken-body");
   llvm::Value *cond = visit(node.getCondition());
   cond = Builder->CreateCast(llvm::Instruction::CastOps::Trunc, cond,
                              llvm::IntegerType::getInt1Ty(*TheContext));
@@ -163,11 +158,9 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
 
   // merge node
   currentFunction->getBasicBlockList().push_back(contBlock);
-  Builder->SetInsertPoint(contBlock);  
+  Builder->SetInsertPoint(contBlock);
 }
-void LLVMCodegenVisitor::visitYulLeaveNode(YulLeaveNode &node) {
-  
-}
+void LLVMCodegenVisitor::visitYulLeaveNode(YulLeaveNode &node) {}
 llvm::Value *
 LLVMCodegenVisitor::visitYulNumberLiteralNode(YulNumberLiteralNode &node) {
   return llvm::ConstantInt::get(*TheContext, node.getLiteralValue());
@@ -178,8 +171,8 @@ LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
   hasher.update(node.getLiteralValue());
   std::string literalName =
       "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0, 6);
-  if (auto x =
-          stringLiteralNames.find(node.getLiteralValue()) != stringLiteralNames.end()) {
+  if (auto x = stringLiteralNames.find(node.getLiteralValue()) !=
+               stringLiteralNames.end()) {
     std::string globalName = stringLiteralNames[node.getLiteralValue()];
     return TheModule->getOrInsertGlobal(globalName,
                                         llvm::Type::getInt8Ty(*TheContext));
@@ -198,9 +191,7 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 
   for (auto &c : node.getCases()) {
     llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
-        *TheContext,
-        c->getCondition()->to_string() + "-case",
-        currentFunction);
+        *TheContext, c->getCondition()->to_string() + "-case", currentFunction);
     llvm::APInt &literal = c->getCondition()->getLiteralValue();
     sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
     Builder->SetInsertPoint(caseBB);
@@ -224,12 +215,13 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
       llvm::Value *constant = visit(node.getValue());
       Builder->CreateStore(constant, lval);
     }
-  }  
+  }
 }
 void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id) {
   if (NamedValues[id.getIdentfierValue()] != nullptr)
     return;
-  llvm::AllocaInst *v = CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue());
+  llvm::AllocaInst *v =
+      CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue());
   NamedValues[id.getIdentfierValue()] = v;
 }
 

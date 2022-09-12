@@ -13,6 +13,6 @@ std::string YulExpressionNode::to_string() {
   return "Not implemented for Yul Expression";
 }
 
-YUL_AST_EXPRESSION_NODE_TYPE YulExpressionNode::getExpressionType(){
+YUL_AST_EXPRESSION_NODE_TYPE YulExpressionNode::getExpressionType() {
   return expressionType;
 }

@@ -1,11 +1,9 @@
-#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
+#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 
-YulIntrinsicEmitter::YulIntrinsicEmitter(LLVMCodegenVisitor &v):visitor(v){
-  
-}
-bool YulIntrinsicEmitter::isFunctionCallIntrinsic(std::string calleeName){
-  if (calleeName== "pyul_storage_var_load") {
+YulIntrinsicEmitter::YulIntrinsicEmitter(LLVMCodegenVisitor &v) : visitor(v) {}
+bool YulIntrinsicEmitter::isFunctionCallIntrinsic(std::string calleeName) {
+  if (calleeName == "pyul_storage_var_load") {
     return true;
   } else if (calleeName == "pyul_storage_var_update") {
     return true;
@@ -15,9 +13,10 @@ bool YulIntrinsicEmitter::isFunctionCallIntrinsic(std::string calleeName){
   return false;
 }
 
-llvm::Value* YulIntrinsicEmitter::handleIntrinsicFunctionCall(YulFunctionCallNode &node){
+llvm::Value *
+YulIntrinsicEmitter::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   std::string calleeName = node.getCalleeName();
-  if (calleeName== "pyul_storage_var_load") {
+  if (calleeName == "pyul_storage_var_load") {
     return emitStorageLoadIntrinsic(node);
   } else if (calleeName == "pyul_storage_var_update") {
     emitStorageStoreIntrinsic(node);
@@ -28,7 +27,8 @@ llvm::Value* YulIntrinsicEmitter::handleIntrinsicFunctionCall(YulFunctionCallNod
   return nullptr;
 }
 
-llvm::Value *YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &node){
+llvm::Value *
+YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &node) {
   llvm::IRBuilder<> &Builder = *(visitor.Builder);
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
@@ -36,7 +36,8 @@ llvm::Value *YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &nod
   return Builder.CreateAdd(v1, v2);
 }
 
-llvm::Value *YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &node) {
+llvm::Value *
+YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &node) {
   auto &args = node.getArgs();
   assert(args.size() == 2);
   auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
@@ -58,12 +59,14 @@ llvm::Value *YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &
   int bitWidth = std::get<1>(typeMap[*fieldIt]);
   indices.push_back(
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
-  indices.push_back(
-      llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr = visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self, indices,
-                                        "ptr_self_" + varLit.to_string());
-  return visitor.Builder->CreateLoad(llvm::Type::getIntNTy(visitor.getContext(), bitWidth), ptr,
-                             "self_" + varLit.to_string());
+  indices.push_back(llvm::ConstantInt::get(
+      visitor.getContext(), llvm::APInt(32, structIndex, false)));
+  llvm::Value *ptr =
+      visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self,
+                                 indices, "ptr_self_" + varLit.to_string());
+  return visitor.Builder->CreateLoad(
+      llvm::Type::getIntNTy(visitor.getContext(), bitWidth), ptr,
+      "self_" + varLit.to_string());
 }
 
 void YulIntrinsicEmitter::emitStorageStoreIntrinsic(YulFunctionCallNode &node) {
@@ -88,10 +91,11 @@ void YulIntrinsicEmitter::emitStorageStoreIntrinsic(YulFunctionCallNode &node) {
   llvm::SmallVector<llvm::Value *> indices;
   indices.push_back(
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
-  indices.push_back(
-      llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr = visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self, indices,
-                                        "ptr_self_" + varLit.to_string());
+  indices.push_back(llvm::ConstantInt::get(
+      visitor.getContext(), llvm::APInt(32, structIndex, false)));
+  llvm::Value *ptr =
+      visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self,
+                                 indices, "ptr_self_" + varLit.to_string());
   llvm::Value *storeValue = visitor.visit(valueNode);
   /**
    * llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);

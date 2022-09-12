@@ -31,6 +31,4 @@ YulAssignmentNode::getLHSIdentifiers() {
   return lhs->getIdentifiers();
 }
 
-YulExpressionNode &YulAssignmentNode::getRHSExpression() {
-  return *rhs;
-}
+YulExpressionNode &YulAssignmentNode::getRHSExpression() { return *rhs; }

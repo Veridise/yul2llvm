@@ -1,7 +1,7 @@
-#include<libYulAST/YulASTVisitor/FunctionCallHelper.h>
-#include<libYulAST/YulASTVisitor/CodegenVisitor.h>
-YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v):visitor(v), intrinsicEmitter(v) {
-}
+#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
+#include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
+YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v)
+    : visitor(v), intrinsicEmitter(v) {}
 
 llvm::Type *YulFunctionCallHelper::getReturnType(YulFunctionCallNode &node) {
 
@@ -10,19 +10,24 @@ llvm::Type *YulFunctionCallHelper::getReturnType(YulFunctionCallNode &node) {
   return llvm::Type::getIntNTy(visitor.getContext(), 256);
 }
 
-std::vector<llvm::Type *> YulFunctionCallHelper::getFunctionArgTypes(YulFunctionCallNode &node) {
+std::vector<llvm::Type *>
+YulFunctionCallHelper::getFunctionArgTypes(YulFunctionCallNode &node) {
   int numargs = node.getArgs().size();
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(visitor.getContext(), 256));
   return funcArgTypes;
 }
 
-llvm::Function *YulFunctionCallHelper::createPrototype(YulFunctionCallNode &node, llvm::SmallVector<llvm::Attribute::AttrKind> &attrs) {
+llvm::Function *YulFunctionCallHelper::createPrototype(
+    YulFunctionCallNode &node,
+    llvm::SmallVector<llvm::Attribute::AttrKind> &attrs) {
   std::vector<llvm::Type *> funcArgTypes = getFunctionArgTypes(node);
   llvm::Type *retType = getReturnType(node);
-  llvm::FunctionType *FT = llvm::FunctionType::get(retType, funcArgTypes, false);
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(retType, funcArgTypes, false);
 
-  llvm::Function *F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
+  llvm::Function *F =
+      llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              node.getCalleeName(), visitor.getModule());
 
   for (auto &att : attrs) {
@@ -31,25 +36,27 @@ llvm::Function *YulFunctionCallHelper::createPrototype(YulFunctionCallNode &node
   return F;
 }
 
-std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>> YulFunctionCallHelper::
-          buildFunctionAttributes(YulFunctionCallNode &node){
-  auto attributes = std::make_unique<llvm::SmallVector<llvm::Attribute::AttrKind>>();
-  if(node.getCalleeName().substr(0,7) == "revert_"){
+std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>
+YulFunctionCallHelper::buildFunctionAttributes(YulFunctionCallNode &node) {
+  auto attributes =
+      std::make_unique<llvm::SmallVector<llvm::Attribute::AttrKind>>();
+  if (node.getCalleeName().substr(0, 7) == "revert_") {
     attributes->push_back(llvm::Attribute::NoReturn);
   }
   return attributes;
 }
 
-llvm::Value *YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
+llvm::Value *
+YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
   llvm::Function *F, *enclosingFunction;
   enclosingFunction = visitor.Builder->GetInsertBlock()->getParent();
-  if(intrinsicEmitter.isFunctionCallIntrinsic(node.getCalleeName())){
+  if (intrinsicEmitter.isFunctionCallIntrinsic(node.getCalleeName())) {
     return intrinsicEmitter.handleIntrinsicFunctionCall(node);
   }
   F = visitor.getModule().getFunction(node.getCalleeName());
-  if (!F){
+  if (!F) {
     auto attrList = buildFunctionAttributes(node);
-    F=createPrototype(node, *attrList );
+    F = createPrototype(node, *attrList);
   }
 
   assert(F && "Function not found and could not be created");

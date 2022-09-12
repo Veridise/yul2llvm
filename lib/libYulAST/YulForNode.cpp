@@ -90,14 +90,10 @@ YulExpressionNode &YulForNode::getCondition() {
   return ifNode->getCondition();
 }
 
-YulBlockNode &YulForNode::getConditionNode() {
-  return *conditionNode;
-}
+YulBlockNode &YulForNode::getConditionNode() { return *conditionNode; }
 
 YulBlockNode &YulForNode::getInitializationNode() {
   return *initializationNode;
 }
-YulBlockNode &YulForNode::getIncrementNode() {
-  return *incrementNode;
-}
+YulBlockNode &YulForNode::getIncrementNode() { return *incrementNode; }
 YulBlockNode &YulForNode::getBody() { return *body; }

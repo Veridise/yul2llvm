@@ -32,8 +32,6 @@ std::string YulIfNode::to_string() {
   return str;
 }
 
-YulExpressionNode &YulIfNode::getCondition() {
-  return *condition;
-}
+YulExpressionNode &YulIfNode::getCondition() { return *condition; }
 
 YulBlockNode &YulIfNode::getThenBody() { return *thenBody; }

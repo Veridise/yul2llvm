@@ -56,6 +56,4 @@ void TranslateYulToLLVM::prettyPrintFunctions(llvm::raw_ostream &stream) {
   }
 }
 
-llvm::Module &TranslateYulToLLVM::getModule() {
-  return visitor.getModule();
-}
+llvm::Module &TranslateYulToLLVM::getModule() { return visitor.getModule(); }

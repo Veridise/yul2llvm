@@ -1,6 +1,6 @@
 #pragma once
-#include <libYulAST/YulContractNode.h>
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
+#include <libYulAST/YulContractNode.h>
 #include <nlohmann/json.hpp>
 #include <vector>
 

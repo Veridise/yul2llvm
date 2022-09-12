@@ -59,6 +59,10 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-llvm::StringMap<std::tuple<std::string, int>>& YulContractNode::getTypeMap() { return typeMap;}
+llvm::StringMap<std::tuple<std::string, int>> &YulContractNode::getTypeMap() {
+  return typeMap;
+}
 
-llvm::SmallVector<std::string>& YulContractNode::getStructFieldOrder() {return structFieldOrder;}
+llvm::SmallVector<std::string> &YulContractNode::getStructFieldOrder() {
+  return structFieldOrder;
+}

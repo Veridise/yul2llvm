@@ -1,8 +1,7 @@
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
-YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v):visitor(v){
-
-}
+YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
+    : visitor(v) {}
 
 llvm::Type *
 YulFunctionDefinitionHelper::getReturnType(YulFunctionDefinitionNode &node) {
@@ -41,18 +40,17 @@ llvm::Function *YulFunctionDefinitionHelper::createPrototype(
    * yul_function_call nodes encountered before encountering
    * this yul_function_definition nodes
    */
-  llvm::Function *oldFunction =
-      visitor.getModule().getFunction(node.getName());
+  llvm::Function *oldFunction = visitor.getModule().getFunction(node.getName());
 
   if (oldFunction) {
     visitor.getModule().getFunctionList().remove(oldFunction);
   }
 
-  llvm::FunctionType *FT = llvm::FunctionType::get(retType, funcArgTypes, false);
+  llvm::FunctionType *FT =
+      llvm::FunctionType::get(retType, funcArgTypes, false);
 
-  llvm::Function *F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             node.getName(),
-                             visitor.getModule());
+  llvm::Function *F = llvm::Function::Create(
+      FT, llvm::Function::ExternalLinkage, node.getName(), visitor.getModule());
 
   int idx = 0;
   for (auto &arg : F->args()) {
@@ -72,26 +70,29 @@ YulFunctionDefinitionHelper::buildFunctionAttributes(
   return attributes;
 }
 
-void YulFunctionDefinitionHelper::createVarsForArgsAndRets(YulFunctionDefinitionNode &node, llvm::Function *F) {
+void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
+    YulFunctionDefinitionNode &node, llvm::Function *F) {
   llvm::BasicBlock *BB =
       llvm::BasicBlock::Create(visitor.getContext(), "entry", F);
   visitor.getBuilder().SetInsertPoint(BB);
 
   if (node.hasArgs()) {
     for (auto &arg : node.getArgs()) {
-      llvm::AllocaInst *a =
-          visitor.CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
+      llvm::AllocaInst *a = visitor.CreateEntryBlockAlloca(
+          F, arg->getIdentfierValue().append("_arg"));
       visitor.getNamedValuesMap()[arg->getIdentfierValue()] = a;
     }
   }
 
   for (auto &f : F->args()) {
-    visitor.getBuilder().CreateStore(&f, visitor.getNamedValuesMap()[f.getName().str()]);
+    visitor.getBuilder().CreateStore(
+        &f, visitor.getNamedValuesMap()[f.getName().str()]);
   }
 
   if (node.hasRets()) {
     for (auto &arg : node.getRets()) {
-      llvm::AllocaInst *a = visitor.CreateEntryBlockAlloca(F, arg->getIdentfierValue());
+      llvm::AllocaInst *a =
+          visitor.CreateEntryBlockAlloca(F, arg->getIdentfierValue());
       visitor.getNamedValuesMap()[arg->getIdentfierValue()] = a;
     }
   }
@@ -117,4 +118,3 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   }
   visitor.currentFunction = nullptr;
 }
-

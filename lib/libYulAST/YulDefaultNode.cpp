@@ -27,6 +27,4 @@ std::string YulDefaultNode::to_string() {
   return str;
 }
 
-YulBlockNode &YulDefaultNode::getThenBody() {
-  return *thenBody;
-}
+YulBlockNode &YulDefaultNode::getThenBody() { return *thenBody; }

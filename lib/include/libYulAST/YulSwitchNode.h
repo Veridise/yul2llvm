@@ -13,6 +13,7 @@ protected:
   std::unique_ptr<YulIdentifierNode> condition;
   std::vector<std::unique_ptr<YulCaseNode>> cases;
   std::unique_ptr<YulDefaultNode> defaultNode;
+
 public:
   std::string str = "";
   virtual void parseRawAST(const json *rawAST) override;

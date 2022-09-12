@@ -1,0 +1,1 @@
+{"language": "Solidity", "sources": {"control-flow/for-loop.sol": {"urls": ["/Users/ajinkya/Workspace/yul2llvm/build/../tests/e2e/feature/control-flow/for-loop.sol"]}}, "settings": {"outputSelection": {"*": {"*": ["ir", "abi", "storageLayout"]}}, "viaIR": true}}

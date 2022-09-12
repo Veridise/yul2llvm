@@ -37,12 +37,10 @@ YulVariableDeclarationNode::getVars() {
   return variableNames->getIdentifiers();
 }
 
-bool YulVariableDeclarationNode::hasValue(){
-  if(value == nullptr)
+bool YulVariableDeclarationNode::hasValue() {
+  if (value == nullptr)
     return false;
   return true;
 }
 
-YulExpressionNode& YulVariableDeclarationNode::getValue(){
-  return *value;
-}
+YulExpressionNode &YulVariableDeclarationNode::getValue() { return *value; }

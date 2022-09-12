@@ -1,9 +1,9 @@
 #pragma once
 #include <libYulAST/YulLiteralNode.h>
-#include <nlohmann/json.hpp>
-#include <llvm/Support/WithColor.h>
-#include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/APInt.h>
+#include <llvm/ADT/SmallString.h>
+#include <llvm/Support/WithColor.h>
+#include <nlohmann/json.hpp>
 
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {
