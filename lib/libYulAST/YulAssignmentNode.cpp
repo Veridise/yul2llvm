@@ -45,6 +45,6 @@ YulAssignmentNode::getLHSIdentifiers() {
   return lhs->getIdentifiers();
 }
 
-std::unique_ptr<YulExpressionNode> &YulAssignmentNode::getRHSExpression() {
-  return rhs;
+YulExpressionNode &YulAssignmentNode::getRHSExpression() {
+  return *rhs;
 }

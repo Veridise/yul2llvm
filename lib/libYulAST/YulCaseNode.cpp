@@ -41,4 +41,4 @@ std::unique_ptr<YulNumberLiteralNode> &YulCaseNode::getCondition() {
   return condition;
 }
 
-std::unique_ptr<YulBlockNode> &YulCaseNode::getThenBody() { return thenBody; }
+YulBlockNode &YulCaseNode::getThenBody() { return *thenBody; }

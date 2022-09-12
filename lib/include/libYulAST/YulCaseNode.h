@@ -18,6 +18,6 @@ public:
   virtual std::string to_string() override;
   YulCaseNode(const json *rawAST);
   std::unique_ptr<YulNumberLiteralNode> &getCondition();
-  std::unique_ptr<YulBlockNode> &getThenBody();
+  YulBlockNode &getThenBody();
 };
 }; // namespace yulast

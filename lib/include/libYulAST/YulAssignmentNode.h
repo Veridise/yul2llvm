@@ -17,6 +17,6 @@ public:
   virtual void parseRawAST(const json *rawAst) override;
   YulAssignmentNode(const json *rawAst);
   std::vector<std::unique_ptr<YulIdentifierNode>> &getLHSIdentifiers();
-  std::unique_ptr<YulExpressionNode> &getRHSExpression();
+  YulExpressionNode &getRHSExpression();
 };
 }; // namespace yulast
