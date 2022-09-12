@@ -32,6 +32,6 @@ llvm::Value *YulDefaultNode::codegen(llvm::Function *enclosingFunction) {
   return nullptr;
 }
 
-std::unique_ptr<YulBlockNode> &YulDefaultNode::getThenBody() {
+YulBlockNode &YulDefaultNode::getThenBody() {
   return thenBody;
 }

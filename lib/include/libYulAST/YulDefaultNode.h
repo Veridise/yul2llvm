@@ -16,6 +16,6 @@ public:
   virtual void parseRawAST(const json *rawAST) override;
   virtual std::string to_string() override;
   YulDefaultNode(const json *rawAST);
-  std::unique_ptr<YulBlockNode> &getThenBody();
+  YulBlockNode &getThenBody();
 };
 }; // namespace yulast
