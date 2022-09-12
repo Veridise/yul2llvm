@@ -31,28 +31,18 @@ std::string YulVariableDeclarationNode::to_string() {
   return str;
 }
 
-void YulVariableDeclarationNode::codeGenForOneVar(
-    std::unique_ptr<YulIdentifierNode> &id, llvm::Function *F) {
-  if (NamedValues[id->getIdentfierValue()] != nullptr)
-    return;
-  llvm::AllocaInst *v = CreateEntryBlockAlloca(F, id->getIdentfierValue());
-  NamedValues[id->getIdentfierValue()] = v;
-}
-
-llvm::Value *YulVariableDeclarationNode::codegen(llvm::Function *F) {
-  for (auto &id : variableNames->getIdentifiers()) {
-    codeGenForOneVar(id, F);
-    if (value != NULL) {
-      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
-      llvm::Value *constant = value->codegen(F);
-      Builder->CreateStore(constant, lval);
-    }
-  }
-  return nullptr;
-}
-
 std::vector<std::unique_ptr<YulIdentifierNode>> &
 YulVariableDeclarationNode::getVars() {
   assert(variableNames != NULL);
   return variableNames->getIdentifiers();
+}
+
+bool YulVariableDeclarationNode::hasValue(){
+  if(value == nullptr)
+    return false;
+  return true;
+}
+
+YulExpressionNode& YulVariableDeclarationNode::getValue(){
+  return *value;
 }

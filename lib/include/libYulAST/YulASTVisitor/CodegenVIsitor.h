@@ -54,6 +54,7 @@ class LLVMCodegenVisitor : public YulASTVisitorBase {
 
         YulFunctionCallHelper funCallHelper;
         YulFunctionDefinitionHelper funDefHelper;
+        void codeGenForOneVarDeclaration(YulIdentifierNode &id);
 
         llvm::Module &getModule();
         llvm::IRBuilder<> &getBuilder();

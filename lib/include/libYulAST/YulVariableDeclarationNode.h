@@ -15,11 +15,10 @@ protected:
   std::string str = "";
 
 public:
-  virtual llvm::Value *codegen(llvm::Function *F) override;
-  void codeGenForOneVar(std::unique_ptr<YulIdentifierNode> &id,
-                        llvm::Function *F);
   virtual std::string to_string() override;
   YulVariableDeclarationNode(const json *rawAST);
   std::vector<std::unique_ptr<YulIdentifierNode>> &getVars();
+  YulExpressionNode &getValue();
+  bool hasValue();
 };
 }; // namespace yulast

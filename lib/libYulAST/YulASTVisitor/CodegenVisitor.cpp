@@ -217,6 +217,18 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 }
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulVariableDeclarationNode codegen not implemented";
+  for (auto &id : node.getVars()) {
+    codeGenForOneVarDeclaration(*id);
+    if (node.hasValue()) {
+      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+      llvm::Value *constant = visit(node.getValue());
+      Builder->CreateStore(constant, lval);
+    }
+  }  
+}
+void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id) {
+  if (NamedValues[id.getIdentfierValue()] != nullptr)
+    return;
+  llvm::AllocaInst *v = CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue());
+  NamedValues[id.getIdentfierValue()] = v;
 }
