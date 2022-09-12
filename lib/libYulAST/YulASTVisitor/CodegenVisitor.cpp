@@ -1,4 +1,4 @@
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>>
+#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
 LLVMCodegenVisitor::LLVMCodegenVisitor(){
@@ -12,8 +12,7 @@ LLVMCodegenVisitor::LLVMCodegenVisitor(){
   NamedValues;
 }
 
-llvm::AllocaInst *
-LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
+llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
                                    const std::string &VarName) {
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
@@ -40,14 +39,14 @@ LLVMCodegenVisitor::CreateGlobalStringLiteral(std::string literalValue,
 // }
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
-  for (auto &var : node.getLhs().getIdentifiers()) {
+  for (auto &var : node.getLHSIdentifiers()) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
       llvm::WithColor::error()<< "undefined variable " << lvalname;
       exit(1);
     }
-    llvm::Value *rval = visit(node.getRhs());
+    llvm::Value *rval = visit(node.getRHSExpression());
     Builder->CreateStore(rval, lval, false);
   }
 }
@@ -75,9 +74,12 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
   Builder->CreateBr(contBB);
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
+  constructStruct(node);
   for (auto &f : node.getFunctions()) {
     f->codegen(nullptr);
   }
+
+  
 }
 
 void LLVMCodegenVisitor::visitYulDefaultNode(YulDefaultNode &node) {
@@ -98,7 +100,7 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   
 
   Builder->SetInsertPoint(condBB);
-  visit(node.getCondition());
+  visit(node.getConditionNode());
 
   // create body basic block
   Builder->GetInsertBlock()->setName("for-body");
@@ -119,43 +121,9 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   Builder->SetInsertPoint(contBB);
 }
 
-
-llvm::Value *
-LLVMCodegenVisitor::visitYulFunctionCallNode(YulFunctionCallNode &node) {
-  
-  if (!F)
-    F = TheModule->getFunction(callee->getIdentfierValue());
-
-  if (!F)
-    createPrototype();
-
-  assert(F && "Function not found and could not be created");
-
-  if (!callee->getIdentfierValue().compare("checked_add_t_uint256")) {
-    llvm::Value *v1, *v2;
-    v1 = args[0]->codegen(enclosingFunction);
-    v2 = args[1]->codegen(enclosingFunction);
-    return Builder->CreateAdd(v1, v2);
-  }
-  std::vector<llvm::Value *> ArgsV;
-
-  for (auto &a : args) {
-    llvm::Value *lv = a->codegen(enclosingFunction);
-    ArgsV.push_back(lv);
-  }
-  // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
-  if (F->getReturnType() == llvm::Type::getVoidTy(*TheContext)) {
-    Builder->CreateCall(F, ArgsV);
-    return nullptr;
-  } else {
-    return Builder->CreateCall(F, ArgsV, callee->getIdentfierValue());
-  }
-}
-
 void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulFunctionDefinitionNode codegen not implemented";
+  
 }
 llvm::Value *
 LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
@@ -191,4 +159,32 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
   llvm::WithColor::error()
       << "AstVisitorBase: YulVariableDeclarationNode codegen not implemented";
+}
+
+llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
+  /**
+   * @todo fix this for other types
+   *
+   */
+  assert(bitWidth == 256);
+  return llvm::Type::getIntNTy(*TheContext, bitWidth);
+}
+
+void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
+  auto structFieldOrder = node.getStructFieldOrder();
+  auto typeMap = node.getTypeMap();
+  if (structFieldOrder.size() == 0)
+    return;
+  std::vector<llvm::Type *> memberTypes;
+  for (auto &field : structFieldOrder) {
+    std::string typeStr = std::get<0>(typeMap[field]);
+    int bitWidth = std::get<1>(typeMap[field]);
+    llvm::Type *type = getTypeByBitwidth(bitWidth);
+    memberTypes.push_back(type);
+  }
+  selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
+  llvm::Constant *selfInit = llvm::Constant::getNullValue(selfType);
+  self = new llvm::GlobalVariable(
+      *TheModule, selfType, false,
+      llvm::GlobalValue::LinkageTypes::ExternalLinkage, selfInit, "__self");
 }
