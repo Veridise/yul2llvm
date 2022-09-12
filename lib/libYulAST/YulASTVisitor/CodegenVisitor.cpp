@@ -187,8 +187,33 @@ LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
   return CreateGlobalStringLiteral(node.getLiteralValue(), literalName);
 }
 void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulSwitchNode codegen not implemented";
+  llvm::Value *cond = visit(node.getCondition());
+  llvm::BasicBlock *defaultBlock =
+      llvm::BasicBlock::Create(*TheContext, "default");
+  llvm::BasicBlock *cont =
+      llvm::BasicBlock::Create(*TheContext, "-switch-cont");
+
+  llvm::SwitchInst *sw =
+      Builder->CreateSwitch(cond, defaultBlock, node.getCases().size() + 1);
+
+  for (auto &c : node.getCases()) {
+    llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
+        *TheContext,
+        c->getCondition()->to_string() + "-case",
+        currentFunction);
+    llvm::APInt &literal = c->getCondition()->getLiteralValue();
+    sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
+    Builder->SetInsertPoint(caseBB);
+    visit(*c);
+    Builder->CreateBr(cont);
+  }
+
+  currentFunction->getBasicBlockList().push_back(defaultBlock);
+  Builder->SetInsertPoint(defaultBlock);
+  visit(node.getDefaultNode());
+  Builder->CreateBr(cont);
+  currentFunction->getBasicBlockList().push_back(cont);
+  Builder->SetInsertPoint(cont);
 }
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
