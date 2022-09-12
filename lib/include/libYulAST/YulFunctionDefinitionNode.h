@@ -22,7 +22,6 @@ protected:
   std::string str = "";
   virtual void parseRawAST(const json *rawAst) override;
   llvm::Type *getReturnType();
-
 public:
   void dumpToStdout() const;
   virtual llvm::Value *codegen(llvm::Function *F) override;
@@ -31,5 +30,12 @@ public:
   llvm::Function *getLLVMFunction();
   std::string getName();
   void dump(llvm::raw_ostream &os = llvm::errs()) const;
+  std::vector<std::unique_ptr<YulIdentifierNode>> &getRets();
+  std::vector<std::unique_ptr<YulIdentifierNode>> &getArgs();
+  YulBlockNode &getBody();
+  bool hasRets();
+  bool hasArgs();
+  
+
 };
 }; // namespace yulast

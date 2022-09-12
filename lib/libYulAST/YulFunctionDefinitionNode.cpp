@@ -48,73 +48,11 @@ std::string YulFunctionDefinitionNode::to_string() {
 }
 
 llvm::Type *YulFunctionDefinitionNode::getReturnType() {
-  llvm::Type *retType;
-  if (!rets || rets->getIdentifiers().size() == 0)
-    retType = llvm::Type::getVoidTy(*TheContext);
-  else
-    retType = llvm::Type::getIntNTy(*TheContext, 256);
-  return retType;
+
 }
 
 void YulFunctionDefinitionNode::createPrototype() {
-  int numargs;
-  if (args == NULL)
-    numargs = 0;
-  else
-    numargs = args->getIdentifiers().size();
-
-  std::vector<llvm::Type *> funcArgTypes(
-      numargs, llvm::Type::getIntNTy(*TheContext, 256));
-
-  llvm::Type *retType = getReturnType();
-
-  /**
-   * Note: remove old function declarations created by
-   * yul_function_call nodes encountered before encountering
-   * this yul_function_definition nodes
-   */
-  llvm::Function *oldFunction =
-      TheModule->getFunction(functionName->getIdentfierValue());
-
-  if (oldFunction) {
-    TheModule->getFunctionList().remove(oldFunction);
-  }
-
-  FT = llvm::FunctionType::get(retType, funcArgTypes, false);
-
-  F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
-                             functionName->getIdentfierValue(),
-                             TheModule.get());
-
-  int idx = 0;
-  for (auto &arg : F->args()) {
-    arg.setName(args->getIdentifiers().at(idx++)->getIdentfierValue());
-  }
-}
-
-void YulFunctionDefinitionNode::createVarsForArgsAndRets() {
-  llvm::BasicBlock *BB =
-      llvm::BasicBlock::Create(*(YulASTBase::TheContext), "entry", F);
-  Builder->SetInsertPoint(BB);
-
-  if (args != NULL) {
-    for (auto &arg : args->getIdentifiers()) {
-      llvm::AllocaInst *a =
-          CreateEntryBlockAlloca(F, arg->getIdentfierValue().append("_arg"));
-      NamedValues[arg->getIdentfierValue()] = a;
-    }
-  }
-
-  for (auto &f : F->args()) {
-    Builder->CreateStore(&f, NamedValues[f.getName().str()]);
-  }
-
-  if (rets != NULL) {
-    for (auto &arg : rets->getIdentifiers()) {
-      llvm::AllocaInst *a = CreateEntryBlockAlloca(F, arg->getIdentfierValue());
-      NamedValues[arg->getIdentfierValue()] = a;
-    }
-  }
+  
 }
 
 llvm::Value *
@@ -122,24 +60,7 @@ YulFunctionDefinitionNode::codegen(llvm::Function *placeholderFunc) {
   // llvm::errs() << "\n[+] Generating function for "
   //              << functionName->getIdentfierValue()
   //              << "\nWarnings from verifier:\n";
-  if (!F)
-    createPrototype();
-
-  NamedValues.clear();
-  createVarsForArgsAndRets();
-  body->codegen(F);
-  if (!rets) {
-    Builder->CreateRetVoid();
-  } else {
-    // @todo assuming rets has only a single element
-    llvm::Value *v = Builder->CreateLoad(
-        llvm::Type::getIntNTy(*TheContext, 256),
-        NamedValues[rets->getIdentifiers()[0]->getIdentfierValue()]);
-    Builder->CreateRet(v);
-  }
-  llvm::verifyFunction(*F, &(llvm::errs()));
-
-  return nullptr;
+  
 }
 
 void YulFunctionDefinitionNode::dump(llvm::raw_ostream &os) const {
@@ -152,4 +73,29 @@ llvm::Function *YulFunctionDefinitionNode::getLLVMFunction() { return F; }
 
 std::string YulFunctionDefinitionNode::getName() {
   return functionName->getIdentfierValue();
+}
+
+std::vector<std::unique_ptr<YulIdentifierNode>> &YulFunctionDefinitionNode::getRets(){
+  return rets->getIdentifiers();
+}
+std::vector<std::unique_ptr<YulIdentifierNode>> &YulFunctionDefinitionNode::getArgs(){
+  return args->getIdentifiers();
+}
+
+bool YulFunctionDefinitionNode::hasRets(){
+  if(rets)
+    return true;
+  else  
+    return false;
+}
+
+bool YulFunctionDefinitionNode::hasArgs(){
+  if(args)
+    return true;
+  else  
+    return false;
+}
+
+YulBlockNode &YulFunctionDefinitionNode::getBody(){
+  return *body;
 }
