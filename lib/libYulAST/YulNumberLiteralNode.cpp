@@ -55,10 +55,6 @@ YulNumberLiteralNode::YulNumberLiteralNode(const json *rawAST)
   parseRawAST(rawAST);
 }
 
-llvm::Value *YulNumberLiteralNode::codegen(llvm::Function *F) {
-  return llvm::ConstantInt::get(*TheContext, literalValue);
-}
-
 std::string YulNumberLiteralNode::to_string() {
   llvm::SmallString<256> litStr;
   literalValue.toStringUnsigned(litStr, 16);

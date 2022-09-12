@@ -163,20 +163,14 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
 
   // merge node
   currentFunction->getBasicBlockList().push_back(contBlock);
-  Builder->SetInsertPoint(contBlock);
-  return nullptr;
-
-  
+  Builder->SetInsertPoint(contBlock);  
 }
 void LLVMCodegenVisitor::visitYulLeaveNode(YulLeaveNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulLeaveNode codegen not implemented";
+  
 }
 llvm::Value *
 LLVMCodegenVisitor::visitYulNumberLiteralNode(YulNumberLiteralNode &node) {
-  llvm::WithColor::error()
-      << "AstVisitorBase: YulNumberLiteralNode codegen not implemented";
-  return nullptr;
+  return llvm::ConstantInt::get(*TheContext, node.getLiteralValue());
 }
 llvm::Value *
 LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
