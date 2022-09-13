@@ -344,3 +344,36 @@ def rewrite_storage_ops(contract: ContractData,
     _prune_dead_functions_logging(
         YulNode(contract.yul_ast['contract_body']).children[0],
         {contract.metadata.main_ctor}, logger)
+
+def rewrite_map(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    # constants = {}
+    # def handle_var_decl(node: YulNode):
+    #     pass
+    # def handle_assignment(node: YulNode):
+    #     pass
+    # def build_constants(node: YulNode):
+    #     if(node.type == 'yul_variable_declaration'):
+    #         handle_var_decl(node)
+    #     elif(node.type == 'yul_assignment'):
+    #         handle_assignment(node)
+    #     return True
+
+    map_index_re = r'^mapping_index_access_t_mapping(?P<types>.*)'
+    def rewrite_mapping_index(node: YulNode) -> bool:
+        if not node.is_fun_call():
+            return True
+        fun_name = node.get_fun_name()
+        match = re.match(map_index_re, fun_name)
+        if(match):
+            node.children[0].obj['children'] = ["pyul_map_index"]
+
+        
+    # constant fold
+    # walk_dfs(contract.yul_ast['contract_body'], build_constants)
+    # walk_dfs(contract.yul_ast['object_body']['contract_body'], build_constants)
+
+    # rewrite mapping
+    walk_dfs(contract.yul_ast['contract_body'], rewrite_mapping_index)
+    walk_dfs(contract.yul_ast['object_body']['contract_body'], rewrite_mapping_index)
+    
