@@ -29,7 +29,6 @@ llvm::Function *YulFunctionCallHelper::createPrototype(
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              node.getCalleeName(), visitor.getModule());
-
   for (auto &att : attrs) {
     F->addAttribute(0, att);
   }
@@ -41,7 +40,7 @@ YulFunctionCallHelper::buildFunctionAttributes(YulFunctionCallNode &node) {
   auto attributes =
       std::make_unique<llvm::SmallVector<llvm::Attribute::AttrKind>>();
   if (node.getCalleeName().substr(0, 7) == "revert_") {
-    attributes->push_back(llvm::Attribute::NoReturn);
+    // attributes->push_back(llvm::Attribute::NoReturn);
   }
   return attributes;
 }
@@ -58,7 +57,6 @@ YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
     auto attrList = buildFunctionAttributes(node);
     F = createPrototype(node, *attrList);
   }
-
   assert(F && "Function not found and could not be created");
   std::vector<llvm::Value *> ArgsV;
 

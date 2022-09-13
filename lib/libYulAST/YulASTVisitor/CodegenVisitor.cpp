@@ -10,6 +10,11 @@ LLVMCodegenVisitor::LLVMCodegenVisitor() {
   funDefHelper = std::make_unique<YulFunctionDefinitionHelper>(*this);
 }
 
+void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
+  FunctionDeclaratorVisitor declVisitor(*TheContext, *TheModule);
+  declVisitor.visit(node);
+}
+
 llvm::AllocaInst *
 LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
                                            const std::string &VarName) {
@@ -71,6 +76,7 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
   Builder->CreateBr(contBB);
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
+  runFunctionDeclaratorVisitor(node);
   constructStruct(node);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
@@ -85,21 +91,25 @@ void LLVMCodegenVisitor::visitYulDefaultNode(YulDefaultNode &node) {
 void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
   llvm::Function *enclosingFunction = Builder->GetInsertBlock()->getParent();
   // initializetion code gen can happen in current basic block
-  visit(node.getInitializationNode());
   // create termination condtition basic block
   llvm::BasicBlock *condBB =
       llvm::BasicBlock::Create(*TheContext, "for-cond", enclosingFunction);
+  llvm::BasicBlock *bodyBB =
+      llvm::BasicBlock::Create(*TheContext, "for-body", enclosingFunction);
   llvm::BasicBlock *contBB =
       llvm::BasicBlock::Create(*TheContext, "for-cont", enclosingFunction);
   llvm::BasicBlock *incrBB = llvm::BasicBlock::Create(*TheContext, "for-incr");
 
+  visit(node.getInitializationNode());
+  Builder->CreateBr(condBB);
+
   loopControlFlowBlocks.push(std::make_tuple(contBB, incrBB));
   Builder->SetInsertPoint(condBB);
-  visit(node.getConditionNode());
-
-  // create body basic block
-  Builder->GetInsertBlock()->setName("for-body");
+  visit(node.getCondition());
+  Builder->CreateBr(bodyBB);
+  Builder->SetInsertPoint(bodyBB);
   visit(node.getBody());
+  Builder->CreateBr(incrBB);
   loopControlFlowBlocks.pop();
 
   // create increment basic block,
@@ -154,7 +164,10 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   // emit then
   Builder->SetInsertPoint(thenBlock);
   visit(node.getThenBody());
-  Builder->CreateBr(contBlock);
+  llvm::Instruction *i = &(thenBlock->getInstList().back());
+  auto brInst = llvm::dyn_cast<llvm::BranchInst>(i);
+  if (!(brInst && brInst->isUnconditional()))
+    Builder->CreateBr(contBlock);
 
   // merge node
   currentFunction->getBasicBlockList().push_back(contBlock);
@@ -201,7 +214,9 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 
   currentFunction->getBasicBlockList().push_back(defaultBlock);
   Builder->SetInsertPoint(defaultBlock);
-  visit(node.getDefaultNode());
+  if (node.hasDefaultNode()) {
+    visit(node.getDefaultNode());
+  }
   Builder->CreateBr(cont);
   currentFunction->getBasicBlockList().push_back(cont);
   Builder->SetInsertPoint(cont);
