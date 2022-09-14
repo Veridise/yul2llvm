@@ -7,9 +7,6 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   // get contract name
   json::json_pointer p = "/object_name/children/0"_json_pointer;
   contractName = rawAST->at(p).get<std::string>();
-  TheModule->setModuleIdentifier(contractName);
-
-  constructStruct();
   p = "/object_body/contract_body/children/0"_json_pointer;
   json block = rawAST->at(p);
   assert(block["type"] == YUL_BLOCK_KEY);
@@ -37,23 +34,6 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-void YulContractNode::constructStruct() {
-  if (structFieldOrder.size() == 0)
-    return;
-  std::vector<llvm::Type *> memberTypes;
-  for (auto &field : structFieldOrder) {
-    std::string typeStr = std::get<0>(typeMap[field]);
-    int bitWidth = std::get<1>(typeMap[field]);
-    llvm::Type *type = getType(bitWidth);
-    memberTypes.push_back(type);
-  }
-  selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
-  llvm::Constant *init = llvm::Constant::getNullValue(selfType);
-  self = new llvm::GlobalVariable(
-      *TheModule, selfType, false,
-      llvm::GlobalValue::LinkageTypes::ExternalLinkage, init, "__self");
-}
-
 void YulContractNode::buildTypeMap(const json &metadata) {
   // for each storage location i.e. var
   for (auto &var : metadata["state_vars"]) {
@@ -70,23 +50,6 @@ YulContractNode::YulContractNode(const json *rawAST)
 
   buildTypeMap(rawAST->at("metadata"));
   parseRawAST(rawAST);
-  codegen(nullptr);
-}
-
-llvm::Value *YulContractNode::codegen(llvm::Function *enclosingFunction) {
-  for (auto &f : functions) {
-    f->codegen(nullptr);
-  }
-  return nullptr;
-}
-
-llvm::Type *YulContractNode::getType(int bitWidth) {
-  /**
-   * @todo fix this for other types
-   *
-   */
-  assert(bitWidth == 256);
-  return llvm::Type::getIntNTy(*TheContext, bitWidth);
 }
 
 std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &
@@ -95,3 +58,11 @@ YulContractNode::getFunctions() {
 }
 
 std::string YulContractNode::to_string() { return "contract"; }
+
+llvm::StringMap<std::tuple<std::string, int>> &YulContractNode::getTypeMap() {
+  return typeMap;
+}
+
+llvm::SmallVector<std::string> &YulContractNode::getStructFieldOrder() {
+  return structFieldOrder;
+}

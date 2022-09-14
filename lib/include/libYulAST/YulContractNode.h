@@ -2,6 +2,8 @@
 
 #include <libYulAST/YulASTBase.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringMap.h>
 
 namespace yulast {
 class YulContractNode : public YulASTBase {
@@ -12,16 +14,16 @@ class YulContractNode : public YulASTBase {
   void buildTypeMap(const json &);
   void allocateSelfStruct();
   virtual void parseRawAST(const json *) override;
-  llvm::Type *getType(int bitwidt);
-  void constructStruct();
 
 public:
-  llvm::Value *codegen(llvm::Function *enclosingFunction) override;
   YulContractNode(const json *);
   std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &getFunctions();
-  std::map<std::string, std::string> &getTypeMap();
+  llvm::StringMap<std::tuple<std::string, int>> &getTypeMap();
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
+  llvm::SmallVector<std::string> structFieldOrder;
+  llvm::SmallVector<std::string> &getStructFieldOrder();
+  llvm::StringMap<std::tuple<std::string, int>> typeMap;
 };
 
 }; // namespace yulast

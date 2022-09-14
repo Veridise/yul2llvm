@@ -325,8 +325,7 @@ void functionDefinitionTest() {
   std::cout << "String representation of ast ------------" << std::endl;
   std::cout << f.to_string() << std::endl;
   std::cout << "llvm representation of ast ------------" << std::endl;
-  f.codegen(NULL);
-  f.dumpToStdout();
+  //   f.dumpToStdout();
 }
 
 int main() {

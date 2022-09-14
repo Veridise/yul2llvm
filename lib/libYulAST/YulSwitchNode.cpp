@@ -5,8 +5,6 @@
 
 using namespace yulast;
 
-int YulSwitchNode::switchesCreated = 0;
-
 void YulSwitchNode::parseRawAST(const json *rawAST) {
   json topLevelChildren = rawAST->at("children");
   assert(topLevelChildren.size() >= 2);
@@ -30,7 +28,6 @@ YulSwitchNode::YulSwitchNode(const json *rawAST)
                        YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_SWITCH) {
   assert(sanityCheckPassed(rawAST, YUL_SWITCH_KEY));
   parseRawAST(rawAST);
-  switchId = (switchesCreated++);
 }
 
 std::string YulSwitchNode::to_string() {
@@ -46,46 +43,9 @@ std::string YulSwitchNode::to_string() {
   return str;
 }
 
-llvm::Value *YulSwitchNode::codegen(llvm::Function *enclosingFunction) {
-  std::string switchIdString = std::to_string(switchId);
-  llvm::Value *cond = condition->codegen(enclosingFunction);
-  llvm::BasicBlock *defaultBlock =
-      llvm::BasicBlock::Create(*TheContext, "default");
-  llvm::BasicBlock *cont =
-      llvm::BasicBlock::Create(*TheContext, switchIdString + "-switch-cont");
+YulIdentifierNode &YulSwitchNode::getCondition() { return *condition; }
 
-  llvm::SwitchInst *sw =
-      Builder->CreateSwitch(cond, defaultBlock, cases.size() + 1);
-
-  for (auto &c : cases) {
-    llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
-        *TheContext,
-        switchIdString + "-" + c->getCondition()->to_string() + "-case",
-        enclosingFunction);
-    llvm::APInt &literal = c->getCondition()->getLiteralValue();
-    sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
-    Builder->SetInsertPoint(caseBB);
-    c->codegen(enclosingFunction);
-    Builder->CreateBr(cont);
-  }
-
-  enclosingFunction->getBasicBlockList().push_back(defaultBlock);
-  Builder->SetInsertPoint(defaultBlock);
-  defaultNode->codegen(enclosingFunction);
-
-  Builder->CreateBr(cont);
-  enclosingFunction->getBasicBlockList().push_back(cont);
-  Builder->SetInsertPoint(cont);
-  return nullptr;
-}
-
-std::unique_ptr<YulIdentifierNode> &YulSwitchNode::getCondition() {
-  return condition;
-}
-
-std::unique_ptr<YulDefaultNode> &YulSwitchNode::getDefaultNode() {
-  return defaultNode;
-}
+YulDefaultNode &YulSwitchNode::getDefaultNode() { return *defaultNode; }
 
 std::vector<std::unique_ptr<YulCaseNode>> &YulSwitchNode::getCases() {
   return cases;

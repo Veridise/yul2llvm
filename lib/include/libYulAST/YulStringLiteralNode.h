@@ -11,7 +11,6 @@ protected:
 public:
   std::string str = "";
   virtual std::string to_string() override;
-  virtual llvm::Value *codegen(llvm::Function *F) override;
   YulStringLiteralNode(const json *rawAST);
   std::string &getLiteralValue();
 };

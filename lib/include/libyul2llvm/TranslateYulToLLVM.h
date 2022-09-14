@@ -1,9 +1,6 @@
 #pragma once
+#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulContractNode.h>
-#include <libYulAST/YulFunctionDefinitionNode.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
 #include <nlohmann/json.hpp>
 #include <vector>
 
@@ -24,14 +21,14 @@ class TranslateYulToLLVM {
   std::unique_ptr<yulast::YulContractNode> contract;
 
   bool sanityCheck();
+  LLVMCodegenVisitor visitor;
 
 public:
   TranslateYulToLLVM(const json rawAST);
   bool run();
-  void dumpFunctions(llvm::raw_ostream &stream = llvm::errs()) const;
   void prettyPrintFunctions(llvm::raw_ostream &stream = llvm::errs());
-  void dumpModule(llvm::raw_ostream &stream) const;
-  llvm::Module *getModule() const;
+  void dumpModule(llvm::raw_ostream &stream);
+  llvm::Module &getModule();
 };
 
 }; // namespace yul2llvm

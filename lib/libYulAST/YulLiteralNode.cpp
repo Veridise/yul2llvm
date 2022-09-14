@@ -14,9 +14,8 @@ YulLiteralNode::YulLiteralNode(const json *rawAST,
           rawAST, YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_LITERAL),
       literalType(type) {}
 
-llvm::Value *YulLiteralNode::codegen(llvm::Function *F) {
-  std::cout << "Literal base: Codegen not implemented" << std::endl;
-  return NULL;
-}
-
 std::string YulLiteralNode::to_string() { return "Literal base not setup"; }
+
+YUL_AST_LITERAL_NODE_TYPE YulLiteralNode::getLiteralType() {
+  return literalType;
+}

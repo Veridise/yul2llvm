@@ -81,7 +81,7 @@ std::string YulForNode::to_string() {
  * (std::unique_ptr<YulIfNode> &)lastNode;
  *
  */
-std::unique_ptr<YulExpressionNode> &YulForNode::getCondition() {
+YulExpressionNode &YulForNode::getCondition() {
   std::unique_ptr<YulStatementNode> &lastNode =
       conditionNode->getStatements().back();
   assert(lastNode->statementType ==
@@ -90,48 +90,10 @@ std::unique_ptr<YulExpressionNode> &YulForNode::getCondition() {
   return ifNode->getCondition();
 }
 
-llvm::Value *YulForNode::codegen(llvm::Function *enclosingFunction) {
+YulBlockNode &YulForNode::getConditionNode() { return *conditionNode; }
 
-  // initializetion code gen can happen in current basic block
-  initializationNode->codegen(enclosingFunction);
-
-  // create termination condtition basic block
-  llvm::BasicBlock *condBB = llvm::BasicBlock::Create(
-      *TheContext, std::to_string(loopNumber) + "-for-cond", enclosingFunction);
-  llvm::BasicBlock *contBB = llvm::BasicBlock::Create(
-      *TheContext, std::to_string(loopNumber) + "-for-cont", enclosingFunction);
-
-  Builder->SetInsertPoint(condBB);
-  conditionNode->codegen(enclosingFunction);
-
-  // create body basic block
-  Builder->GetInsertBlock()->setName(std::to_string(loopNumber) + "-for-body");
-  body->codegen(enclosingFunction);
-
-  llvm::BasicBlock *incrBB = llvm::BasicBlock::Create(
-      *TheContext, std::to_string(loopNumber) + "-for-incr", enclosingFunction);
-  // create increment basic block,
-  // creating a separate basic block because cont can jump here
-  Builder->SetInsertPoint(incrBB);
-  incrementNode->codegen(enclosingFunction);
-  Builder->CreateBr(condBB);
-
-  // Reorder the cont basic block
-  enclosingFunction->getBasicBlockList().remove(contBB);
-  enclosingFunction->getBasicBlockList().push_back(contBB);
-
-  Builder->SetInsertPoint(contBB);
-  return nullptr;
+YulBlockNode &YulForNode::getInitializationNode() {
+  return *initializationNode;
 }
-
-std::unique_ptr<YulBlockNode> &YulForNode::getConditionNode() {
-  return conditionNode;
-}
-
-std::unique_ptr<YulBlockNode> &YulForNode::getInitializationNode() {
-  return initializationNode;
-}
-std::unique_ptr<YulBlockNode> &YulForNode::getIncrementNode() {
-  return incrementNode;
-}
-std::unique_ptr<YulBlockNode> &YulForNode::getBody() { return body; }
+YulBlockNode &YulForNode::getIncrementNode() { return *incrementNode; }
+YulBlockNode &YulForNode::getBody() { return *body; }

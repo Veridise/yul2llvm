@@ -1,0 +1,7 @@
+target_sources(libYulAST PRIVATE
+VisitorBase.cpp
+CodegenVisitor.cpp
+FunctionCallHelper.cpp
+FunctionDefinitionHelper.cpp
+IntrinsicEmitter.cpp
+)

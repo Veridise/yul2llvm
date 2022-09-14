@@ -27,11 +27,4 @@ std::string YulDefaultNode::to_string() {
   return str;
 }
 
-llvm::Value *YulDefaultNode::codegen(llvm::Function *enclosingFunction) {
-  thenBody->codegen(enclosingFunction);
-  return nullptr;
-}
-
-std::unique_ptr<YulBlockNode> &YulDefaultNode::getThenBody() {
-  return thenBody;
-}
+YulBlockNode &YulDefaultNode::getThenBody() { return *thenBody; }
