@@ -43,8 +43,8 @@ void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
-      llvm::WithColor::error() << "undefined variable " << lvalname;
-      exit(1);
+      llvm::WithColor::error() << node.to_string() << lvalname;
+      exit(EXIT_FAILURE);
     }
     llvm::Value *rval = visit(node.getRHSExpression());
     Builder->CreateStore(rval, lval, false);
@@ -256,3 +256,12 @@ void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
 }
 
 void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
+
+llvm::GlobalVariable *LLVMCodegenVisitor::getSelf() const {
+  assert(self && "Self is accessed but not built yet");
+  return self;
+}
+llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
+  assert(self && "SelfTypeis accessed but not built yet");
+  return selfType;
+}

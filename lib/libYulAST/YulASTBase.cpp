@@ -36,4 +36,4 @@ void YulASTBase::parseRawAST(const json *rawAST) {
 YulASTBase::YulASTBase(const json *rawAST, YUL_AST_NODE_TYPE nodeType)
     : nodeType(nodeType) {}
 
-YUL_AST_NODE_TYPE YulASTBase::getType() { return nodeType; }
+YUL_AST_NODE_TYPE YulASTBase::getType() const { return nodeType; }

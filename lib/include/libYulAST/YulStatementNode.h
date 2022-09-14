@@ -10,6 +10,6 @@ public:
   virtual std::string to_string() override;
   YulStatementNode(const json *rawAST,
                    YUL_AST_STATEMENT_NODE_TYPE statementType);
-  YUL_AST_STATEMENT_NODE_TYPE getStatementType();
+  YUL_AST_STATEMENT_NODE_TYPE getStatementType() const;
 };
 }; // namespace yulast

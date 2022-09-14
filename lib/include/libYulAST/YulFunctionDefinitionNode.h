@@ -24,8 +24,8 @@ public:
   std::string getName();
   std::vector<std::unique_ptr<YulIdentifierNode>> &getRets();
   std::vector<std::unique_ptr<YulIdentifierNode>> &getArgs();
-  YulBlockNode &getBody();
-  bool hasRets();
-  bool hasArgs();
+  YulBlockNode &getBody() const;
+  bool hasRets() const;
+  bool hasArgs() const;
 };
 }; // namespace yulast

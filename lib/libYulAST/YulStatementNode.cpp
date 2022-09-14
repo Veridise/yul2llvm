@@ -13,6 +13,6 @@ std::string YulStatementNode::to_string() {
   return "to_string not implemented for statement";
 }
 
-YUL_AST_STATEMENT_NODE_TYPE YulStatementNode::getStatementType() {
+YUL_AST_STATEMENT_NODE_TYPE YulStatementNode::getStatementType() const {
   return statementType;
 }

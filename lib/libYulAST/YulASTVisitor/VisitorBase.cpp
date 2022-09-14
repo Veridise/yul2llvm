@@ -53,14 +53,6 @@ llvm::Value *YulASTVisitorBase::visitYulStatementNode(YulStatementNode &node) {
     break;
   case YUL_AST_STATEMENT_NODE_TYPE::YUL_AST_STATEMENT_LEAVE:
     break;
-  // this default throws a warning that all cases in the enum are coverd but ,
-  //  but is kept here in case new nodes are added
-  default:
-    llvm::WithColor::error()
-        << "visitYulStatementNode: YulExpressionNode codegen not implemented, "
-           "statement type " +
-               std::to_string(int(node.getStatementType()));
-    break;
   }
   return nullptr;
 }

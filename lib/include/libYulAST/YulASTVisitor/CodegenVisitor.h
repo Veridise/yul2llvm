@@ -14,8 +14,28 @@ class YulFunctionDefinitionHelper;
 
 class LLVMCodegenVisitor : public YulASTVisitorBase {
 private:
+protected:
+  std::unique_ptr<llvm::LLVMContext> TheContext;
+  std::unique_ptr<llvm::Module> TheModule;
+  std::unique_ptr<llvm::IRBuilder<>> Builder;
+  // This is a map from <variable-name> -> llvm allocation location
+  llvm::StringMap<llvm::AllocaInst *> NamedValues;
+  // This is a map from <string-literal> -> global variable location
+  llvm::StringMap<std::string> stringLiteralNames;
+
+  // data structures for self
+  llvm::GlobalVariable *self;
+  llvm::StructType *selfType;
+  llvm::Type *getTypeByBitwidth(int bitWidth);
+  void constructStruct(YulContractNode &node);
+
+  std::unique_ptr<YulFunctionCallHelper> funCallHelper;
+  std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
+  void codeGenForOneVarDeclaration(YulIdentifierNode &id);
   // helpers
 public:
+  YulContractNode *currentContract;
+  llvm::Function *currentFunction;
   virtual void visitYulAssignmentNode(YulAssignmentNode &) override;
   virtual void visitYulBlockNode(YulBlockNode &) override;
   virtual void visitYulBreakNode(YulBreakNode &) override;
@@ -46,28 +66,13 @@ public:
                                            const std::string &VarName);
   llvm::GlobalVariable *CreateGlobalStringLiteral(std::string literalValue,
                                                   std::string literalName);
-  std::unique_ptr<llvm::LLVMContext> TheContext;
-  std::unique_ptr<llvm::Module> TheModule;
-  std::unique_ptr<llvm::IRBuilder<>> Builder;
-  llvm::StringMap<llvm::AllocaInst *> NamedValues;
-  llvm::StringMap<std::string> stringLiteralNames;
-
-  // data structures for self
-  YulContractNode *currentContract;
-  llvm::Function *currentFunction;
-  llvm::GlobalVariable *self;
-  llvm::StructType *selfType;
-  llvm::Type *getTypeByBitwidth(int bitWidth);
-  void constructStruct(YulContractNode &node);
-
-  std::unique_ptr<YulFunctionCallHelper> funCallHelper;
-  std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
-  void codeGenForOneVarDeclaration(YulIdentifierNode &id);
 
   llvm::Module &getModule();
   llvm::IRBuilder<> &getBuilder();
   llvm::LLVMContext &getContext();
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
+  llvm::GlobalVariable *getSelf() const;
+  llvm::StructType *getSelfType() const;
 
   std::stack<std::tuple<llvm::BasicBlock *, llvm::BasicBlock *>>
       loopControlFlowBlocks;

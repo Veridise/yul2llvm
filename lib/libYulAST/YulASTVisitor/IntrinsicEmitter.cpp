@@ -29,7 +29,7 @@ YulIntrinsicEmitter::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &node) {
-  llvm::IRBuilder<> &Builder = *(visitor.Builder);
+  llvm::IRBuilder<> &Builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
@@ -61,10 +61,10 @@ YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &node) {
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
   indices.push_back(llvm::ConstantInt::get(
       visitor.getContext(), llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr =
-      visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self,
-                                 indices, "ptr_self_" + varLit.to_string());
-  return visitor.Builder->CreateLoad(
+  llvm::Value *ptr = visitor.getBuilder().CreateGEP(
+      visitor.getSelfType(), (llvm::Value *)visitor.getSelf(), indices,
+      "ptr_self_" + varLit.to_string());
+  return visitor.getBuilder().CreateLoad(
       llvm::Type::getIntNTy(visitor.getContext(), bitWidth), ptr,
       "self_" + varLit.to_string());
 }
@@ -93,13 +93,13 @@ void YulIntrinsicEmitter::emitStorageStoreIntrinsic(YulFunctionCallNode &node) {
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
   indices.push_back(llvm::ConstantInt::get(
       visitor.getContext(), llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr =
-      visitor.Builder->CreateGEP(visitor.selfType, (llvm::Value *)visitor.self,
-                                 indices, "ptr_self_" + varLit.to_string());
+  llvm::Value *ptr = visitor.getBuilder().CreateGEP(
+      visitor.getSelfType(), (llvm::Value *)visitor.getSelf(), indices,
+      "ptr_self_" + varLit.to_string());
   llvm::Value *storeValue = visitor.visit(valueNode);
   /**
    * llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
    * @todo fix all bit widths;
    */
-  visitor.Builder->CreateStore(storeValue, ptr, false);
+  visitor.getBuilder().CreateStore(storeValue, ptr, false);
 }

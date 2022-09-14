@@ -62,18 +62,8 @@ YulFunctionDefinitionNode::getArgs() {
   return args->getIdentifiers();
 }
 
-bool YulFunctionDefinitionNode::hasRets() {
-  if (rets)
-    return true;
-  else
-    return false;
-}
+bool YulFunctionDefinitionNode::hasRets() const { return rets != nullptr; }
 
-bool YulFunctionDefinitionNode::hasArgs() {
-  if (args)
-    return true;
-  else
-    return false;
-}
+bool YulFunctionDefinitionNode::hasArgs() const { return args != nullptr; }
 
-YulBlockNode &YulFunctionDefinitionNode::getBody() { return *body; }
+YulBlockNode &YulFunctionDefinitionNode::getBody() const { return *body; }

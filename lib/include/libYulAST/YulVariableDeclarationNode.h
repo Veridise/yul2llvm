@@ -18,7 +18,7 @@ public:
   virtual std::string to_string() override;
   YulVariableDeclarationNode(const json *rawAST);
   std::vector<std::unique_ptr<YulIdentifierNode>> &getVars();
-  YulExpressionNode &getValue();
-  bool hasValue();
+  YulExpressionNode &getValue() const;
+  bool hasValue() const;
 };
 }; // namespace yulast
