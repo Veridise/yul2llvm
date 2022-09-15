@@ -1,6 +1,22 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
+// helpers
+
+bool isUnconditionalTerminator(llvm::Instruction *i) {
+  if (!i->isTerminator())
+    return false;
+  else {
+    auto brInst = llvm::dyn_cast<llvm::BranchInst>(i);
+    if (brInst && brInst->isConditional())
+      return false;
+    auto swInst = llvm::dyn_cast<llvm::SwitchInst>(i);
+    if (swInst)
+      return false;
+    return true;
+  }
+}
+
 LLVMCodegenVisitor::LLVMCodegenVisitor() {
   // LLVM functions and datastructures
   TheContext = std::make_unique<llvm::LLVMContext>();
@@ -149,6 +165,7 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
   return Builder->CreateLoad(inttype, NamedValues[node.getIdentfierValue()],
                              node.getIdentfierValue());
 }
+
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   llvm::BasicBlock *thenBlock =
       llvm::BasicBlock::Create(*TheContext, "if-taken-body", currentFunction);
@@ -165,9 +182,15 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   Builder->SetInsertPoint(thenBlock);
   visit(node.getThenBody());
   llvm::Instruction *i = &(thenBlock->getInstList().back());
-  auto brInst = llvm::dyn_cast<llvm::BranchInst>(i);
-  if (!(brInst && brInst->isUnconditional()))
+
+  /**
+   * @brief if last instruction is an uncoditional terminator, add a jump from
+   * then-body to join node(not-taken-body)
+   *
+   */
+  if (i && !isUnconditionalTerminator(i)) {
     Builder->CreateBr(contBlock);
+  }
 
   // merge node
   currentFunction->getBasicBlockList().push_back(contBlock);
@@ -204,12 +227,20 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 
   for (auto &c : node.getCases()) {
     llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
-        *TheContext, c->getCondition()->to_string() + "-case", currentFunction);
+        *TheContext, "case-" + c->getCondition()->to_string(), currentFunction);
     llvm::APInt &literal = c->getCondition()->getLiteralValue();
     sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
     Builder->SetInsertPoint(caseBB);
     visit(*c);
-    Builder->CreateBr(cont);
+    /**
+     * @brief if last instruction is an uncoditional terminator, add a jump from
+     * then-body to join node(not-taken-body)
+     *
+     */
+    llvm::Instruction *i = &(caseBB->getInstList().back());
+    if (i && !isUnconditionalTerminator(i)) {
+      Builder->CreateBr(cont);
+    }
   }
 
   currentFunction->getBasicBlockList().push_back(defaultBlock);

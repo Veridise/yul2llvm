@@ -18,6 +18,9 @@ void YulSwitchNode::parseRawAST(const json *rawAST) {
       cases.push_back(std::move(caseNode));
     } else if (rawCase["type"] == YUL_DEFAULT_KEY)
       defaultNode = std::make_unique<YulDefaultNode>(&rawCase);
+    else {
+      assert(false && "Unexpected node type in switch node");
+    }
   }
 }
 
