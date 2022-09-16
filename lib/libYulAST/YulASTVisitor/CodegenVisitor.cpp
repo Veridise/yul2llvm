@@ -24,6 +24,9 @@ LLVMCodegenVisitor::LLVMCodegenVisitor() {
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
   funCallHelper = std::make_unique<YulFunctionCallHelper>(*this);
   funDefHelper = std::make_unique<YulFunctionDefinitionHelper>(*this);
+  FPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
+  FPM->add(llvm::createLoopSimplifyPass());
+  FPM->add(llvm::createPromoteMemoryToRegisterPass());
 }
 
 void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
@@ -33,10 +36,13 @@ void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
 
 llvm::AllocaInst *
 LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                           const std::string &VarName) {
+                                           const std::string &VarName, llvm::Type *type) {
+  
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
-  return TmpB.CreateAlloca(llvm::Type::getIntNTy(*TheContext, 256), 0,
+  if(!type)
+    type = llvm::Type::getIntNTy(*TheContext, 256);
+  return TmpB.CreateAlloca(type, 0,
                            VarName.c_str());
 }
 
@@ -154,7 +160,8 @@ void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
 
 llvm::Value *
 LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
-  llvm::Type *inttype = llvm::Type::getIntNTy(*TheContext, 256);
+  llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
+  llvm::AllocaInst *ptr;
   if (NamedValues.find(node.getIdentfierValue()) == NamedValues.end()) {
     for (auto &arg : currentFunction->args()) {
       if (!std::string(arg.getName()).compare(node.getIdentfierValue())) {
@@ -162,7 +169,11 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
       }
     }
   }
-  return Builder->CreateLoad(inttype, NamedValues[node.getIdentfierValue()],
+  else {
+    ptr = NamedValues[node.getIdentfierValue()];
+    loadType = ptr->getType();
+  }
+  return Builder->CreateLoad(loadType, ptr,
                              node.getIdentfierValue());
 }
 
@@ -255,20 +266,23 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
   for (auto &id : node.getVars()) {
-    codeGenForOneVarDeclaration(*id);
     if (node.hasValue()) {
-      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
       llvm::Value *constant = visit(node.getValue());
+      codeGenForOneVarDeclaration(*id, constant->getType());
+      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
       Builder->CreateStore(constant, lval);
+    }
+    else {
+      codeGenForOneVarDeclaration(*id, nullptr);      
     }
   }
 }
-void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id) {
-  if (NamedValues[id.getIdentfierValue()] != nullptr)
-    return;
-  llvm::AllocaInst *v =
-      CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue());
-  NamedValues[id.getIdentfierValue()] = v;
+void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *type) {
+  if (NamedValues[id.getIdentfierValue()] == nullptr){
+    llvm::AllocaInst *v =
+        CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue(), type);
+    NamedValues[id.getIdentfierValue()] = v;
+  }
 }
 
 void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
@@ -278,7 +292,12 @@ void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
   for (auto &field : node.getStructFieldOrder()) {
     std::string typeStr = std::get<0>(node.getTypeMap()[field]);
     int bitWidth = std::get<1>(node.getTypeMap()[field]);
-    llvm::Type *type = getTypeByBitwidth(bitWidth);
+    llvm::Type *type;
+    if(bitWidth !=0 )
+      type = getTypeByBitwidth(bitWidth);
+    else{
+      type = llvm::Type::getIntNTy(*TheContext, 256);
+    }
     memberTypes.push_back(type);
   }
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
@@ -310,4 +329,8 @@ llvm::GlobalVariable *LLVMCodegenVisitor::getSelf() const {
 llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
   assert(self && "SelfTypeis accessed but not built yet");
   return selfType;
+}
+
+llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM(){
+  return *FPM;
 }

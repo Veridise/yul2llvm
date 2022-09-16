@@ -1,7 +1,7 @@
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
 YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
-    : visitor(v) {}
+    : visitor(v), intrinsicEmitter(v) {}
 
 void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     YulFunctionDefinitionNode &node, llvm::Function *F) {
@@ -50,5 +50,6 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
         visitor.getNamedValuesMap()[node.getRets()[0]->getIdentfierValue()]);
     visitor.getBuilder().CreateRet(v);
   }
+  visitor.getFPM().run(*F);
   visitor.currentFunction = nullptr;
 }

@@ -18,3 +18,7 @@ YulIdentifierNode::YulIdentifierNode(const json *rawAST)
 }
 
 std::string YulIdentifierNode::to_string() { return identifierValue; }
+
+void YulIdentifierNode::setIdentifierValue(std::string idValue){
+  identifierValue = idValue;
+}

@@ -13,5 +13,6 @@ public:
   virtual std::string to_string() override;
   YulIdentifierNode(const json *rawAST);
   std::string getIdentfierValue();
+  void setIdentifierValue(std::string);
 };
 }; // namespace yulast

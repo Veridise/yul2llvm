@@ -7,6 +7,7 @@ class YulFunctionDefinitionHelper {
   LLVMCodegenVisitor &visitor;
   void createVarsForArgsAndRets(YulFunctionDefinitionNode &node,
                                 llvm::Function *F);
+  YulIntrinsicEmitter intrinsicEmitter;
 
 public:
   void visitYulFunctionDefinitionNode(YulFunctionDefinitionNode &node);

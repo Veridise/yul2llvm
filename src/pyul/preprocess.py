@@ -366,7 +366,7 @@ def rewrite_map(contract: ContractData,
         fun_name = node.get_fun_name()
         match = re.match(map_index_re, fun_name)
         if(match):
-            node.children[0].obj['children'] = ["pyul_map_index"]
+            node.children[0].obj['children'] = ["__pyul_map_index"]
 
         
     # constant fold
