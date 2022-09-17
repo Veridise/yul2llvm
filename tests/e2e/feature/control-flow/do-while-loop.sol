@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
- // RUN: pyul %s -o %t --project-dir %S -d | FileCheck %s
+ // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 
 pragma solidity ^0.8.10;
 
@@ -19,7 +19,6 @@ contract DoWhileTestContract {
     
 }
 //CHECK: define {{.* @fun_loop_.*\(\)}}
-//CHECK: store {{.* 1, .*\*.*}}
 //CHECK: for-cond
 //CHECK: for-body
 //CHECK: for-incr

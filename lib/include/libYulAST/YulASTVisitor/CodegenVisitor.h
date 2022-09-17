@@ -2,10 +2,12 @@
 class YulFunctionCallHelper;
 class YulFunctionDefinitionHelper;
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
+#include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 #include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/Base64.h>
@@ -32,6 +34,7 @@ protected:
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
   void codeGenForOneVarDeclaration(YulIdentifierNode &id);
+  void runFunctionDeclaratorVisitor(YulContractNode &node);
   // helpers
 public:
   YulContractNode *currentContract;

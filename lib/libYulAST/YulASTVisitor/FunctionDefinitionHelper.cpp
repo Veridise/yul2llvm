@@ -3,73 +3,6 @@
 YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
     : visitor(v) {}
 
-llvm::Type *
-YulFunctionDefinitionHelper::getReturnType(YulFunctionDefinitionNode &node) {
-  llvm::Type *retType;
-  if (!node.hasRets())
-    retType = llvm::Type::getVoidTy(visitor.getContext());
-  else
-    retType = llvm::Type::getIntNTy(visitor.getContext(), 256);
-  return retType;
-}
-
-std::vector<llvm::Type *> YulFunctionDefinitionHelper::getFunctionArgTypes(
-    YulFunctionDefinitionNode &node) {
-  int numargs = node.getArgs().size();
-  std::vector<llvm::Type *> funcArgTypes(
-      numargs, llvm::Type::getIntNTy(visitor.getContext(), 256));
-  return funcArgTypes;
-}
-
-llvm::Function *YulFunctionDefinitionHelper::createPrototype(
-    YulFunctionDefinitionNode &node,
-    llvm::SmallVector<llvm::Attribute::AttrKind> &attrs) {
-  int numargs;
-  if (!node.hasArgs())
-    numargs = 0;
-  else
-    numargs = node.getArgs().size();
-
-  std::vector<llvm::Type *> funcArgTypes(
-      numargs, llvm::Type::getIntNTy(visitor.getContext(), 256));
-
-  llvm::Type *retType = getReturnType(node);
-
-  /**
-   * Note: remove old function declarations created by
-   * yul_function_call nodes encountered before encountering
-   * this yul_function_definition nodes
-   */
-  llvm::Function *oldFunction = visitor.getModule().getFunction(node.getName());
-
-  if (oldFunction) {
-    visitor.getModule().getFunctionList().remove(oldFunction);
-  }
-
-  llvm::FunctionType *FT =
-      llvm::FunctionType::get(retType, funcArgTypes, false);
-
-  llvm::Function *F = llvm::Function::Create(
-      FT, llvm::Function::ExternalLinkage, node.getName(), visitor.getModule());
-
-  int idx = 0;
-  for (auto &arg : F->args()) {
-    arg.setName(node.getArgs().at(idx++)->getIdentfierValue());
-  }
-  return F;
-}
-
-std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>
-YulFunctionDefinitionHelper::buildFunctionAttributes(
-    YulFunctionDefinitionNode &node) {
-  auto attributes =
-      std::make_unique<llvm::SmallVector<llvm::Attribute::AttrKind>>();
-  if (node.getName().substr(0, 7) == "revert_") {
-    attributes->push_back(llvm::Attribute::NoReturn);
-  }
-  return attributes;
-}
-
 void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     YulFunctionDefinitionNode &node, llvm::Function *F) {
   llvm::BasicBlock *BB =
@@ -102,7 +35,8 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   llvm::Function *F;
   llvm::SmallVector<llvm::Attribute::AttrKind> attributes;
-  F = createPrototype(node, attributes);
+  F = visitor.getModule().getFunction(node.getName());
+  assert(F && "Function not defined in declarator pass");
   visitor.currentFunction = F;
   visitor.getNamedValuesMap().clear();
   createVarsForArgsAndRets(node, F);

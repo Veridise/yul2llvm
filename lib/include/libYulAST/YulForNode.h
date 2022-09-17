@@ -11,10 +11,7 @@ protected:
   std::unique_ptr<YulBlockNode> initializationNode;
   std::unique_ptr<YulBlockNode> incrementNode;
   std::unique_ptr<YulBlockNode> body;
-  std::unique_ptr<YulBlockNode> conditionNode;
-  static int loopCreated;
-  int loopNumber;
-  void createBodyAndCondition(std::unique_ptr<YulBlockNode> &);
+  std::unique_ptr<YulExpressionNode> conditionNode;
 
 public:
   std::string str = "";
@@ -22,7 +19,6 @@ public:
   virtual std::string to_string() override;
   YulForNode(const json *rawAST);
   YulExpressionNode &getCondition();
-  YulBlockNode &getConditionNode();
   YulBlockNode &getInitializationNode();
   YulBlockNode &getIncrementNode();
   YulBlockNode &getBody();

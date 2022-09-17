@@ -39,7 +39,11 @@ void YulContractNode::buildTypeMap(const json &metadata) {
   for (auto &var : metadata["state_vars"]) {
     std::string label = var["name"].get<std::string>();
     std::string typeStr = var["type"].get<std::string>();
-    int bitWidth = metadata["types"][typeStr]["size"].get<int>() * 8;
+    int bitWidth;
+    if (metadata["types"][typeStr].contains("size"))
+      bitWidth = metadata["types"][typeStr]["size"].get<int>() * 8;
+    else
+      bitWidth = 256;
     typeMap[label] = std::make_tuple(std::move(typeStr), bitWidth);
     structFieldOrder.push_back(std::move(label));
   }
