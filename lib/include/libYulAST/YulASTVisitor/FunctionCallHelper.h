@@ -11,10 +11,12 @@ class YulFunctionCallHelper {
 
 public:
   llvm::Type *getReturnType(YulFunctionCallNode &node);
-  std::vector<llvm::Type *> getFunctionArgTypes(YulFunctionCallNode &node);
+  llvm::SmallVector<llvm::Type *>
+  getFunctionArgTypes(llvm::SmallVector<llvm::Value *> &argsV);
   llvm::Function *
   createPrototype(YulFunctionCallNode &node,
-                  llvm::SmallVector<llvm::Attribute::AttrKind> &attrs);
+                  llvm::SmallVector<llvm::Attribute::AttrKind> &attrs,
+                  llvm::SmallVector<llvm::Value *> &argsV);
   std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>
   buildFunctionAttributes(YulFunctionCallNode &node);
   llvm::Value *visitYulFunctionCallNode(YulFunctionCallNode &node);

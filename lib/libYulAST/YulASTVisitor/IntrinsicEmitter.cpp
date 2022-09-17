@@ -1,7 +1,6 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
 
-
 YulIntrinsicEmitter::YulIntrinsicEmitter(LLVMCodegenVisitor &v) : visitor(v) {}
 bool YulIntrinsicEmitter::isFunctionCallIntrinsic(std::string calleeName) {
   if (calleeName == "pyul_storage_var_load") {
@@ -31,6 +30,43 @@ YulIntrinsicEmitter::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   }
   return nullptr;
 }
+/**
+ * @brief This function is a first pass of 2pass approach for translating
+ * mapping_index_* function The approach is as follows:
+ *   1. Rewrite mapping_index_* function to __pyul_map_index in python
+ *   2. Emit __pyul_map_index(expr, expr) function
+ *   3. Run optimization pass. Optimization will replace expr with constants
+ * wherever possible.
+ *   4. Rewrite all __pyul_map_index to pyul_map_index, where
+ *      if first arg to __pyul_map_index is constant, use this offset to find
+ * the base address of map in self struct.
+ *
+ *   This works because, the second index calculation (second pyul_map_index)
+ * will never have constant first arg
+ *
+ * @param node
+ * @return llvm::Value*
+ */
+llvm::Value *YulIntrinsicEmitter::handleMapIndex(YulFunctionCallNode &node) {
+  llvm::Function *f = visitor.getModule().getFunction("__pyul_map_index");
+  llvm::Type *ptrType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
+  if (!f) {
+    llvm::SmallVector<llvm::Type *> argtype;
+    argtype.push_back(ptrType);
+    argtype.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
+    llvm::FunctionType *ft = llvm::FunctionType::get(ptrType, argtype, false);
+    f = llvm::Function::Create(ft,
+                               llvm::Function::LinkageTypes::ExternalLinkage,
+                               "__pyul_map_index", visitor.getModule());
+  }
+  llvm::SmallVector<llvm::Value *> args;
+  for (auto &arg : node.getArgs()) {
+    llvm::Value *v = visitor.visit(*arg);
+    args.push_back(v);
+  }
+
+  return visitor.getBuilder().CreateCall(f, args, "__pyul_map_index");
+}
 
 llvm::Value *
 YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &node) {
@@ -41,9 +77,8 @@ YulIntrinsicEmitter::handleAddFunctionCall(YulFunctionCallNode &node) {
   return Builder.CreateAdd(v1, v2);
 }
 
-llvm::FunctionType* YulIntrinsicEmitter::getMapIndexFT(){
-  llvm::SmallVector<llvm::Type*> args;
-  int ptrSize = visitor.getModule().getDataLayout().getPointerSize();
+llvm::FunctionType *YulIntrinsicEmitter::getMapIndexFT() {
+  llvm::SmallVector<llvm::Type *> args;
   llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
   args.push_back(retType);
   args.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
@@ -51,72 +86,74 @@ llvm::FunctionType* YulIntrinsicEmitter::getMapIndexFT(){
   return FT;
 }
 
-llvm::Function *YulIntrinsicEmitter::getOrCreateFunction(std::string name, llvm::FunctionType *FT){
+llvm::Function *
+YulIntrinsicEmitter::getOrCreateFunction(std::string name,
+                                         llvm::FunctionType *FT) {
   llvm::Function *F = nullptr;
   F = visitor.getModule().getFunction(name);
-  if(F)
+  if (F)
     return F;
-  else{
-    F = llvm::Function::Create(FT, llvm::Function::LinkageTypes::ExternalLinkage,
-                          name, visitor.getModule());
+  else {
+    F = llvm::Function::Create(FT,
+                               llvm::Function::LinkageTypes::ExternalLinkage,
+                               name, visitor.getModule());
     return F;
   }
 }
 
-void printFunction(llvm::Function *enclosingFunction){
+void printFunction(llvm::Function *enclosingFunction) {
   enclosingFunction->print(llvm::outs());
-  llvm::outs()<<"\n";
+  llvm::outs() << "\n";
 }
 
-llvm::Value *
-YulIntrinsicEmitter::handleMapIndex(YulFunctionCallNode &node) {
-  node.setCalleeName("_pyul_map_index");
-  visitor.visit(node);
-  llvm::Function *enclosingFunction = visitor.getBuilder().GetInsertBlock()->getParent();
-  visitor.getFPM().run(*enclosingFunction);
-  llvm::FunctionType *FT = getMapIndexFT();
-  llvm::Function *mapIndexFunction = getOrCreateFunction("pyul_map_index", FT);
-  llvm::CallInst *callInst;
-  for(auto b = enclosingFunction->begin(); b!=enclosingFunction->end(); b++){
-    for(auto i = b->begin(); i!=b->end(); i++){
+void YulIntrinsicEmitter::rewriteMapIndexCalls(
+    llvm::Function *enclosingFunction) {
+  llvm::SmallVector<llvm::CallInst *> oldInstructions;
+  for (auto b = enclosingFunction->begin(); b != enclosingFunction->end();
+       b++) {
+    for (auto i = b->begin(); i != b->end(); i++) {
       auto inst = llvm::dyn_cast<llvm::CallInst>(&(*i));
-      if(inst){
-        if(inst->getName() == "_pyul_map_index"){
-          callInst = inst;
+      if (inst) {
+        if (inst->getCalledFunction()->getName() == "__pyul_map_index") {
+          oldInstructions.push_back(inst);
         }
       }
     }
   }
-
-  auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
-  if(offset){
-    // visitor.getBuilder().SetInsertPoint(callInst);
-    std::string varname = visitor.currentContract->getStateVarNameByOffsetSlot(offset->getZExtValue(), 0);
-    llvm::Value* mapPtr = getPointerToStorageVarByName(varname);
-    llvm::Value* key = callInst->getArgOperand(1);
-    llvm::SmallVector<llvm::Value*> args;
-    args.push_back(mapPtr);
-    args.push_back(key);
-    llvm::CallInst *newCall = llvm::CallInst::Create(mapIndexFunction, args, "pyul_map_index");
-    llvm::ReplaceInstWithInst(callInst, newCall);
-    return newCall;
-  }
-  else {
-    llvm::SmallVector<llvm::Value*> args;
-    for(auto &arg: callInst->args()){
-      args.push_back(arg);
+  llvm::FunctionType *FT = getMapIndexFT();
+  llvm::Function *mapIndexFunction = getOrCreateFunction("pyul_map_index", FT);
+  for (auto &callInst : oldInstructions) {
+    auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
+    if (offset) {
+      std::string varname =
+          visitor.currentContract->getStateVarNameByOffsetSlot(
+              offset->getZExtValue(), 0);
+      llvm::Value *mapPtr = getPointerToStorageVarByName(varname);
+      llvm::Value *key = callInst->getArgOperand(1);
+      llvm::SmallVector<llvm::Value *> args;
+      args.push_back(mapPtr);
+      args.push_back(key);
+      llvm::CallInst *newCall =
+          llvm::CallInst::Create(mapIndexFunction, args, "pyul_map_index");
+      llvm::ReplaceInstWithInst(callInst, newCall);
+    } else {
+      llvm::SmallVector<llvm::Value *> args;
+      for (auto &arg : callInst->args()) {
+        args.push_back(arg);
+      }
+      llvm::CallInst *newCall =
+          llvm::CallInst::Create(mapIndexFunction, args, "pyul_map_index");
+      llvm::ReplaceInstWithInst(callInst, newCall);
     }
-    llvm::CallInst *newCall = llvm::CallInst::Create(mapIndexFunction, args, "pyul_map_index");
-    llvm::ReplaceInstWithInst(callInst, newCall);
-    return newCall;
   }
 }
 
-llvm::Value *YulIntrinsicEmitter::getPointerToStorageVarByName(std::string name){
+llvm::Value *
+YulIntrinsicEmitter::getPointerToStorageVarByName(std::string name) {
   auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
   auto typeMap = visitor.currentContract->getTypeMap();
-  auto fieldIt = std::find(structFieldOrder.begin(), structFieldOrder.end(),
-                           name);
+  auto fieldIt =
+      std::find(structFieldOrder.begin(), structFieldOrder.end(), name);
   assert(fieldIt != structFieldOrder.end());
   int structIndex = fieldIt - structFieldOrder.begin();
   llvm::SmallVector<llvm::Value *> indices;
@@ -143,7 +180,8 @@ YulIntrinsicEmitter::emitStorageLoadIntrinsic(YulFunctionCallNode &node) {
   assert(lit0.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
   assert(lit1.literalType == YUL_AST_LITERAL_NODE_TYPE::YUL_AST_LITERAL_STRING);
   YulStringLiteralNode &varLit = (YulStringLiteralNode &)(*(args[0]));
-  int bitWidth = std::get<1>(visitor.currentContract->getTypeMap()[varLit.to_string()]);
+  int bitWidth =
+      std::get<1>(visitor.currentContract->getTypeMap()[varLit.to_string()]);
   llvm::Value *ptr = getPointerToStorageVarByName(varLit.to_string());
   return visitor.getBuilder().CreateLoad(
       llvm::Type::getIntNTy(visitor.getContext(), bitWidth), ptr,
