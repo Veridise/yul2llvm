@@ -26,7 +26,6 @@ public:
   llvm::SmallVector<std::string> structFieldOrder;
   llvm::SmallVector<std::string> &getStructFieldOrder();
   std::string getStateVarNameByOffsetSlot(int offset, int slot);
-
 };
 
 }; // namespace yulast

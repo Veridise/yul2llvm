@@ -34,16 +34,14 @@ void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
   declVisitor.visit(node);
 }
 
-llvm::AllocaInst *
-LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                           const std::string &VarName, llvm::Type *type) {
-  
+llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(
+    llvm::Function *TheFunction, const std::string &VarName, llvm::Type *type) {
+
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
-  if(!type)
+  if (!type)
     type = llvm::Type::getIntNTy(*TheContext, 256);
-  return TmpB.CreateAlloca(type, 0,
-                           VarName.c_str());
+  return TmpB.CreateAlloca(type, 0, VarName.c_str());
 }
 
 llvm::GlobalVariable *
@@ -70,7 +68,8 @@ void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
     std::string lvalname = var->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
-      llvm::WithColor::error() << node.to_string() << lvalname;
+      llvm::WithColor::error() << "Assignment Node: lval not found " << lvalname
+                               << " in " << node.to_string();
       exit(EXIT_FAILURE);
     }
     llvm::Value *rval = visit(node.getRHSExpression());
@@ -168,13 +167,12 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
         return &arg;
       }
     }
-  }
-  else {
+  } else {
     ptr = NamedValues[node.getIdentfierValue()];
-    loadType = ptr->getType();
+    loadType = ptr->getAllocatedType();
+    return Builder->CreateLoad(loadType, ptr, node.getIdentfierValue());
   }
-  return Builder->CreateLoad(loadType, ptr,
-                             node.getIdentfierValue());
+  assert(false && "Referenced undefined identifier");
 }
 
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
@@ -271,14 +269,15 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
       codeGenForOneVarDeclaration(*id, constant->getType());
       llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
       Builder->CreateStore(constant, lval);
-    }
-    else {
-      codeGenForOneVarDeclaration(*id, nullptr);      
+    } else {
+      codeGenForOneVarDeclaration(*id, nullptr);
     }
   }
 }
-void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *type) {
-  if (NamedValues[id.getIdentfierValue()] == nullptr){
+void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id,
+                                                     llvm::Type *type) {
+  if (NamedValues[id.getIdentfierValue()] == nullptr) {
+
     llvm::AllocaInst *v =
         CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue(), type);
     NamedValues[id.getIdentfierValue()] = v;
@@ -293,9 +292,9 @@ void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
     std::string typeStr = std::get<0>(node.getTypeMap()[field]);
     int bitWidth = std::get<1>(node.getTypeMap()[field]);
     llvm::Type *type;
-    if(bitWidth !=0 )
+    if (bitWidth != 0)
       type = getTypeByBitwidth(bitWidth);
-    else{
+    else {
       type = llvm::Type::getIntNTy(*TheContext, 256);
     }
     memberTypes.push_back(type);
@@ -331,6 +330,4 @@ llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
   return selfType;
 }
 
-llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM(){
-  return *FPM;
-}
+llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

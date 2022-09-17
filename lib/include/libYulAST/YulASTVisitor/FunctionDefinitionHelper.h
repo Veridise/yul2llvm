@@ -2,6 +2,7 @@
 class LLVMCodegenVisitor;
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
+#include <llvm/IR/Verifier.h>
 
 class YulFunctionDefinitionHelper {
   LLVMCodegenVisitor &visitor;
