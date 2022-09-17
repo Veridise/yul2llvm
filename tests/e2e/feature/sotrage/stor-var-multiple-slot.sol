@@ -6,34 +6,12 @@ This testcase targets storage vaiable in different slot
 
 // RUN: pyul %s --project-dir %S --stop-after preprocess > %t.pre
 
-/////
-// Storage vars should be contained in metadata
-
-// RUN: jq '.["metadata"]["state_vars"]' -S < %t.pre \
-// RUN:   | FileCheck %s --check-prefix META
-
-// META-LABEL: "name": "x"
-// META: "type": "t_uint256"
-
-// META-LABEL: "name": "y"
-// META: "type": "t_uint32"
-/////
-
-/////
-// Storage reads should be rewritten
-
-// RUN: jq '.. | select(.type? == "yul_function_call" and (.children[0].children[0] | startswith("pyul_"))) | .children[0].children[0]' -S < %t.pre \
-// RUN:   | FileCheck %s --check-prefix PRE
-
-// PRE: pyul_storage_var_load
-/////
-
 pragma solidity ^0.8.10;
 
 
 contract MultipleSlotStorageVariableTestcase {
     uint256 x;
-    uint32 y;
+    uint256 y;
 
     function readStorageVariable() external view returns (uint256){
         return x+y;
@@ -44,3 +22,11 @@ contract MultipleSlotStorageVariableTestcase {
         y=20;
     }
 }
+
+// CHECK: define i256 @fun_readStorageVariable
+// CHECK: %self_x = load i256, i256* getelementptr inbounds (%self_type, %self_type* @__self, i32 0, i32 0)
+// CHECK: %self_x = load i256, i256* getelementptr inbounds (%self_type, %self_type* @__self, i32 0, i32 1)
+
+// CHECK: define void @fun_writeStorageVariable
+// CHECK: {{store .* getelementptr inbounds \(%self_type, %self_type\* @__self, i32 0, i32 0\)}}
+// CHECK: {{store .* getelementptr inbounds \(%self_type, %self_type\* @__self, i32 0, i32 1\)}}

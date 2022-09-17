@@ -1,5 +1,4 @@
 // MakerDao vat.sol modified to support Solidity 0.8
-
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 // XFAIL: *
 // END.

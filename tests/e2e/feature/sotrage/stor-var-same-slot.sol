@@ -23,3 +23,9 @@ contract SameSlotStorageVariableTestcase {
         y=20;
     }
 }
+
+// CHECK: define i256 @fun_readStorageVariable
+// CHECK: %self_x = load i256, i256* getelementptr inbounds (%self_type, %self_type* @__self, i32 0, i32 0)
+
+// CHECK: define void @fun_writeStorageVariable
+// CHECK: {{store .* getelementptr inbounds \(%self_type, %self_type\* @__self, i32 0, i32 0\)}}

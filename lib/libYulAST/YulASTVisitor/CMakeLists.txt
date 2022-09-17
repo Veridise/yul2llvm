@@ -5,4 +5,5 @@ FunctionCallHelper.cpp
 FunctionDefinitionHelper.cpp
 IntrinsicEmitter.cpp
 FunctionDeclaratorVisitor.cpp
+IntrinsicRewriter.cpp
 )

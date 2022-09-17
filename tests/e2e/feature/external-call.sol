@@ -7,11 +7,11 @@ pragma solidity ^0.8.10;
 
 contract ExternalCallTest {
     function add(address payable addr) external returns (uint256) {
-        // ExtCont(addr).foo{value:10}();
-        addr.transfer(10);
+        ExtCont(addr).foo{value:10}();
     }
 }
+        // addr.transfer(10);
 
-// interface ExtCont{
-//     function foo() external payable;
-// }
+interface ExtCont{
+    function foo() external payable;
+}

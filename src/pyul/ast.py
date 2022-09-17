@@ -116,6 +116,15 @@ def create_yul_string_literal(name: str) -> YulNode:
     return create_yul_node('yul_literal',
                            [create_yul_node('yul_string_literal', [name])])
 
+def create_yul_number_literal(num: int) -> YulNode:
+    return create_yul_node('yul_literal',
+                           [
+                            create_yul_node('yul_number_literal', 
+                            [
+                                create_yul_node("yul_dec_number", [str(num)])
+                            ])
+                           ])
+
 
 class YulTypeKind(str, enum.Enum):
     INT_LIKE = 'intlike'

@@ -1,12 +1,11 @@
-// RUN: yul2llvm_cpp %s -o - 2>&1 -d | FileCheck %s
-
-
+// SPDX-License-Identifier: MIT
+// RUN: yul2llvm_cpp %s   | FileCheck %s
 {
     "type": "yul_object",
     "object_name": {
         "type": "yul_string_literal",
         "children": [
-            "StorageVariableTestcase_28"
+            "MultipleSlotStorageVariableTestcase_28"
         ]
     },
     "contract_body": {
@@ -21,7 +20,7 @@
                             {
                                 "type": "yul_identifier",
                                 "children": [
-                                    "constructor_StorageVariableTestcase_28"
+                                    "constructor_MultipleSlotStorageVariableTestcase_28"
                                 ]
                             },
                             {
@@ -39,7 +38,7 @@
         "object_name": {
             "type": "yul_string_literal",
             "children": [
-                "StorageVariableTestcase_28_deployed"
+                "MultipleSlotStorageVariableTestcase_28_deployed"
             ]
         },
         "contract_body": {
@@ -2070,16 +2069,21 @@
                                                         {
                                                             "type": "yul_identifier",
                                                             "children": [
-                                                                "pyul_storage_var_load"
+                                                                "__pyul_storage_var_dynamic_load"
                                                             ]
                                                         },
                                                         {
                                                             "type": "yul_literal",
                                                             "children": [
                                                                 {
-                                                                    "type": "yul_string_literal",
+                                                                    "type": "yul_number_literal",
                                                                     "children": [
-                                                                        "x"
+                                                                        {
+                                                                            "type": "yul_hex_number",
+                                                                            "children": [
+                                                                                "0x00"
+                                                                            ]
+                                                                        }
                                                                     ]
                                                                 }
                                                             ]
@@ -2088,9 +2092,14 @@
                                                             "type": "yul_literal",
                                                             "children": [
                                                                 {
-                                                                    "type": "yul_string_literal",
+                                                                    "type": "yul_number_literal",
                                                                     "children": [
-                                                                        "t_uint256"
+                                                                        {
+                                                                            "type": "yul_dec_number",
+                                                                            "children": [
+                                                                                "0"
+                                                                            ]
+                                                                        }
                                                                     ]
                                                                 }
                                                             ]
@@ -2141,16 +2150,21 @@
                                                         {
                                                             "type": "yul_identifier",
                                                             "children": [
-                                                                "pyul_storage_var_load"
+                                                                "__pyul_storage_var_dynamic_load"
                                                             ]
                                                         },
                                                         {
                                                             "type": "yul_literal",
                                                             "children": [
                                                                 {
-                                                                    "type": "yul_string_literal",
+                                                                    "type": "yul_number_literal",
                                                                     "children": [
-                                                                        "y"
+                                                                        {
+                                                                            "type": "yul_hex_number",
+                                                                            "children": [
+                                                                                "0x01"
+                                                                            ]
+                                                                        }
                                                                     ]
                                                                 }
                                                             ]
@@ -2159,9 +2173,14 @@
                                                             "type": "yul_literal",
                                                             "children": [
                                                                 {
-                                                                    "type": "yul_string_literal",
+                                                                    "type": "yul_number_literal",
                                                                     "children": [
-                                                                        "t_uint256"
+                                                                        {
+                                                                            "type": "yul_dec_number",
+                                                                            "children": [
+                                                                                "0"
+                                                                            ]
+                                                                        }
                                                                     ]
                                                                 }
                                                             ]
@@ -2760,16 +2779,37 @@
                                                 {
                                                     "type": "yul_identifier",
                                                     "children": [
-                                                        "pyul_storage_var_update"
+                                                        "__pyul_storage_var_update"
                                                     ]
                                                 },
                                                 {
                                                     "type": "yul_literal",
                                                     "children": [
                                                         {
-                                                            "type": "yul_string_literal",
+                                                            "type": "yul_number_literal",
                                                             "children": [
-                                                                "x"
+                                                                {
+                                                                    "type": "yul_hex_number",
+                                                                    "children": [
+                                                                        "0x00"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "yul_literal",
+                                                    "children": [
+                                                        {
+                                                            "type": "yul_number_literal",
+                                                            "children": [
+                                                                {
+                                                                    "type": "yul_dec_number",
+                                                                    "children": [
+                                                                        "0"
+                                                                    ]
+                                                                }
                                                             ]
                                                         }
                                                     ]
@@ -2778,17 +2818,6 @@
                                                     "type": "yul_identifier",
                                                     "children": [
                                                         "_4"
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "yul_literal",
-                                                    "children": [
-                                                        {
-                                                            "type": "yul_string_literal",
-                                                            "children": [
-                                                                "t_uint256"
-                                                            ]
-                                                        }
                                                     ]
                                                 }
                                             ]
@@ -2886,16 +2915,37 @@
                                                 {
                                                     "type": "yul_identifier",
                                                     "children": [
-                                                        "pyul_storage_var_update"
+                                                        "__pyul_storage_var_update"
                                                     ]
                                                 },
                                                 {
                                                     "type": "yul_literal",
                                                     "children": [
                                                         {
-                                                            "type": "yul_string_literal",
+                                                            "type": "yul_number_literal",
                                                             "children": [
-                                                                "y"
+                                                                {
+                                                                    "type": "yul_hex_number",
+                                                                    "children": [
+                                                                        "0x01"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "yul_literal",
+                                                    "children": [
+                                                        {
+                                                            "type": "yul_number_literal",
+                                                            "children": [
+                                                                {
+                                                                    "type": "yul_dec_number",
+                                                                    "children": [
+                                                                        "0"
+                                                                    ]
+                                                                }
                                                             ]
                                                         }
                                                     ]
@@ -2904,17 +2954,6 @@
                                                     "type": "yul_identifier",
                                                     "children": [
                                                         "_5"
-                                                    ]
-                                                },
-                                                {
-                                                    "type": "yul_literal",
-                                                    "children": [
-                                                        {
-                                                            "type": "yul_string_literal",
-                                                            "children": [
-                                                                "t_uint256"
-                                                            ]
-                                                        }
                                                     ]
                                                 }
                                             ]
@@ -2951,7 +2990,7 @@
         }
     },
     "metadata": {
-        "main_ctor": "constructor_StorageVariableTestcase_28",
+        "main_ctor": "constructor_MultipleSlotStorageVariableTestcase_28",
         "external_fns": {
             "0xf86de945": "external_fun_readStorageVariable_15",
             "0x06d6ddbc": "external_fun_writeStorageVariable_27"
@@ -2979,10 +3018,4 @@
         }
     }
 }
-
-// CHECK: define i256 @fun_readStorageVariable
-// CHECK: %self_x = load i256, i256* getelementptr inbounds (%self_type, %self_type* @__self, i32 0, i32 0)
-// CHECK: %self_y = load i256, i256* getelementptr inbounds (%self_type, %self_type* @__self, i32 0, i32 1)
-// CHECK: define void @fun_writeStorageVariable
-// CHECK: {{store i256 .*, i256\* getelementptr inbounds \(%self_type, %self_type\* @__self, i32 0, i32 0\)}}
-// CHECK: {{store i256 .*, i256\* getelementptr inbounds \(%self_type, %self_type\* @__self, i32 0, i32 1\)}}
+//CHECK: Module

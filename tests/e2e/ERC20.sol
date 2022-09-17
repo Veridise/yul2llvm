@@ -1,6 +1,6 @@
 // ERC20 token with some modifications to exercise frontend functionality
-
-// RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+// RUN: false
+// COM: pyul %s -o %t --project-dir %S | FileCheck %s
 // XFAIL: *
 
 // CHECK-LABEL: define {{.*}} @fun_mint_{{.*}}({{.*}}) {

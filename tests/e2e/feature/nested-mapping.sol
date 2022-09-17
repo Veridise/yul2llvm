@@ -8,8 +8,8 @@ pragma solidity ^0.8.10;
 contract NestedMappingTestCase {
     mapping(uint256 => mapping(uint256 => uint256)) public map;
 
-    function mappingRead(uint256 x) external view returns (uint256) {
-        return map[3][0] + map[2][0];
+    function mappingRead(uint256 x, uint256 y) external view returns (uint256) {
+        return map[x][y];
     }
 
     function mappingWrite(uint256 k1, uint256 k2, uint256 v) external {
