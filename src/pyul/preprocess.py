@@ -1,5 +1,5 @@
 from . import ast
-from .ast import ContractData, YulNode, walk_dfs, create_yul_node
+from .ast import ContractData, YulNode, walk_dfs, create_yul_node, create_yul_number_literal
 import functools
 from typing import List, Dict, Set, Optional, Iterable
 import logging
@@ -189,7 +189,6 @@ def attach_storage_layout(contract: ContractData,
 
     This populates the state variable list and the type information dictionary.
     """
-
     contract.metadata.state_vars.extend(
         ast.YulStateVar(
             name=entry['label'],
@@ -229,7 +228,7 @@ def attach_storage_layout(contract: ContractData,
         elif type_dict['encoding'] == 'bytes':
             return ast.YulBytesType(
                 pretty_name=type_dict['label'],
-                size=type_dict['numberOfBytes'],
+                size=int(type_dict['numberOfBytes']),
             )
 
         if logger:
@@ -263,58 +262,28 @@ def rewrite_storage_ops(contract: ContractData,
     # - read_from_storage_offset_dynamic
     load_re = re.compile('^read_from_storage(?P<issplit>_split)?_offset_(?P<offset>[0-9]+)_(?P<type>.*)$')
     update_re = re.compile('^update_storage_value_offset_(?P<offset>[0-9]+)?(?P<src_type>.*)_to_(?P<dest_type>)')
+    dynamic_load_re = re.compile(r'^read_from_storage_split_dynamic_(?P<type>.*)')
 
-    def rewrite_load_op(node:YulNode, match)->bool:
-        d = match.groupdict()
-        slot = node.children[1].get_literal_value()
-        assert isinstance(slot, int)
-        offset = int(d['offset'])
-
-        svar_entry = svars.get((slot, offset))
-        # TODO: deal with sizes that are not uint256?
-        if svar_entry is None or svar_entry[1] != 't_uint256':
-            if logger:
-                logger.warning(f'Unknown storage load from: slot={slot} offset={offset}')
-        else:
-            name, ty = svars[(slot, offset)]
-            # Rewrite to function call: pyul_storage_var_load(name, ty)
-            node.obj['children'][:] = ast.create_yul_fun_call(
-                'pyul_storage_var_load',
-                [
-                    ast.create_yul_string_literal(name),
-                    ast.create_yul_string_literal(ty),
-                ]
-            ).obj['children']
-            if logger:
-                logger.debug(f'Rewrite storage load slot={slot} offset={offset} => '
-                                f'{svars[(slot, offset)]}')        
+    def rewrite_load_op(node:YulNode, match:re.Match)->bool:
+        matches = match.groupdict()
+        # Rewrite to function call: pyul_storage_var_load(name, ty)
+        node.obj['children'][0]['children'][0] = '__pyul_storage_var_dynamic_load'
+        node.obj['children'].insert(2, create_yul_number_literal(matches['offset']).obj)
+        if logger:
+            logger.debug('Rewrote storage load')        
 
     def rewrite_store_op(node:YulNode, match)->bool:
-        d = match.groupdict()
-        slot = node.children[1].get_literal_value()
-        
-        assert isinstance(slot, int)
-        offset = int(d['offset'])
+        matches = match.groupdict()
+        node.obj['children'][0]['children'][0] = '__pyul_storage_var_update'
+        node.obj['children'].insert(2, create_yul_number_literal(matches['offset']).obj)
+        if logger:
+            logger.debug('Rewrote storage update')  
 
-        svar_entry = svars.get((slot, offset))
-        # TODO: deal with sizes that are not uint256?
-        if svar_entry is None or svar_entry[1] != 't_uint256':
-            if logger:
-                logger.warning(f'Unknown storage update from: slot={slot} offset={offset}')
-        else:
-            name, ty = svars[(slot, offset)]
-            # Rewrite to function call: pyul_storage_var_update(name, ty)
-            node.obj['children'][:] = ast.create_yul_fun_call(
-                'pyul_storage_var_update',
-                [
-                    ast.create_yul_string_literal(name),
-                    node.children[2],
-                    ast.create_yul_string_literal(ty),
-                ]
-            ).obj['children']
-            if logger:
-                logger.debug(f'Rewrite storage update slot={slot} offset={offset} => '
-                                f'{svars[(slot, offset)]}')
+
+    def rewrite_dyn_load_op(node:YulNode, match)->bool:
+        node.obj['children'][0]['children'][0] = '__pyul_storage_var_dynamic_load'
+        if logger:
+            logger.debug('Rewrote storage update')    
 
     def rewrite_storage_ops(node: YulNode) -> bool:
         if not node.is_fun_call():
@@ -322,15 +291,15 @@ def rewrite_storage_ops(contract: ContractData,
 
         # rewrite load from storage --> pyul_storage_var_load()
         fname = node.get_fun_name()
-        if ((match := load_re.match(fname))
-           and node.children[1].type == 'yul_literal'):
+        if (match := load_re.match(fname)):
             rewrite_load_op(node, match)
 
         # rewrite update to storage --> pyul_storage_var_update()
-        elif ((match := update_re.match(fname))
-           and node.children[1].type == 'yul_literal'):
+        elif (match := update_re.match(fname)):
            rewrite_store_op(node, match)
 
+        elif (match := dynamic_load_re.match(fname)):
+           rewrite_dyn_load_op(node, match)
         return True
 
     walk_dfs(contract.yul_ast['contract_body'], rewrite_storage_ops)
@@ -347,18 +316,6 @@ def rewrite_storage_ops(contract: ContractData,
 
 def rewrite_map(contract: ContractData,
                         logger: Optional[logging.Logger] = None):
-    # constants = {}
-    # def handle_var_decl(node: YulNode):
-    #     pass
-    # def handle_assignment(node: YulNode):
-    #     pass
-    # def build_constants(node: YulNode):
-    #     if(node.type == 'yul_variable_declaration'):
-    #         handle_var_decl(node)
-    #     elif(node.type == 'yul_assignment'):
-    #         handle_assignment(node)
-    #     return True
-
     map_index_re = r'^mapping_index_access_t_mapping(?P<types>.*)'
     def rewrite_mapping_index(node: YulNode) -> bool:
         if not node.is_fun_call():
@@ -368,12 +325,9 @@ def rewrite_map(contract: ContractData,
         if(match):
             node.children[0].obj['children'] = ["__pyul_map_index"]
 
-        
-    # constant fold
-    # walk_dfs(contract.yul_ast['contract_body'], build_constants)
-    # walk_dfs(contract.yul_ast['object_body']['contract_body'], build_constants)
-
     # rewrite mapping
     walk_dfs(contract.yul_ast['contract_body'], rewrite_mapping_index)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], rewrite_mapping_index)
+
+    
     

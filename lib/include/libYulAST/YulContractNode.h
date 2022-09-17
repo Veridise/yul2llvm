@@ -25,7 +25,7 @@ public:
   std::string to_string() override;
   llvm::SmallVector<std::string> structFieldOrder;
   llvm::SmallVector<std::string> &getStructFieldOrder();
-  std::string getStateVarNameByOffsetSlot(int offset, int slot);
+  std::string getStateVarNameBySlotOffset(int slot, int offset);
 };
 
 }; // namespace yulast

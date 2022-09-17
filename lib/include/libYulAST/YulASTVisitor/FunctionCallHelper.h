@@ -7,12 +7,9 @@ class LLVMCodegenVisitor;
 class YulFunctionCallHelper {
   LLVMCodegenVisitor &visitor;
   // Intrinsics
-  YulIntrinsicEmitter intrinsicEmitter;
+  YulIntrinsicHelper intrinsicEmitter;
 
 public:
-  llvm::Type *getReturnType(YulFunctionCallNode &node);
-  llvm::SmallVector<llvm::Type *>
-  getFunctionArgTypes(llvm::SmallVector<llvm::Value *> &argsV);
   llvm::Function *
   createPrototype(YulFunctionCallNode &node,
                   llvm::SmallVector<llvm::Attribute::AttrKind> &attrs,

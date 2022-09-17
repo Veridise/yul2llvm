@@ -48,13 +48,13 @@ void YulContractNode::buildTypeMap(const json &metadata) {
         // hold symboilc bitwidth because this is going to be an
         // llvm implementation detail
         bitWidth = 0;
-      }
-      bitWidth = 256;
+      } else
+        bitWidth = 256;
     }
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
     typeMap[label] =
-        std::make_tuple(std::move(typeStr), bitWidth, offset, slot);
+        std::make_tuple(std::move(typeStr), bitWidth, slot, offset);
     structFieldOrder.push_back(std::move(label));
   }
 }
@@ -78,11 +78,11 @@ YulContractNode::getTypeMap() {
   return typeMap;
 }
 
-std::string YulContractNode::getStateVarNameByOffsetSlot(int offset, int slot) {
+std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
   for (auto &f : structFieldOrder) {
     auto varEntry = typeMap[f];
-    int varOffset = std::get<2>(varEntry);
-    int varSlot = std::get<3>(varEntry);
+    int varSlot = std::get<2>(varEntry);
+    int varOffset = std::get<3>(varEntry);
     if (varOffset == offset && varSlot == slot) {
       return f;
     }

@@ -126,8 +126,11 @@ void LLVMCodegenVisitor::visitYulForNode(YulForNode &node) {
 
   loopControlFlowBlocks.push(std::make_tuple(contBB, incrBB));
   Builder->SetInsertPoint(condBB);
-  visit(node.getCondition());
-  Builder->CreateBr(bodyBB);
+  llvm::Value *cond = Builder->CreateCast(llvm::Instruction::CastOps::Trunc,
+                                          visit(node.getCondition()),
+                                          llvm::Type::getInt1Ty(*TheContext));
+  Builder->CreateCondBr(cond, bodyBB, contBB);
+
   Builder->SetInsertPoint(bodyBB);
   visit(node.getBody());
   Builder->CreateBr(incrBB);
@@ -190,7 +193,7 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   // emit then
   Builder->SetInsertPoint(thenBlock);
   visit(node.getThenBody());
-  llvm::Instruction *i = &(thenBlock->getInstList().back());
+  llvm::Instruction *i = &(Builder->GetInsertBlock()->getInstList().back());
 
   /**
    * @brief if last instruction is an uncoditional terminator, add a jump from
@@ -246,7 +249,7 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
      * then-body to join node(not-taken-body)
      *
      */
-    llvm::Instruction *i = &(caseBB->getInstList().back());
+    llvm::Instruction *i = &(Builder->GetInsertBlock()->getInstList().back());
     if (i && !isUnconditionalTerminator(i)) {
       Builder->CreateBr(cont);
     }

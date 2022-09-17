@@ -50,6 +50,6 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     visitor.getBuilder().CreateRet(v);
   }
   visitor.getFPM().run(*F);
-  intrinsicEmitter.rewriteMapIndexCalls(F);
+  intrinsicEmitter.rewriteIntrinsics(F);
   visitor.currentFunction = nullptr;
 }

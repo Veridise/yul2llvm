@@ -3,32 +3,11 @@
 YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v)
     : visitor(v), intrinsicEmitter(v) {}
 
-llvm::Type *YulFunctionCallHelper::getReturnType(YulFunctionCallNode &node) {
-
-  if (!node.getCalleeName().compare("revert"))
-    return llvm::Type::getVoidTy(visitor.getContext());
-  else if (!node.getCalleeName().compare("__pyul_map_index"))
-    return llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
-  return llvm::Type::getIntNTy(visitor.getContext(), 256);
-}
-
-llvm::SmallVector<llvm::Type *> YulFunctionCallHelper::getFunctionArgTypes(
-    llvm::SmallVector<llvm::Value *> &argsV) {
-  llvm::SmallVector<llvm::Type *> funcArgTypes;
-  for (auto &arg : argsV) {
-    funcArgTypes.push_back(arg->getType());
-  }
-  return funcArgTypes;
-}
-
 llvm::Function *YulFunctionCallHelper::createPrototype(
     YulFunctionCallNode &node,
     llvm::SmallVector<llvm::Attribute::AttrKind> &attrs,
     llvm::SmallVector<llvm::Value *> &argsV) {
-  llvm::SmallVector<llvm::Type *> funcArgTypes = getFunctionArgTypes(argsV);
-  llvm::Type *retType = getReturnType(node);
-  llvm::FunctionType *FT =
-      llvm::FunctionType::get(retType, funcArgTypes, false);
+  llvm::FunctionType *FT = intrinsicEmitter.getFunctionType(node, argsV);
 
   llvm::Function *F =
       llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
