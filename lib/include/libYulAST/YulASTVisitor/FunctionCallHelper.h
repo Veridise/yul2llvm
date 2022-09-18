@@ -1,6 +1,6 @@
 #pragma once
 class LLVMCodegenVisitor;
-#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/IR/Attributes.h>
 

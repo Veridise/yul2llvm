@@ -4,7 +4,7 @@ class YulFunctionDefinitionHelper;
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
 #include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
-#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>

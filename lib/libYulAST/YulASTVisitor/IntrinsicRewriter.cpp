@@ -1,5 +1,5 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
