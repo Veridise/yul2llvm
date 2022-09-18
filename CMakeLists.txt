@@ -32,7 +32,7 @@ include(HandleLLVMOptions)
 # include_directories(${LLVM_INCLUDE_DIRS})
 # separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 # add_definitions(${LLVM_DEFINITIONS_LIST})
-add_compile_options(-Werror=switch)
+add_compile_options(-Wswitch-enum)
 
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON CACHE BOOL "Hide inlines")
 # For static LLVM, ensure hidden visibility to be consistent with LLVM build
