@@ -44,7 +44,8 @@ void YulContractNode::buildTypeMap(const json &metadata) {
       bitWidth = metadata["types"][typeStr]["size"].get<int>() * 8;
     else {
       // confirm that type is mapping
-      if (typeStr.substr(0, 9) == "t_mapping") {
+      std::string mapType = "t_mapping";
+      if (typeStr.substr(0, mapType.size()) == mapType) {
         // hold symboilc bitwidth because this is going to be an
         // llvm implementation detail
         bitWidth = 0;
@@ -73,8 +74,7 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-llvm::StringMap<std::tuple<std::string, int, int, int>> &
-YulContractNode::getTypeMap() {
+llvm::StringMap<StorageVarInfo> &YulContractNode::getTypeMap() {
   return typeMap;
 }
 

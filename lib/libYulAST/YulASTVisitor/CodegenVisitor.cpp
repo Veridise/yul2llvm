@@ -176,6 +176,7 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
     return Builder->CreateLoad(loadType, ptr, node.getIdentfierValue());
   }
   assert(false && "Referenced undefined identifier");
+  return nullptr;
 }
 
 void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {

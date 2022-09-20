@@ -48,6 +48,8 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
 
 void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
     llvm::CallInst *callInst) {
+  assert(callInst->getNumArgOperands() == 2 &&
+         "Wrong number of arguments to storage load inst");
   auto slot = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
   auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1));
   if (offset && slot) {
@@ -75,6 +77,8 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
 
 void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
     llvm::CallInst *callInst) {
+  assert(callInst->getNumArgOperands() == 3 &&
+         "Wrong number of arguments to storage store inst");
   callInst->setName("");
   llvm::Value *storeValue = callInst->getArgOperand(2);
   auto slot = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));

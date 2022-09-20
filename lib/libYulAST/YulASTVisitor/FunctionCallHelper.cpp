@@ -39,6 +39,7 @@ YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
 
   for (auto &a : node.getArgs()) {
     llvm::Value *lv = visitor.visit(*a);
+    assert(lv != nullptr && "null value argument to a function call");
     ArgsV.push_back(lv);
   }
   F = visitor.getModule().getFunction(node.getCalleeName());
