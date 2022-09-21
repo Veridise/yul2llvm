@@ -30,8 +30,7 @@ YulFunctionCallHelper::buildFunctionAttributes(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
-  llvm::Function *F, *enclosingFunction;
-  enclosingFunction = visitor.getBuilder().GetInsertBlock()->getParent();
+  llvm::Function *F;
   if (intrinsicEmitter.isFunctionCallIntrinsic(node.getCalleeName())) {
     return intrinsicEmitter.handleIntrinsicFunctionCall(node);
   }

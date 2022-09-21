@@ -38,7 +38,10 @@ protected:
   void codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *);
   void runFunctionDeclaratorVisitor(YulContractNode &node);
   std::unique_ptr<llvm::legacy::FunctionPassManager> FPM;
+    void connectToBasicBlock(llvm::BasicBlock *nextBlock);
+
   // helpers
+
 public:
   YulContractNode *currentContract;
   llvm::Function *currentFunction;

@@ -17,6 +17,15 @@ bool isUnconditionalTerminator(llvm::Instruction *i) {
   }
 }
 
+void LLVMCodegenVisitor::connectToBasicBlock(llvm::BasicBlock *nextBlock){
+  llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
+  if(lastBlock->getInstList().size() == 0 ||
+    !isUnconditionalTerminator(&(lastBlock->getInstList().back()))){
+      Builder->CreateBr(nextBlock);
+  }
+}
+
+
 LLVMCodegenVisitor::LLVMCodegenVisitor() {
   // LLVM functions and datastructures
   TheContext = std::make_unique<llvm::LLVMContext>();
@@ -194,17 +203,12 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
   // emit then
   Builder->SetInsertPoint(thenBlock);
   visit(node.getThenBody());
-  llvm::Instruction *i = &(Builder->GetInsertBlock()->getInstList().back());
-
   /**
    * @brief if last instruction is an uncoditional terminator, add a jump from
    * then-body to join node(not-taken-body)
    *
    */
-  if (i && !isUnconditionalTerminator(i)) {
-    Builder->CreateBr(contBlock);
-  }
-
+  connectToBasicBlock(contBlock);
   // merge node
   currentFunction->getBasicBlockList().push_back(contBlock);
   Builder->SetInsertPoint(contBlock);
@@ -220,7 +224,7 @@ LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
   hasher.update(node.getLiteralValue());
   std::string literalName =
       "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0, 6);
-  if (auto x = stringLiteralNames.find(node.getLiteralValue()) !=
+  if (stringLiteralNames.find(node.getLiteralValue()) !=
                stringLiteralNames.end()) {
     std::string globalName = stringLiteralNames[node.getLiteralValue()];
     return TheModule->getOrInsertGlobal(globalName,
@@ -233,7 +237,7 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
   llvm::BasicBlock *defaultBlock =
       llvm::BasicBlock::Create(*TheContext, "default");
   llvm::BasicBlock *cont =
-      llvm::BasicBlock::Create(*TheContext, "-switch-cont");
+      llvm::BasicBlock::Create(*TheContext, "switch-cont");
 
   llvm::SwitchInst *sw =
       Builder->CreateSwitch(cond, defaultBlock, node.getCases().size() + 1);
@@ -250,18 +254,15 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
      * then-body to join node(not-taken-body)
      *
      */
-    llvm::Instruction *i = &(Builder->GetInsertBlock()->getInstList().back());
-    if (i && !isUnconditionalTerminator(i)) {
-      Builder->CreateBr(cont);
-    }
+    connectToBasicBlock(cont);
   }
 
-  currentFunction->getBasicBlockList().push_back(defaultBlock);
-  Builder->SetInsertPoint(defaultBlock);
   if (node.hasDefaultNode()) {
+    currentFunction->getBasicBlockList().push_back(defaultBlock);
+    Builder->SetInsertPoint(defaultBlock);
     visit(node.getDefaultNode());
+    connectToBasicBlock(cont);
   }
-  Builder->CreateBr(cont);
   currentFunction->getBasicBlockList().push_back(cont);
   Builder->SetInsertPoint(cont);
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <libYulAST/YulExpressionNode.h>
-#include <llvm/ADT/StringRef.h>
 #include <nlohmann/json.hpp>
+#include <llvm/ADT/StringRef.h>
 
 namespace yulast {
 class YulIdentifierNode : public YulExpressionNode {
