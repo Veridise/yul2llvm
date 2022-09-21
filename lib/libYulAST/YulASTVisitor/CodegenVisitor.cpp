@@ -239,8 +239,13 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
   llvm::BasicBlock *cont =
       llvm::BasicBlock::Create(*TheContext, "switch-cont");
 
-  llvm::SwitchInst *sw =
-      Builder->CreateSwitch(cond, defaultBlock, node.getCases().size() + 1);
+  int numTargets = node.getCases().size() + (node.hasDefaultNode()?1:0);
+
+  llvm::SwitchInst *sw;
+  if(node.hasDefaultNode())
+    sw = Builder->CreateSwitch(cond, defaultBlock, numTargets);
+  else
+    sw = Builder->CreateSwitch(cond, cont, numTargets);
 
   for (auto &c : node.getCases()) {
     llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
