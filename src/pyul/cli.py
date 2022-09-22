@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 import re
+from textwrap import indent
 import antlr4
 import sys
 import logging
@@ -85,32 +86,38 @@ def main():
         for name, contract in contracts.items():
             yul_json = preprocess_ir(logger, contract, contract.out_dir)
             contract.yul_ast = yul_json
-            assert the_contract is None, "TODO: handle more than 1 contract"
+            # assert the_contract is None, "TODO: handle more than 1 contract"
             the_contract = contract
 
-    preprocess.prune_deploy_obj(the_contract, logger=logger)
-    preprocess.prune_deployed_code(the_contract, logger=logger)
-    preprocess.attach_storage_layout(the_contract, logger=logger)
-    preprocess.rewrite_map(the_contract, logger=logger)
-    preprocess.rewrite_storage_ops(the_contract, logger=logger)
-
+            if the_contract.yul_ast != {}:
+                preprocess.prune_deploy_obj(the_contract, logger=logger)
+                preprocess.prune_deployed_code(the_contract, logger=logger)
+                preprocess.attach_storage_layout(the_contract, logger=logger)
+                preprocess.rewrite_map(the_contract, logger=logger)
+                preprocess.rewrite_storage_ops(the_contract, logger=logger)
+            
+            dumped_obj = the_contract.yul_ast.copy()
+            dumped_obj['metadata'] = dataclasses.asdict(the_contract.metadata)
+            dumped_obj['abi'] = the_contract.abi
+            yul_json_path = the_contract.out_dir / 'yul.json'
+            logger.info(f'Dumping processed Yul AST json to {yul_json_path}')
+            with open(yul_json_path, 'w') as f:
+                json.dump(dumped_obj, f, indent=2)
     # Save the processed Yul AST
-    dumped_obj = the_contract.yul_ast.copy()
-    dumped_obj['metadata'] = dataclasses.asdict(the_contract.metadata)
-    yul_json_path = the_contract.out_dir / 'yul.json'
-    logger.info(f'Dumping processed Yul AST json to {yul_json_path}')
-    with open(yul_json_path, 'w') as f:
-        json.dump(dumped_obj, f)
 
-    if args.stop_after == 'preprocess':
-        json.dump(dumped_obj, sys.stdout)
-        return
+            if args.stop_after == 'preprocess':
+                json.dump(dumped_obj, sys.stdout)
+                return
+            
+            if the_contract.yul_ast != {}:
+                json_summary(the_contract, logger)
+                translate_yul_to_llvm(the_contract, args.disable_module_verification, logger)
 
-    name = the_contract.name
-    contract = the_contract
-    logger.info(f'Summary of contract {name}:')
+
+def json_summary(the_contract:ContractData, logger:logging.Logger):
+    logger.info(f'Summary of contract {the_contract.name}:')
     logger.info('')
-    (named_fns, all_defs, unknown) = inspect_json_ast(contract.out_dir / 'yul.json')
+    (named_fns, all_defs, unknown) = inspect_json_ast(the_contract.out_dir / 'yul.json')
 
     named_fns = set(named_fns)
     all_defs = set(all_defs)
@@ -128,6 +135,7 @@ def main():
     for n in all_defs.difference(unknown).difference(named_fns):
         logger.info('  ' + n)
 
+def translate_yul_to_llvm(contract:ContractData, disableVerify:bool, logger:logging.Logger):
     # TODO: move this into a translate() function
     yul2llvm_cpp_bin = shutil.which('yul2llvm_cpp')
     if yul2llvm_cpp_bin is None:
@@ -135,11 +143,11 @@ def main():
         sys.exit(1)
 
     yul2llvm_cpp_cmd = [yul2llvm_cpp_bin, str(contract.out_dir / 'yul.json')]
-    if(args.disable_module_verification):
+    if():
         yul2llvm_cpp_cmd.append('-d')
     logger.info(f'Running: {shlex.join(yul2llvm_cpp_cmd)}')
     proc = subprocess.run(yul2llvm_cpp_cmd,
-                          capture_output=True, text=True)
+                        capture_output=True, text=True)
     if proc.returncode != 0:
         logger.error('Failed to run yul2llvm_cpp:')
         for line in proc.stderr.splitlines():
@@ -152,13 +160,14 @@ def main():
     with open(contract.out_dir / 'llvm_ir.ll', 'w') as f:
         f.write(proc.stdout)
 
-
 def preprocess_ir(logger, data: ContractData, out_dir: Path):
     '''Convert Yul IR into a PYul json file
 
     :param out_dir: The contract's artifact output directory.
     '''
-
+    # if(data.yul_text == ''):
+    #     return {}
+                
     # TODO: do we need this? This seems specific to Eurus...
     logger.info(f'Running Yul IR pre-preprocess on {data.name}')
     t = YulTranslator()
@@ -259,21 +268,23 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path,
     # https://hardhat.org/hardhat-runner/docs/advanced/artifacts
     # TODO: can we just read Hardhat's directory structure?
     output = SolcOutput()
+
     for src_p, src_contents in solc_output['contracts'].items():
         src_out_dir = artifact_dir / src_p
         src_out_dir.mkdir(parents=True, exist_ok=True)
+        with open(src_out_dir/"src.json", 'w') as f:
+            json.dump(src_contents, f, indent=2)
         for name, contract in src_contents.items():
             c_dir = src_out_dir / name
             c_dir.mkdir(exist_ok=True)
-
             with open(c_dir / 'abi.json', 'w') as f:
-                json.dump(contract['abi'], f)
+                json.dump(contract['abi'], f, indent=2)
 
             with open(c_dir / 'ir.yul', 'w') as f:
                 f.write(contract['ir'])
 
             with open(c_dir / 'storageLayout.json', 'w') as f:
-                json.dump(contract['storageLayout'], f)
+                json.dump(contract['storageLayout'], f, indent=2)
 
             if src_p not in output.contracts:
                 output.contracts[src_p] = {}
