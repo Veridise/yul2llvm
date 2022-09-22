@@ -38,6 +38,10 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   F = visitor.getModule().getFunction(node.getName());
   assert(F && "Function not defined in declarator pass");
   visitor.currentFunction = F;
+  if(F->getBasicBlockList().size()>0){
+    llvm::WithColor::error()<<"Redeclaring function "<<F->getName();
+    return;
+  }
   visitor.getNamedValuesMap().clear();
   createVarsForArgsAndRets(node, F);
   visitor.visit(node.getBody());

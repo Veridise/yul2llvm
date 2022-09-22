@@ -165,8 +165,8 @@ def preprocess_ir(logger, data: ContractData, out_dir: Path):
 
     :param out_dir: The contract's artifact output directory.
     '''
-    # if(data.yul_text == ''):
-    #     return {}
+    if(data.yul_text == ''):
+        return {}
                 
     # TODO: do we need this? This seems specific to Eurus...
     logger.info(f'Running Yul IR pre-preprocess on {data.name}')
