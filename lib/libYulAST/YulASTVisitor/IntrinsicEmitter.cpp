@@ -8,6 +8,8 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(std::string calleeName) {
     return true;
   } else if (calleeName == "add") {
     return true;
+  } else if (calleeName == "shl") {
+    return true;
   }
   return false;
 }
@@ -21,8 +23,18 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleMStoreFunctionCall(node);
   } else if (!calleeName.compare("add")) {
     return handleAddFunctionCall(node);
+  } else if (!calleeName.compare("shl")) {
+    return handleShl(node);
   }
   return nullptr;
+}
+
+llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
+  auto &builder = visitor.getBuilder();
+  llvm::Value *v1, *v2;
+  v1 = visitor.visit(*node.getArgs()[0]);
+  v2 = visitor.visit(*node.getArgs()[1]);
+  return builder.CreateShl(v1, v2);
 }
 
 llvm::Value *

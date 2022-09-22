@@ -90,11 +90,7 @@ def main():
             the_contract = contract
 
             if the_contract.yul_ast != {}:
-                preprocess.prune_deploy_obj(the_contract, logger=logger)
-                preprocess.prune_deployed_code(the_contract, logger=logger)
-                preprocess.attach_storage_layout(the_contract, logger=logger)
-                preprocess.rewrite_map(the_contract, logger=logger)
-                preprocess.rewrite_storage_ops(the_contract, logger=logger)
+                run_preprocess_steps(the_contract, logger)
             
             dumped_obj = the_contract.yul_ast.copy()
             dumped_obj['metadata'] = dataclasses.asdict(the_contract.metadata)
@@ -203,6 +199,15 @@ def preprocess_ir(logger, data: ContractData, out_dir: Path):
 
     return json.loads(yul_json)
 
+
+def run_preprocess_steps(the_contract:ContractData, 
+                            logger: logging.Logger):
+    preprocess.prune_deploy_obj(the_contract, logger=logger)
+    preprocess.prune_deployed_code(the_contract, logger=logger)
+    preprocess.attach_storage_layout(the_contract, logger=logger)
+    preprocess.rewrite_map(the_contract, logger=logger)
+    preprocess.rewrite_storage_ops(the_contract, logger=logger)
+    preprocess.rewrite_shift_left(the_contract, logger)
 
 def solc_compile(logger, src_path: Path, artifact_dir: Path,
                  project_dir: Path = None):

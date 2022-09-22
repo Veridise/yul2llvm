@@ -48,6 +48,13 @@ class YulNode(object):
 
     def is_fun_call(self) -> bool:
         return self.type == 'yul_function_call'
+    
+    def set_fun_call_name(self, name):
+        assert(self.type == 'yul_function_call')
+        self.children.obj[0] = name
+
+    def get_yul_identifier_node(id: str):
+        return create_yul_node('yul_identifier', [str])
 
     def get_fun_name(self) -> str:
         # FIXME: this should be part of the object, not its child.
@@ -84,9 +91,10 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
 
     to_visit = [root]
     while to_visit:
-        obj = to_visit.pop()
-        should_recurse = callback(obj)
-
+        # Pass parents to the callback
+        obj = to_visit[-1]
+        should_recurse = callback(obj, to_visit)
+        to_visit.pop()
         if should_recurse is None or should_recurse:
             for child in obj.children:
                 # FIXME: don't add the literal values as children...

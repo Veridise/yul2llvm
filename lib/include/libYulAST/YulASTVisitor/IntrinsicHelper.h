@@ -27,6 +27,7 @@ public:
   // Emit storage store intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
   llvm::Value *handleMStoreFunctionCall(YulFunctionCallNode &node);
+  llvm::Value *handleShl(YulFunctionCallNode &node);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
