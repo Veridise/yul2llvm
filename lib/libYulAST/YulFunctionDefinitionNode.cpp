@@ -1,6 +1,5 @@
 #include <cassert>
 #include <fstream>
-#include <iostream>
 #include <libYulAST/YulFunctionDefinitionNode.h>
 
 using namespace yulast;

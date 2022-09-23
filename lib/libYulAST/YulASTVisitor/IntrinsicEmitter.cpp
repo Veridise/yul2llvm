@@ -36,6 +36,8 @@ YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 2 &&
+         "Incorrect number of arguments to mstore");
   llvm::Value *val, *ptr;
   ptr = visitor.visit(*(node.getArgs()[0]));
   val = visitor.visit(*(node.getArgs()[1]));

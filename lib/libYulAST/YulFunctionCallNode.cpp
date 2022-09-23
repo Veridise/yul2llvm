@@ -38,7 +38,7 @@ std::string YulFunctionCallNode::to_string() {
   return str;
 }
 
-void YulFunctionCallNode::setCalleeName(std::string name) {
+void YulFunctionCallNode::setCalleeName(llvm::StringRef name) {
   callee->setIdentifierValue(name);
 }
 

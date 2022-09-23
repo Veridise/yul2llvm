@@ -17,14 +17,13 @@ bool isUnconditionalTerminator(llvm::Instruction *i) {
   }
 }
 
-void LLVMCodegenVisitor::connectToBasicBlock(llvm::BasicBlock *nextBlock){
+void LLVMCodegenVisitor::connectToBasicBlock(llvm::BasicBlock *nextBlock) {
   llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
-  if(lastBlock->getInstList().size() == 0 ||
-    !isUnconditionalTerminator(&(lastBlock->getInstList().back()))){
-      Builder->CreateBr(nextBlock);
+  if (lastBlock->getInstList().size() == 0 ||
+      !isUnconditionalTerminator(&(lastBlock->getInstList().back()))) {
+    Builder->CreateBr(nextBlock);
   }
 }
-
 
 LLVMCodegenVisitor::LLVMCodegenVisitor() {
   // LLVM functions and datastructures
@@ -171,7 +170,6 @@ void LLVMCodegenVisitor::visitYulFunctionDefinitionNode(
 
 llvm::Value *
 LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
-  llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
   llvm::AllocaInst *ptr;
   if (NamedValues.find(node.getIdentfierValue()) == NamedValues.end()) {
     for (auto &arg : currentFunction->args()) {
@@ -180,6 +178,7 @@ LLVMCodegenVisitor::visitYulIdentifierNode(YulIdentifierNode &node) {
       }
     }
   } else {
+    llvm::Type *loadType = llvm::Type::getIntNTy(*TheContext, 256);
     ptr = NamedValues[node.getIdentfierValue()];
     loadType = ptr->getAllocatedType();
     return Builder->CreateLoad(loadType, ptr, node.getIdentfierValue());
@@ -224,9 +223,9 @@ LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
   hasher.update(node.getLiteralValue());
   std::string literalName =
       "str_lit_" + llvm::encodeBase64(hasher.final()).substr(0, 6);
-  if (stringLiteralNames.find(node.getLiteralValue()) !=
-               stringLiteralNames.end()) {
-    std::string globalName = stringLiteralNames[node.getLiteralValue()];
+  if (auto it = stringLiteralNames.find(node.getLiteralValue());
+      it != stringLiteralNames.end()) {
+    std::string globalName = it->getValue();
     return TheModule->getOrInsertGlobal(globalName,
                                         llvm::Type::getInt8Ty(*TheContext));
   }
@@ -236,13 +235,12 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
   llvm::Value *cond = visit(node.getCondition());
   llvm::BasicBlock *defaultBlock =
       llvm::BasicBlock::Create(*TheContext, "default");
-  llvm::BasicBlock *cont =
-      llvm::BasicBlock::Create(*TheContext, "switch-cont");
+  llvm::BasicBlock *cont = llvm::BasicBlock::Create(*TheContext, "switch-cont");
 
-  int numTargets = node.getCases().size() + (node.hasDefaultNode()?1:0);
+  int numTargets = node.getCases().size() + (node.hasDefaultNode() ? 1 : 0);
 
   llvm::SwitchInst *sw;
-  if(node.hasDefaultNode())
+  if (node.hasDefaultNode())
     sw = Builder->CreateSwitch(cond, defaultBlock, numTargets);
   else
     sw = Builder->CreateSwitch(cond, cont, numTargets);

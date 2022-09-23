@@ -1,5 +1,5 @@
-#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 #include <iostream>
+#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
 YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
     : visitor(v), intrinsicEmitter(v) {}

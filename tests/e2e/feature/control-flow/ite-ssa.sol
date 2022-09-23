@@ -20,5 +20,5 @@ contract IfThenElseContract {
 
 //CHECK: define {{.* @fun_max_.*}}
 //CHECK: switch
-//check: case
-//check: default
+//CHECK: case
+//CHECK: default
