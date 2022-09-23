@@ -139,7 +139,7 @@ def translate_yul_to_llvm(contract:ContractData, disableVerify:bool, logger:logg
         sys.exit(1)
 
     yul2llvm_cpp_cmd = [yul2llvm_cpp_bin, str(contract.out_dir / 'yul.json')]
-    if():
+    if(disableVerify):
         yul2llvm_cpp_cmd.append('-d')
     logger.info(f'Running: {shlex.join(yul2llvm_cpp_cmd)}')
     proc = subprocess.run(yul2llvm_cpp_cmd,

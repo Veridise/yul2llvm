@@ -24,10 +24,11 @@ public:
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
 
-  // Emit storage store intrinsics
+  // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
   llvm::Value *handleMStoreFunctionCall(YulFunctionCallNode &node);
   llvm::Value *handleShl(YulFunctionCallNode &node);
+  llvm::Value *handleAllocateUnbounded(YulFunctionCallNode &node);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);

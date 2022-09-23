@@ -10,6 +10,8 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(std::string calleeName) {
     return true;
   } else if (calleeName == "shl") {
     return true;
+  } else if (calleeName == "allocate_unbounded") {
+    return true;
   }
   return false;
 }
@@ -25,10 +27,18 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleAddFunctionCall(node);
   } else if (!calleeName.compare("shl")) {
     return handleShl(node);
+  } else if (calleeName == "allocate_unbounded") {
+    return handleAllocateUnbounded(node);
   }
   return nullptr;
 }
 
+llvm::Value *
+YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
+  return visitor.CreateEntryBlockAlloca(
+      visitor.currentFunction, "alloc_unbounded",
+      llvm::Type::getInt64Ty(visitor.getContext()));
+}
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
   auto &builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
