@@ -6,6 +6,7 @@
 #include <llvm/ADT/StringMap.h>
 
 namespace yulast {
+using StorageVarInfo = std::tuple<std::string, int, int, int>;
 class YulContractNode : public YulASTBase {
   // map from label -> (type name, bitwidth)
   // needed to maintain the index of a member in a struct
@@ -14,16 +15,18 @@ class YulContractNode : public YulASTBase {
   void buildTypeMap(const json &);
   void allocateSelfStruct();
   virtual void parseRawAST(const json *) override;
+  llvm::StringMap<StorageVarInfo> typeMap;
 
 public:
   YulContractNode(const json *);
   std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &getFunctions();
-  llvm::StringMap<std::tuple<std::string, int>> &getTypeMap();
+  // map from var name to type, size(bitwidth), offset, slot
+  llvm::StringMap<StorageVarInfo> &getTypeMap();
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
   llvm::SmallVector<std::string> structFieldOrder;
   llvm::SmallVector<std::string> &getStructFieldOrder();
-  llvm::StringMap<std::tuple<std::string, int>> typeMap;
+  std::string getStateVarNameBySlotOffset(int slot, int offset);
 };
 
 }; // namespace yulast

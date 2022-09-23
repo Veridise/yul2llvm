@@ -7,4 +7,5 @@ target_link_libraries(libyul2llvm PUBLIC
   libYulAST
   nlohmann_json::nlohmann_json
   LLVMCore
+  LLVMPasses
 )

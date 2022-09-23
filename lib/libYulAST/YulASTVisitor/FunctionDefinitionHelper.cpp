@@ -1,7 +1,8 @@
+#include <iostream>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
 YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
-    : visitor(v) {}
+    : visitor(v), intrinsicEmitter(v) {}
 
 void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     YulFunctionDefinitionNode &node, llvm::Function *F) {
@@ -11,8 +12,8 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
 
   if (node.hasArgs()) {
     for (auto &arg : node.getArgs()) {
-      llvm::AllocaInst *a = visitor.CreateEntryBlockAlloca(
-          F, arg->getIdentfierValue().append("_arg"));
+      llvm::AllocaInst *a =
+          visitor.CreateEntryBlockAlloca(F, arg->getIdentfierValue());
       visitor.getNamedValuesMap()[arg->getIdentfierValue()] = a;
     }
   }
@@ -34,7 +35,6 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
 void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   llvm::Function *F;
-  llvm::SmallVector<llvm::Attribute::AttrKind> attributes;
   F = visitor.getModule().getFunction(node.getName());
   assert(F && "Function not defined in declarator pass");
   visitor.currentFunction = F;
@@ -50,5 +50,7 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
         visitor.getNamedValuesMap()[node.getRets()[0]->getIdentfierValue()]);
     visitor.getBuilder().CreateRet(v);
   }
+  visitor.getFPM().run(*F);
+  intrinsicEmitter.rewriteIntrinsics(F);
   visitor.currentFunction = nullptr;
 }

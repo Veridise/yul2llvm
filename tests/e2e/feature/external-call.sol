@@ -3,12 +3,15 @@
 // XFAIL: *
 pragma solidity ^0.8.10;
 
-interface ExtCont{
-    function foo() external payable;
-}
+
 
 contract ExternalCallTest {
-    function add(address addr) external returns (uint256) {
+    function add(address payable addr) external returns (uint256) {
         ExtCont(addr).foo{value:10}();
     }
+}
+        // addr.transfer(10);
+
+interface ExtCont{
+    function foo() external payable;
 }

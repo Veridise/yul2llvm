@@ -4,14 +4,16 @@ class YulFunctionDefinitionHelper;
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
 #include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
-#include <libYulAST/YulASTVisitor/IntrinsicEmitter.h>
+#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/Base64.h>
 #include <llvm/Support/SHA1.h>
+#include <llvm/Transforms/Utils.h>
 #include <stack>
 
 class LLVMCodegenVisitor : public YulASTVisitorBase {
@@ -33,9 +35,13 @@ protected:
 
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
-  void codeGenForOneVarDeclaration(YulIdentifierNode &id);
+  void codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *);
   void runFunctionDeclaratorVisitor(YulContractNode &node);
+  std::unique_ptr<llvm::legacy::FunctionPassManager> FPM;
+  void connectToBasicBlock(llvm::BasicBlock *nextBlock);
+
   // helpers
+
 public:
   YulContractNode *currentContract;
   llvm::Function *currentFunction;
@@ -66,13 +72,15 @@ public:
 
   // LLVM datastructures
   llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                           const std::string &VarName);
+                                           const std::string &VarName,
+                                           llvm::Type *type = nullptr);
   llvm::GlobalVariable *CreateGlobalStringLiteral(std::string literalValue,
                                                   std::string literalName);
 
   llvm::Module &getModule();
   llvm::IRBuilder<> &getBuilder();
   llvm::LLVMContext &getContext();
+  llvm::legacy::FunctionPassManager &getFPM();
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
   llvm::GlobalVariable *getSelf() const;
   llvm::StructType *getSelfType() const;

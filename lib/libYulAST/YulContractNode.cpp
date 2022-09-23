@@ -42,9 +42,20 @@ void YulContractNode::buildTypeMap(const json &metadata) {
     int bitWidth;
     if (metadata["types"][typeStr].contains("size"))
       bitWidth = metadata["types"][typeStr]["size"].get<int>() * 8;
-    else
-      bitWidth = 256;
-    typeMap[label] = std::make_tuple(std::move(typeStr), bitWidth);
+    else {
+      // confirm that type is mapping
+      std::string mapType = "t_mapping";
+      if (typeStr.substr(0, mapType.size()) == mapType) {
+        // hold symboilc bitwidth because this is going to be an
+        // llvm implementation detail
+        bitWidth = 0;
+      } else
+        bitWidth = 256;
+    }
+    int offset = var["offset"].get<int>();
+    int slot = var["slot"].get<int>();
+    typeMap[label] =
+        std::make_tuple(std::move(typeStr), bitWidth, slot, offset);
     structFieldOrder.push_back(std::move(label));
   }
 }
@@ -63,8 +74,20 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-llvm::StringMap<std::tuple<std::string, int>> &YulContractNode::getTypeMap() {
+llvm::StringMap<StorageVarInfo> &YulContractNode::getTypeMap() {
   return typeMap;
+}
+
+std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
+  for (auto &f : structFieldOrder) {
+    auto varEntry = typeMap[f];
+    int varSlot = std::get<2>(varEntry);
+    int varOffset = std::get<3>(varEntry);
+    if (varOffset == offset && varSlot == slot) {
+      return f;
+    }
+  }
+  return "";
 }
 
 llvm::SmallVector<std::string> &YulContractNode::getStructFieldOrder() {
