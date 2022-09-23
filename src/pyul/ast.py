@@ -85,21 +85,29 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
     :param callback: Callback to invoke on each node. Returns whether the walk
     should recurse into the children.
     '''
-
+    parents = [YulNode]
     if isinstance(root, dict):
         root = YulNode(root)
 
     to_visit = [root]
+    sentinal = YulNode({'type':'sentinal', 'children':[]})
     while to_visit:
         # Pass parents to the callback
-        obj = to_visit[-1]
-        should_recurse = callback(obj, to_visit)
-        to_visit.pop()
+        obj = to_visit.pop()
+        while(obj == sentinal and len(to_visit)>0):
+            obj = to_visit.pop()
+            parents.pop()
+        parents.append(obj)
+        should_recurse = callback(obj, parents)
         if should_recurse is None or should_recurse:
             for child in obj.children:
                 # FIXME: don't add the literal values as children...
                 if isinstance(child.obj, dict):
                     to_visit.append(child)
+            if(len(obj.children)>0):
+                to_visit.append(sentinal)
+        
+        
 
 
 def create_yul_node(type: str,

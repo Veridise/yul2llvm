@@ -344,28 +344,21 @@ def rewrite_shift_left(contract: ContractData,
                 node.children[1],
                 create_yul_number_literal(vals['amount'])
             ]).children.underlying
-            
-
     walk_dfs(contract.yul_ast['contract_body'], _rewrite_shift_left)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_shift_left)
     
-# def rewrite_call(contract: ContractData,
-#                         logger: Optional[logging.Logger] = None):
-#     map_index_re = r'^call$'
-#     # def get_gas_expr
-#     def rewrite_mapping_index(node: YulNode, parents: List[YulNode]) -> bool:
-#         if not node.is_fun_call():
-#             return True
-#         fun_name = node.get_fun_name()
-#         match = re.match(map_index_re, fun_name)
-#         if(match):
-#             node.children[0].obj['children'] = ['pyul_call']
-#             # get_gas()
-#             # get_value()
-#             # get_address()
-#             # get_args()
-#             # rewrite_children()
 
-#     # rewrite mapping
-#     walk_dfs(contract.yul_ast['contract_body'], rewrite_mapping_index)
-#     walk_dfs(contract.yul_ast['object_body']['contract_body'], rewrite_mapping_index)
+def rewrite_call_inst(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    call_re = re.compile("^call$")
+
+    def _rewrite_call(node: YulNode, parents:List[YulNode]):
+        if(not node.is_fun_call()):
+            return True
+        match = call_re.match(node.get_fun_name())
+        if(match):
+            print([p.type for p in parents])
+            import pdb
+            pdb.set_trace()
+    walk_dfs(contract.yul_ast['contract_body'], _rewrite_call)
+    walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_call)

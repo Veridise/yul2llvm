@@ -35,6 +35,7 @@ public:
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst);
+  void rewriteCallIntrinsic(llvm::CallInst *callInst);
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
