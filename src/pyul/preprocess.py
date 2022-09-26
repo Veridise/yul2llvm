@@ -352,13 +352,40 @@ def rewrite_call_inst(contract: ContractData,
                         logger: Optional[logging.Logger] = None):
     call_re = re.compile("^call$")
 
+    def get_selector(node: YulNode, parents:List[YulNode]):
+        parents.reverse()
+        child = node
+        for parent in parents:
+            if(parent.is_block()):
+                break
+            child = parent
+        statements = parent.children.underlying
+        idx = statements.index(child.obj)
+        while idx >= 0:
+            idx-=1
+            node = YulNode(statements[idx])
+            if(node.is_fun_call_and_name('mstore')):
+                shl_call = node.children[2]
+                if(shl_call.is_fun_call_and_name('shl')):
+                    selector_var = shl_call.children[1].children[0].obj
+                    statements.remove(statements[idx])
+
+        for s in statements:
+            node = YulNode(s)
+            if(node.is_var_decl_with_name(selector_var)):
+                return node.children[1].get_literal_value()
+
+
+
+
     def _rewrite_call(node: YulNode, parents:List[YulNode]):
         if(not node.is_fun_call()):
             return True
         match = call_re.match(node.get_fun_name())
         if(match):
-            print([p.type for p in parents])
-            import pdb
-            pdb.set_trace()
+            selector = get_selector(node, parents)
+            selector_node = create_yul_number_literal(selector)
+            node.children[4] = selector_node
+            
     walk_dfs(contract.yul_ast['contract_body'], _rewrite_call)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_call)

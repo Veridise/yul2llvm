@@ -19,6 +19,7 @@ class YulFunctionDefinitionHelper;
 class LLVMCodegenVisitor : public YulASTVisitorBase {
 private:
 protected:
+  YulIntrinsicHelper intrinsicHelper;
   std::unique_ptr<llvm::LLVMContext> TheContext;
   std::unique_ptr<llvm::Module> TheModule;
   std::unique_ptr<llvm::IRBuilder<>> Builder;
@@ -32,6 +33,21 @@ protected:
   llvm::StructType *selfType;
   llvm::Type *getTypeByBitwidth(int bitWidth);
   void constructStruct(YulContractNode &node);
+
+  // external call context
+  /**
+   * context for external call
+   * struct extCallCtx{
+   *  llvm::Value *gas,
+   *  llvm::Value *address,
+   *  llvm::Value *value,
+   *  llvm::Value *buffer,
+   *  llvm::Value *retLen
+   * }
+   *
+   */
+  llvm::StructType *extCallCtxType;
+  void constructExtCallCtxType();
 
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
@@ -84,6 +100,9 @@ public:
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
   llvm::GlobalVariable *getSelf() const;
   llvm::StructType *getSelfType() const;
+  llvm::StructType *getExtCallCtxType();
+  llvm::SmallVector<llvm::Value *>
+  getLLVMValueVector(llvm::ArrayRef<int> rawIndices);
 
   std::stack<std::tuple<llvm::BasicBlock *, llvm::BasicBlock *>>
       loopControlFlowBlocks;

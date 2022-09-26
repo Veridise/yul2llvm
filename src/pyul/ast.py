@@ -46,8 +46,28 @@ class YulNode(object):
     def is_fun_def(self) -> bool:
         return self.type == 'yul_function_definition'
 
+    def is_block(self) -> bool:
+        return self.type == 'yul_block'
+
     def is_fun_call(self) -> bool:
         return self.type == 'yul_function_call'
+
+    def is_var_decl(self) -> bool:
+        return self.type == 'yul_variable_declaration'
+
+    def get_decl_var_name(self) -> str:
+        assert(self.type == 'yul_variable_declaration')
+        child = self.children[0]
+        assert(child.type == 'yul_typed_identifier_list')
+        child = child.children[0]
+        assert(child.type == 'yul_identifier')
+        return child.children[0].obj
+    
+    def is_var_decl_with_name(self, name) -> bool:
+        return self.is_var_decl() and self.get_decl_var_name() == name
+    
+    def is_fun_call_and_name(self, name) -> bool:
+        return self.is_fun_call() and self.get_fun_name() == name
     
     def set_fun_call_name(self, name):
         assert(self.type == 'yul_function_call')
@@ -89,25 +109,26 @@ def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[
     if isinstance(root, dict):
         root = YulNode(root)
 
-    to_visit = [root]
+    # Sentinal marks the stack in to_visit nodes
     sentinal = YulNode({'type':'sentinal', 'children':[]})
+    to_visit = [root]
     while to_visit:
         # Pass parents to the callback
         obj = to_visit.pop()
-        while(obj == sentinal and len(to_visit)>0):
-            obj = to_visit.pop()
-            parents.pop()
-        parents.append(obj)
+        if(obj == sentinal):
+            if(len(parents)>0):
+                parents.pop()
+                continue
+        if len(obj.children) > 0:
+            parents.append(obj)
+            to_visit.append(sentinal)
+
         should_recurse = callback(obj, parents)
         if should_recurse is None or should_recurse:
             for child in obj.children:
                 # FIXME: don't add the literal values as children...
                 if isinstance(child.obj, dict):
                     to_visit.append(child)
-            if(len(obj.children)>0):
-                to_visit.append(sentinal)
-        
-        
 
 
 def create_yul_node(type: str,

@@ -1,4 +1,5 @@
 #pragma once
+#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <libYulAST/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/Attributes.h>
 using namespace yulast;
@@ -6,8 +7,10 @@ class FunctionDeclaratorVisitor : public YulASTVisitorBase {
 public:
   llvm::LLVMContext &TheContext;
   llvm::Module &TheModule;
+  YulIntrinsicHelper &intrinsicHelper;
 
-  FunctionDeclaratorVisitor(llvm::LLVMContext &c, llvm::Module &m);
+  FunctionDeclaratorVisitor(llvm::LLVMContext &c, llvm::Module &m,
+                            YulIntrinsicHelper &ih);
   virtual void visitYulContractNode(YulContractNode &node) override;
 
   virtual void

@@ -1,8 +1,9 @@
 #include <iostream>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 
-YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v)
-    : visitor(v), intrinsicEmitter(v) {}
+YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v,
+                                                         YulIntrinsicHelper &ih)
+    : visitor(v), intrinsicEmitter(ih) {}
 
 void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     YulFunctionDefinitionNode &node, llvm::Function *F) {
@@ -35,6 +36,9 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
 void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   llvm::Function *F;
+  if (intrinsicEmitter.skipDefinition(node.getName())) {
+    return;
+  }
   F = visitor.getModule().getFunction(node.getName());
   assert(F && "Function not defined in declarator pass");
   visitor.currentFunction = F;
@@ -56,5 +60,6 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   }
   visitor.getFPM().run(*F);
   intrinsicEmitter.rewriteIntrinsics(F);
+  visitor.getFPM().run(*F);
   visitor.currentFunction = nullptr;
 }

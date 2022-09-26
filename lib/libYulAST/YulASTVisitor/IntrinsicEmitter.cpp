@@ -1,12 +1,14 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 
-bool YulIntrinsicHelper::isFunctionCallIntrinsic(std::string calleeName) {
+bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
   if (calleeName == "checked_add_t_uint256") {
     return true;
   } else if (calleeName == "mstore") {
     return true;
   } else if (calleeName == "add") {
+    return true;
+  } else if (calleeName == "sub") {
     return true;
   } else if (calleeName == "shl") {
     return true;
@@ -14,6 +16,17 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(std::string calleeName) {
     return true;
   }
   return false;
+}
+
+bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
+  if (calleeName.startswith("abi_encode_")) {
+    return true;
+  } else if (calleeName.startswith("abi_decode_tuple_")) {
+    return true;
+  } else if (calleeName.startswith("finalize_allocation")) {
+    return true;
+  } else
+    return false;
 }
 
 llvm::Value *
@@ -25,6 +38,8 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleMStoreFunctionCall(node);
   } else if (!calleeName.compare("add")) {
     return handleAddFunctionCall(node);
+  } else if (!calleeName.compare("sub")) {
+    return handleSubFunctionCall(node);
   } else if (!calleeName.compare("shl")) {
     return handleShl(node);
   } else if (calleeName == "allocate_unbounded") {
@@ -37,7 +52,7 @@ llvm::Value *
 YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
   return visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
-      llvm::Type::getInt64Ty(visitor.getContext()));
+      llvm::Type::getIntNTy(visitor.getContext(), 256));
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
   auto &builder = visitor.getBuilder();
@@ -54,6 +69,15 @@ YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
   return Builder.CreateAdd(v1, v2);
+}
+
+llvm::Value *
+YulIntrinsicHelper::handleSubFunctionCall(YulFunctionCallNode &node) {
+  llvm::IRBuilder<> &Builder = visitor.getBuilder();
+  llvm::Value *v1, *v2;
+  v1 = visitor.visit(*node.getArgs()[0]);
+  v2 = visitor.visit(*node.getArgs()[1]);
+  return Builder.CreateSub(v1, v2);
 }
 
 llvm::Value *

@@ -17,42 +17,53 @@ collectCalls(llvm::Function *enclosingFunction) {
 }
 
 llvm::Value *getAddress(llvm::Value *);
-llvm::Value *getSelector(llvm::Value *, LLVMCodegenVisitor &v);
-llvm::Value *getCallArgs(llvm::Value *);
+std::string getSelector(llvm::Value *);
+llvm::SmallVector<llvm::Value *> getCallArgs(llvm::Value *);
+llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
+                           llvm::Value *address, llvm::Value *value,
+                           llvm::Value *retBuffer, llvm::Value *retLen,
+                           LLVMCodegenVisitor &v, llvm::IRBuilder<> &);
 /**
- * @brief The let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5, 32) yul statement
- * is going to be rewritten into call
- * fun_<selector>(self, args)
- * 
- * The gas and the value is going to go into a call-info struct in the self struct.
- * 
- * @param callInst 
+ * @brief The let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5,
+ * 32) yul statement is going to be rewritten into call fun_<selector>(self,
+ * args)
+ *
+ * The gas and the value is going to go into a call-info struct in the self
+ * struct.
+ *
+ * @param callInst
  */
 void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
-  //let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5, 32)
-  assert(callInst->getNumArgOperands() == 7 && "Wrong number of args to call intrinsic");
-  llvm::Value *gas, *addr, *value, *callArgs, *argLen, *retBuffer, *retLen;
-  llvm::Value *selector;
+  // let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5, 32)
+  assert(callInst->getNumArgOperands() == 7 &&
+         "Wrong number of args to call intrinsic");
+  llvm::Value *gas, *addr, *value, *argLen, *retBuffer, *retLen;
+  std::string selector;
+  llvm::SmallVector<llvm::Value *> callArgs;
   gas = callInst->getArgOperand(0);
-  value = callInst->getArgOperand(2);
   addr = getAddress(callInst->getArgOperand(1));
-  selector = getSelector(callInst->getArgOperand(3), visitor);
-  callArgs = callInst->getArgOperand(4);
-  llvm::SmallVector<llvm::Value*> args;
+  value = callInst->getArgOperand(2);
+  selector = getSelector(callInst->getArgOperand(3));
+  callArgs = getCallArgs(callInst->getArgOperand(4));
+  retBuffer = callInst->getArgOperand(5);
+  retLen = callInst->getArgOperand(6);
+
+  llvm::IRBuilder<> builder(visitor.getContext());
+  builder.SetInsertPoint(callInst);
+  llvm::Value *extCallCtx = getExtCallCtx(selector, gas, addr, value, retBuffer,
+                                          retLen, visitor, builder);
+
+  llvm::SmallVector<llvm::Value *> args;
   args.push_back(visitor.getSelf());
-  args.push_back(addr);
-  args.push_back(selector);
-  llvm::SmallVector<llvm::Type*> argtyps = getFunctionArgTypes("ex", args);
+  args.push_back(extCallCtx);
+  args.append(callArgs);
+  llvm::SmallVector<llvm::Type *> argtyps = getFunctionArgTypes("ext", args);
   llvm::FunctionType *callFT = llvm::FunctionType::get(
-                              llvm::Type::getIntNTy(visitor.getContext(), 256), 
-                              argtyps, 
-                              true);
-  llvm::Function *callF = getOrCreateFunction("selector_call", callFT);
-  
+      llvm::Type::getIntNTy(visitor.getContext(), 256), argtyps, false);
+  llvm::Function *callF = getOrCreateFunction("ext_fun_" + selector, callFT);
 
   llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");
   llvm::ReplaceInstWithInst(callInst, newCall);
-
 }
 
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
@@ -152,8 +163,7 @@ void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
     } else if (c->getCalledFunction()->getName() ==
                "__pyul_storage_var_dynamic_load") {
       rewriteStorageDynamicLoadIntrinsic(c);
-    } else if (c->getCalledFunction()->getName() ==
-               "call") {
+    } else if (c->getCalledFunction()->getName() == "call") {
       rewriteCallIntrinsic(c);
     }
   }

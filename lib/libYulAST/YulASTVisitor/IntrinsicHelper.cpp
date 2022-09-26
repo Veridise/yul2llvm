@@ -50,7 +50,7 @@ YulIntrinsicHelper::getFunctionType(YulFunctionCallNode &node,
   return llvm::FunctionType::get(retType, funcArgTypes, false);
 }
 
-llvm::Type *YulIntrinsicHelper::getReturnType(std::string calleeName) {
+llvm::Type *YulIntrinsicHelper::getReturnType(llvm::StringRef calleeName) {
   if (calleeName == "revert")
     return llvm::Type::getVoidTy(visitor.getContext());
   else if (calleeName == "__pyul_map_index")
@@ -59,6 +59,8 @@ llvm::Type *YulIntrinsicHelper::getReturnType(std::string calleeName) {
     return llvm::Type::getVoidTy(visitor.getContext());
   else if (calleeName == "__pyul_storage_var_dynamic_load")
     return llvm::Type::getIntNTy(visitor.getContext(), 256);
+  else if (calleeName.startswith("abi_encode_"))
+    return llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
   return llvm::Type::getIntNTy(visitor.getContext(), 256);
 }
 

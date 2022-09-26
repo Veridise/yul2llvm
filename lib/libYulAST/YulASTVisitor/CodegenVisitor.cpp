@@ -25,20 +25,24 @@ void LLVMCodegenVisitor::connectToBasicBlock(llvm::BasicBlock *nextBlock) {
   }
 }
 
-LLVMCodegenVisitor::LLVMCodegenVisitor() {
+LLVMCodegenVisitor::LLVMCodegenVisitor() : intrinsicHelper(*this) {
   // LLVM functions and datastructures
   TheContext = std::make_unique<llvm::LLVMContext>();
   TheModule = std::make_unique<llvm::Module>("yul", *TheContext);
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  funCallHelper = std::make_unique<YulFunctionCallHelper>(*this);
-  funDefHelper = std::make_unique<YulFunctionDefinitionHelper>(*this);
+  constructExtCallCtxType();
+  funCallHelper =
+      std::make_unique<YulFunctionCallHelper>(*this, intrinsicHelper);
+  funDefHelper =
+      std::make_unique<YulFunctionDefinitionHelper>(*this, intrinsicHelper);
   FPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
   FPM->add(llvm::createLoopSimplifyPass());
   FPM->add(llvm::createPromoteMemoryToRegisterPass());
 }
 
 void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
-  FunctionDeclaratorVisitor declVisitor(*TheContext, *TheModule);
+  FunctionDeclaratorVisitor declVisitor(*TheContext, *TheModule,
+                                        intrinsicHelper);
   declVisitor.visit(node);
 }
 
@@ -321,6 +325,33 @@ llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
    */
   assert(bitWidth == 256);
   return llvm::Type::getIntNTy(*TheContext, bitWidth);
+}
+
+llvm::SmallVector<llvm::Value *>
+LLVMCodegenVisitor::getLLVMValueVector(llvm::ArrayRef<int> rawIndices) {
+  llvm::SmallVector<llvm::Value *> indices;
+  for (int i : rawIndices) {
+    indices.push_back(
+        llvm::ConstantInt::get(*TheContext, llvm::APInt(32, i, false)));
+  }
+  return indices;
+}
+
+void LLVMCodegenVisitor::constructExtCallCtxType() {
+  llvm::Type *int256Type = llvm::Type::getIntNTy(*TheContext, 256);
+  llvm::SmallVector<llvm::Type *> types;
+  types.push_back(int256Type); // gas
+  types.push_back(int256Type); // addr
+  types.push_back(int256Type); // value
+  types.push_back(
+      llvm::Type::getIntNPtrTy(*TheContext, 256)); // Location for return data
+  types.push_back(int256Type);                     // ret len success
+  extCallCtxType =
+      llvm::StructType::create(*TheContext, types, "ExtCallContextType");
+}
+
+llvm::StructType *LLVMCodegenVisitor::getExtCallCtxType() {
+  return extCallCtxType;
 }
 
 void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {

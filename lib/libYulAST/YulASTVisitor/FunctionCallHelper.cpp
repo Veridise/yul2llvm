@@ -1,7 +1,8 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
-YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v)
-    : visitor(v), intrinsicEmitter(v) {}
+YulFunctionCallHelper::YulFunctionCallHelper(LLVMCodegenVisitor &v,
+                                             YulIntrinsicHelper &ih)
+    : visitor(v), intrinsicEmitter(ih) {}
 
 llvm::Function *YulFunctionCallHelper::createPrototype(
     YulFunctionCallNode &node,

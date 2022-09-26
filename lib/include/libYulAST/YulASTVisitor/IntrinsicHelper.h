@@ -12,12 +12,13 @@ class YulIntrinsicHelper {
 
 public:
   // Helpers
-  bool isFunctionCallIntrinsic(std::string calleeName);
+  bool isFunctionCallIntrinsic(llvm::StringRef calleeName);
+  bool skipDefinition(llvm::StringRef calleeName);
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
   llvm::Value *getPointerToStorageVarByName(std::string);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
-  llvm::Type *getReturnType(std::string);
+  llvm::Type *getReturnType(llvm::StringRef);
   llvm::SmallVector<llvm::Type *>
   getFunctionArgTypes(std::string calleeName,
                       llvm::SmallVector<llvm::Value *> &argsV);
@@ -39,4 +40,5 @@ public:
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
+  llvm::Value *handleSubFunctionCall(YulFunctionCallNode &node);
 };
