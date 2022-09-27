@@ -62,12 +62,70 @@ llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
   return builder.CreateShl(v1, v2);
 }
 
+/**
+ * @brief Contract: The caller confirms that only one of the value is pointer
+ * and other is a primitive type.
+ *
+ * @param v1
+ * @param v2
+ * @return llvm::Value*
+ */
+llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
+                                                  llvm::Value *v2) {
+  llvm::Value *ptr, *primitive;
+  assert(v1->getType()->isPointerTy() != v2->getType()->isPointerTy() &&
+         "Both values are pointer in handlePointerArithmetic");
+  ptr = v1->getType()->isPointerTy() ? v1 : v2;
+  primitive = v1->getType()->isPointerTy() ? v2 : v1;
+  llvm::SmallVector<llvm::Value *> index;
+  index.push_back(primitive);
+  // llvm::ArrayType *arrayfied = llvm::ArrayType::get(ptr->getType(),0);
+  return visitor.getBuilder().CreateGEP(primitive->getType(), ptr, index, "");
+}
+
+llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
+                                                  llvm::Value *v2) {
+  llvm::Value *ptr, *primitive;
+  // if only one is prmitive
+  if (v1->getType()->isPointerTy() != v2->getType()->isPointerTy()) {
+    ptr = v1->getType()->isPointerTy() ? v1 : v2;
+    primitive = v1->getType()->isPointerTy() ? v2 : v1;
+    assert(primitive->getType()->isIntegerTy() &&
+           "Non integer sub from prmitive");
+    llvm::Value *negated = visitor.getBuilder().CreateMul(
+        primitive,
+        llvm::ConstantInt::get(
+            primitive->getType(),
+            llvm::APInt(-1, primitive->getType()->getIntegerBitWidth())));
+    llvm::SmallVector<llvm::Value *> index;
+    index.push_back(negated);
+    llvm::ArrayType *arrayfied = llvm::ArrayType::get(ptr->getType(), 0);
+    return visitor.getBuilder().CreateGEP(arrayfied, ptr, index, "");
+  } else {
+    llvm::Type *destType = llvm::Type::getIntNTy(
+        visitor.getContext(),
+        visitor.getModule().getDataLayout().getPointerSize());
+    llvm::Value *castedV1 = visitor.getBuilder().CreateCast(
+        llvm::Instruction::CastOps::PtrToInt, v1, destType, "v1");
+    llvm::Value *castedV2 = visitor.getBuilder().CreateCast(
+        llvm::Instruction::CastOps::PtrToInt, v2, destType, "v2");
+    return visitor.getBuilder().CreateSub(castedV1, castedV2);
+  }
+}
+
 llvm::Value *
 YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
   llvm::IRBuilder<> &Builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
+  // Only one is pointer other is a scalar type
+  if (v1->getType()->isPointerTy() != v2->getType()->isPointerTy()) {
+    return handlePointerAdd(v1, v2);
+  } // both values are same type, make sure they are not both pointer type
+  else if (v1->getType()->isPointerTy() && v2->getType()->isPointerTy()) {
+    assert(false && "pointer arithmetic with both pointers");
+  } // both scalars
   return Builder.CreateAdd(v1, v2);
 }
 
@@ -77,6 +135,9 @@ YulIntrinsicHelper::handleSubFunctionCall(YulFunctionCallNode &node) {
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
+  if (v1->getType()->isPointerTy() || v2->getType()->isPointerTy()) {
+    return handlePointerSub(v1, v2);
+  }
   return Builder.CreateSub(v1, v2);
 }
 

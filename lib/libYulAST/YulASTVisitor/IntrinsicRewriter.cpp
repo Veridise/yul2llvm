@@ -37,7 +37,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   // let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5, 32)
   assert(callInst->getNumArgOperands() == 7 &&
          "Wrong number of args to call intrinsic");
-  llvm::Value *gas, *addr, *value, *argLen, *retBuffer, *retLen;
+  llvm::Value *gas, *addr, *value, *retBuffer, *retLen;
   std::string selector;
   llvm::SmallVector<llvm::Value *> callArgs;
   gas = callInst->getArgOperand(0);
