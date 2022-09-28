@@ -3,6 +3,19 @@ using namespace yulast;
 
 // helpers
 
+llvm::StructType *constructExtCallCtxType(llvm::LLVMContext &TheContext) {
+  llvm::Type *int256Type = llvm::Type::getIntNTy(TheContext, 256);
+  llvm::Type *int256PtrType = llvm::Type::getIntNPtrTy(TheContext, 256);
+  llvm::SmallVector<llvm::Type *> types = {
+      int256Type, // gas
+      int256Type, // addr
+      int256Type, // value
+      int256PtrType,
+      int256Type // ret len success
+  };
+  return llvm::StructType::create(TheContext, types, "ExtCallContextType");
+}
+
 bool isUnconditionalTerminator(llvm::Instruction *i) {
   if (!i->isTerminator())
     return false;
@@ -30,7 +43,7 @@ LLVMCodegenVisitor::LLVMCodegenVisitor() : intrinsicHelper(*this) {
   TheContext = std::make_unique<llvm::LLVMContext>();
   TheModule = std::make_unique<llvm::Module>("yul", *TheContext);
   Builder = std::make_unique<llvm::IRBuilder<>>(*TheContext);
-  constructExtCallCtxType();
+  extCallCtxType = constructExtCallCtxType(*TheContext);
   funCallHelper =
       std::make_unique<YulFunctionCallHelper>(*this, intrinsicHelper);
   funDefHelper =
@@ -335,19 +348,6 @@ LLVMCodegenVisitor::getLLVMValueVector(llvm::ArrayRef<int> rawIndices) {
         llvm::ConstantInt::get(*TheContext, llvm::APInt(32, i, false)));
   }
   return indices;
-}
-
-void LLVMCodegenVisitor::constructExtCallCtxType() {
-  llvm::Type *int256Type = llvm::Type::getIntNTy(*TheContext, 256);
-  llvm::SmallVector<llvm::Type *> types;
-  types.push_back(int256Type); // gas
-  types.push_back(int256Type); // addr
-  types.push_back(int256Type); // value
-  types.push_back(
-      llvm::Type::getIntNPtrTy(*TheContext, 256)); // Location for return data
-  types.push_back(int256Type);                     // ret len success
-  extCallCtxType =
-      llvm::StructType::create(*TheContext, types, "ExtCallContextType");
 }
 
 llvm::StructType *LLVMCodegenVisitor::getExtCallCtxType() {

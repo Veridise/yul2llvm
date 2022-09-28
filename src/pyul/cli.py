@@ -207,8 +207,8 @@ def run_preprocess_steps(the_contract:ContractData,
     preprocess.attach_storage_layout(the_contract, logger=logger)
     preprocess.rewrite_map(the_contract, logger=logger)
     preprocess.rewrite_storage_ops(the_contract, logger=logger)
-    preprocess.rewrite_shift_left(the_contract, logger)
-    preprocess.rewrite_call_inst(the_contract, logger)
+    preprocess.rewrite_shift_left(the_contract, logger=logger)
+    preprocess.rewrite_call_inst(the_contract, logger=logger)
 
 def solc_compile(logger, src_path: Path, artifact_dir: Path,
                  project_dir: Path = None):

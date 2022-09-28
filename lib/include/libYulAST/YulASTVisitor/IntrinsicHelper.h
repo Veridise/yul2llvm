@@ -13,7 +13,9 @@ class YulIntrinsicHelper {
 public:
   // Helpers
   bool isFunctionCallIntrinsic(llvm::StringRef calleeName);
-  bool skipDefinition(llvm::StringRef calleeName);
+  bool skipDefinition(
+      llvm::StringRef calleeName); // skip definition of functions that are
+                                   // going to be replaced out
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
   llvm::Value *getPointerToStorageVarByName(std::string);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);

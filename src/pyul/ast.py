@@ -73,8 +73,8 @@ class YulNode(object):
         assert(self.type == 'yul_function_call')
         self.children.obj[0] = name
 
-    def get_yul_identifier_node(id: str):
-        return create_yul_node('yul_identifier', [str])
+    def get_yul_identifier_node(self, id: str):
+        return create_yul_node('yul_identifier', [id])
 
     def get_fun_name(self) -> str:
         # FIXME: this should be part of the object, not its child.
@@ -99,13 +99,13 @@ class YulNode(object):
         
 
 
-def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode], Optional[bool]]):
+def walk_dfs(root: Union[YulNode, dict], callback: Callable[[YulNode, List[YulNode]], Optional[bool]]):
     '''Walk the AST in depth-first order.
 
     :param callback: Callback to invoke on each node. Returns whether the walk
     should recurse into the children.
     '''
-    parents = [YulNode]
+    parents: List[YulNode] = []
     if isinstance(root, dict):
         root = YulNode(root)
 

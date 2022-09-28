@@ -39,7 +39,8 @@ std::string getSelector(llvm::Value *selector) {
   return llvm::formatv("{0:x}", selectorNumber->getZExtValue());
 }
 
-llvm::SmallVector<llvm::Value *> getCallArgs(llvm::Value *encodedArgs) {
+llvm::SmallVector<llvm::Value *>
+decodeArgsAndCleanup(llvm::Value *encodedArgs) {
   llvm::SmallVector<llvm::Value *> args;
   llvm::CallInst *abiEncodeCall = nullptr;
   llvm::SmallVector<llvm::Instruction *> toVisit;
@@ -67,22 +68,35 @@ llvm::SmallVector<llvm::Value *> getCallArgs(llvm::Value *encodedArgs) {
       }
     }
 
-    assert(abiEncodeCall && "abiEncodeCall is not a call instruction");
     if (abiEncodeCall) {
       int numArgs = abiEncodeCall->getNumArgOperands();
       for (int i = 1; i < numArgs; i++)
         args.push_back(abiEncodeCall->getArgOperand(i));
       for (auto &u : abiEncodeCall->operands()) {
         llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(u.get());
-        llvm::Value *val = llvm::dyn_cast<llvm::Value>(u.get());
+        llvm::Value *val = u.get();
         if (inst) {
           auto it = std::find(args.begin(), args.end(), val);
           if (it == args.end())
             toRemove.push_back(inst);
         }
       }
-
+      /**
+       * @brief We enter this code block if and only if we find an abiEncodeCall
+       * we are looking for toRemove conatins all the nodes that we visit while
+       * looking for the abi encode call. Therefore toRemove atleast contains
+       * the abiEncodeCall Instruction. In short, toRemove contains the
+       * instructions used in calculation of ``args'' argument of call.
+       */
       if (toRemove[0]->getNumUses() == 1) {
+        /**
+         * @brief toRemove
+         * At this stage we are only collecting args and the call instruction is
+         * not rewritten. Call itself is an use of the value defined in first
+         * element of toRemove. If it is the only use, remove the instruction
+         * and then cascade the removal into all instructions that dont have any
+         * uses left.
+         */
         toRemove[0]->eraseFromParent();
         toRemove.erase(toRemove.begin());
         for (auto i : toRemove) {

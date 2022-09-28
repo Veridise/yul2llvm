@@ -18,7 +18,7 @@ collectCalls(llvm::Function *enclosingFunction) {
 
 llvm::Value *getAddress(llvm::Value *);
 std::string getSelector(llvm::Value *);
-llvm::SmallVector<llvm::Value *> getCallArgs(llvm::Value *);
+llvm::SmallVector<llvm::Value *> decodeArgsAndCleanup(llvm::Value *);
 llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
                            llvm::Value *address, llvm::Value *value,
                            llvm::Value *retBuffer, llvm::Value *retLen,
@@ -44,7 +44,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   addr = getAddress(callInst->getArgOperand(1));
   value = callInst->getArgOperand(2);
   selector = getSelector(callInst->getArgOperand(3));
-  callArgs = getCallArgs(callInst->getArgOperand(4));
+  callArgs = decodeArgsAndCleanup(callInst->getArgOperand(4));
   retBuffer = callInst->getArgOperand(5);
   retLen = callInst->getArgOperand(6);
 

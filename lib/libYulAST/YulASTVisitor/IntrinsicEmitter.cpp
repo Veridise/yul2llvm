@@ -55,6 +55,8 @@ YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
       llvm::Type::getIntNTy(visitor.getContext(), 256));
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 2 &&
+         "Incorrect number of args in shl instruction handler");
   auto &builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
@@ -73,21 +75,38 @@ llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
 llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
                                                   llvm::Value *v2) {
   llvm::Value *ptr, *primitive;
-  assert(v1->getType()->isPointerTy() != v2->getType()->isPointerTy() &&
+  assert((v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) &&
          "Both values are pointer in handlePointerArithmetic");
   ptr = v1->getType()->isPointerTy() ? v1 : v2;
   primitive = v1->getType()->isPointerTy() ? v2 : v1;
-  llvm::SmallVector<llvm::Value *> index;
-  index.push_back(primitive);
-  // llvm::ArrayType *arrayfied = llvm::ArrayType::get(ptr->getType(),0);
-  return visitor.getBuilder().CreateGEP(primitive->getType(), ptr, index, "");
-}
+  assert(primitive->getType()->isIntegerTy() &&
+         "primitive is not integer in pointer addition");
+  llvm::SmallVector<llvm::Value *> index = {primitive};
+  llvm::Type *bytePtrType = llvm::Type::getInt8PtrTy(visitor.getContext());
+  llvm::ArrayType *arrayfied = llvm::ArrayType::get(bytePtrType, 0);
+  ptr = visitor.getBuilder().CreatePointerCast(ptr, arrayfied->getPointerTo(),
+                                               "ptr1");
+  ptr->print(llvm::outs(), false);
+  llvm::outs() << "\n";
+  arrayfied->print(llvm::outs(), false);
 
+  return visitor.getBuilder().CreateGEP(arrayfied, ptr, index, "asfd");
+}
+/**
+ * @brief Here the contract is that atleast one of the argument is
+ * pointer type. This function handles two cases seperately
+ * 1. If only one is pointer
+ * 2. If both are pointers
+ *
+ * @param v1
+ * @param v2
+ * @return llvm::Value*
+ */
 llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
                                                   llvm::Value *v2) {
   llvm::Value *ptr, *primitive;
   // if only one is prmitive
-  if (v1->getType()->isPointerTy() != v2->getType()->isPointerTy()) {
+  if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {
     ptr = v1->getType()->isPointerTy() ? v1 : v2;
     primitive = v1->getType()->isPointerTy() ? v2 : v1;
     assert(primitive->getType()->isIntegerTy() &&
@@ -97,11 +116,10 @@ llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
         llvm::ConstantInt::get(
             primitive->getType(),
             llvm::APInt(-1, primitive->getType()->getIntegerBitWidth())));
-    llvm::SmallVector<llvm::Value *> index;
-    index.push_back(negated);
-    llvm::ArrayType *arrayfied = llvm::ArrayType::get(ptr->getType(), 0);
-    return visitor.getBuilder().CreateGEP(arrayfied, ptr, index, "");
+    return handlePointerAdd(ptr, negated);
   } else {
+    assert(v1->getType() == v2->getType() &&
+           "pointer diff between different pointers");
     llvm::Type *destType = llvm::Type::getIntNTy(
         visitor.getContext(),
         visitor.getModule().getDataLayout().getPointerSize());
@@ -120,7 +138,7 @@ YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
   // Only one is pointer other is a scalar type
-  if (v1->getType()->isPointerTy() != v2->getType()->isPointerTy()) {
+  if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {
     return handlePointerAdd(v1, v2);
   } // both values are same type, make sure they are not both pointer type
   else if (v1->getType()->isPointerTy() && v2->getType()->isPointerTy()) {

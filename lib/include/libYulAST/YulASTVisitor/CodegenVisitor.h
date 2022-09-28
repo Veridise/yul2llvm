@@ -13,6 +13,7 @@ class YulFunctionDefinitionHelper;
 #include <llvm/IR/Module.h>
 #include <llvm/Support/Base64.h>
 #include <llvm/Support/SHA1.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Utils.h>
 #include <stack>
 
@@ -47,8 +48,6 @@ protected:
    *
    */
   llvm::StructType *extCallCtxType;
-  void constructExtCallCtxType();
-
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
   void codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *);

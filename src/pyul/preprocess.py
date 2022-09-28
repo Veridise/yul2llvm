@@ -347,7 +347,12 @@ def rewrite_shift_left(contract: ContractData,
     walk_dfs(contract.yul_ast['contract_body'], _rewrite_shift_left)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_shift_left)
     
-
+'''
+In yul, the selector is stored in memory and the pointer to that memory is 
+passed as 5th argument to call. Since selector passes through memory, it is difficult to propagate constant value 
+of selector in cpp component, therefore here,  strategy is to pattern match selector argument and infer rest of them 
+in the cpp component. 
+'''
 def rewrite_call_inst(contract: ContractData,
                         logger: Optional[logging.Logger] = None):
     call_re = re.compile("^call$")
@@ -367,12 +372,14 @@ def rewrite_call_inst(contract: ContractData,
             if(node.is_fun_call_and_name('mstore')):
                 shl_call = node.children[2]
                 if(shl_call.is_fun_call_and_name('shl')):
+                    # second argument to shl is the selector var
                     selector_var = shl_call.children[1].children[0].obj
                     statements.remove(statements[idx])
 
         for s in statements:
             node = YulNode(s)
             if(node.is_var_decl_with_name(selector_var)):
+                # assignment to the var declaraion is the constant value selector
                 return node.children[1].get_literal_value()
 
 
@@ -385,6 +392,7 @@ def rewrite_call_inst(contract: ContractData,
         if(match):
             selector = get_selector(node, parents)
             selector_node = create_yul_number_literal(selector)
+            # 5th (idx = 4) argument to call argument is the function selector
             node.children[4] = selector_node
             
     walk_dfs(contract.yul_ast['contract_body'], _rewrite_call)
