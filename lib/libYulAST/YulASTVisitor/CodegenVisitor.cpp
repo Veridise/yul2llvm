@@ -66,7 +66,7 @@ llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(
                          TheFunction->getEntryBlock().begin());
   if (!type)
     type = llvm::Type::getIntNTy(*TheContext, 256);
-  return TmpB.CreateAlloca(type, 0, VarName.c_str());
+  return TmpB.CreateAlloca(type, 0, VarName);
 }
 
 llvm::GlobalVariable *
