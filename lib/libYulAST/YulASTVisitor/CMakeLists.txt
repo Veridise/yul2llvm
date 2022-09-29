@@ -7,4 +7,5 @@ IntrinsicEmitter.cpp
 FunctionDeclaratorVisitor.cpp
 IntrinsicRewriter.cpp
 IntrinsicHelper.cpp
+CallGenHelpers.cpp
 )

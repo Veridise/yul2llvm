@@ -1,5 +1,5 @@
 from . import ast
-from .ast import ContractData, YulNode, walk_dfs, create_yul_node, create_yul_number_literal
+from .ast import ContractData, YulNode, walk_dfs, create_yul_node, create_yul_number_literal, create_yul_identifier
 import functools
 from typing import List, Dict, Set, Optional, Iterable
 import logging
@@ -23,7 +23,7 @@ def prune_dead_functions(block_node: YulNode, roots: Iterable[str]):
         for n in block_node.children if n.is_fun_def()
     }
 
-    def visit_fun_body(fun_name: str, node: YulNode):
+    def visit_fun_body(fun_name: str, node: YulNode, parents: List[YulNode]):
         if node.is_fun_call():
             name = node.get_fun_name()
             edges[fun_name].append(name)
@@ -103,7 +103,6 @@ def prune_deploy_obj(contract: ContractData,
         logger.debug(f'Main constructor is: {main_ctor}')
 
     cnt_stmts_before = len(blk_node.children)
-    prune_dead_functions(blk_node, {main_ctor})
     cnt_stmts_after = len(blk_node.children)
     if logger:
         logger.debug('Stmt count after removing unreachable functions: '
@@ -161,7 +160,7 @@ def prune_deployed_code(contract: ContractData,
     blk_node.children.underlying.insert(0, new_selector_fun.obj)
 
     # Populate the metadata
-    def walk_selector(node: YulNode):
+    def walk_selector(node: YulNode, parents: List[YulNode]):
         # TODO: store the selector
         if node.type == 'yul_case':
             # FIXME: flatten yul_literal->yul_number_literal->yul_hex_literal
@@ -285,7 +284,7 @@ def rewrite_storage_ops(contract: ContractData,
         if logger:
             logger.debug('Rewrote storage update')    
 
-    def rewrite_storage_ops(node: YulNode) -> bool:
+    def rewrite_storage_ops(node: YulNode, parents: List[YulNode]) -> bool:
         if not node.is_fun_call():
             return True
 
@@ -317,7 +316,7 @@ def rewrite_storage_ops(contract: ContractData,
 def rewrite_map(contract: ContractData,
                         logger: Optional[logging.Logger] = None):
     map_index_re = r'^mapping_index_access_t_mapping(?P<types>.*)'
-    def rewrite_mapping_index(node: YulNode) -> bool:
+    def rewrite_mapping_index(node: YulNode, parents: List[YulNode]) -> bool:
         if not node.is_fun_call():
             return True
         fun_name = node.get_fun_name()
@@ -329,5 +328,72 @@ def rewrite_map(contract: ContractData,
     walk_dfs(contract.yul_ast['contract_body'], rewrite_mapping_index)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], rewrite_mapping_index)
 
+
+def rewrite_shift_left(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    shift_left_re = re.compile(r'^shift_(?P<direction>.*)_(?P<amount>\d+)$')
+    def _rewrite_shift_left(node:YulNode, parents: List[YulNode]):
+        if(not node.is_fun_call()):
+            return True
+        match = shift_left_re.match(node.get_fun_name())
+        if(match):
+            vals = match.groupdict()
+            fun_name = "sh"+vals['direction'][0]
+            node.children.underlying[:] = create_yul_node(node.type, [
+                create_yul_identifier(fun_name), 
+                node.children[1],
+                create_yul_number_literal(vals['amount'])
+            ]).children.underlying
+    walk_dfs(contract.yul_ast['contract_body'], _rewrite_shift_left)
+    walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_shift_left)
     
-    
+'''
+In yul, the selector is stored in memory and the pointer to that memory is 
+passed as 5th argument to call. Since selector passes through memory, it is difficult to propagate constant value 
+of selector in cpp component, therefore here,  strategy is to pattern match selector argument and infer rest of them 
+in the cpp component. 
+'''
+def rewrite_call_inst(contract: ContractData,
+                        logger: Optional[logging.Logger] = None):
+    call_re = re.compile("^call$")
+
+    def get_selector(node: YulNode, parents:List[YulNode]):
+        parents.reverse()
+        child = node
+        for parent in parents:
+            if(parent.is_block()):
+                break
+            child = parent
+        statements = parent.children.underlying
+        idx = statements.index(child.obj)
+        while idx >= 0:
+            idx-=1
+            node = YulNode(statements[idx])
+            if(node.is_fun_call_and_name('mstore')):
+                shl_call = node.children[2]
+                if(shl_call.is_fun_call_and_name('shl')):
+                    # second argument to shl is the selector var
+                    selector_var = shl_call.children[1].children[0].obj
+                    statements.remove(statements[idx])
+
+        for s in statements:
+            node = YulNode(s)
+            if(node.is_var_decl_with_name(selector_var)):
+                # assignment to the var declaraion is the constant value selector
+                return node.children[1].get_literal_value()
+
+
+
+
+    def _rewrite_call(node: YulNode, parents:List[YulNode]):
+        if(not node.is_fun_call()):
+            return True
+        match = call_re.match(node.get_fun_name())
+        if(match):
+            selector = get_selector(node, parents)
+            selector_node = create_yul_number_literal(selector)
+            # 5th (idx = 4) argument to call argument is the function selector
+            node.children[4] = selector_node
+            
+    walk_dfs(contract.yul_ast['contract_body'], _rewrite_call)
+    walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_call)

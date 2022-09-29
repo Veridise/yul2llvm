@@ -7,7 +7,7 @@ class LLVMCodegenVisitor;
 class YulFunctionCallHelper {
   LLVMCodegenVisitor &visitor;
   // Intrinsics
-  YulIntrinsicHelper intrinsicEmitter;
+  YulIntrinsicHelper &intrinsicEmitter;
 
 public:
   llvm::Function *
@@ -17,5 +17,5 @@ public:
   std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>
   buildFunctionAttributes(YulFunctionCallNode &node);
   llvm::Value *visitYulFunctionCallNode(YulFunctionCallNode &node);
-  YulFunctionCallHelper(LLVMCodegenVisitor &visitor);
+  YulFunctionCallHelper(LLVMCodegenVisitor &visitor, YulIntrinsicHelper &ih);
 };

@@ -12,28 +12,36 @@ class YulIntrinsicHelper {
 
 public:
   // Helpers
-  bool isFunctionCallIntrinsic(std::string calleeName);
+  bool isFunctionCallIntrinsic(llvm::StringRef calleeName);
+  bool skipDefinition(
+      llvm::StringRef calleeName); // skip definition of functions that are
+                                   // going to be replaced out
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
   llvm::Value *getPointerToStorageVarByName(std::string);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
-  llvm::Type *getReturnType(std::string);
+  llvm::Type *getReturnType(llvm::StringRef);
   llvm::SmallVector<llvm::Type *>
   getFunctionArgTypes(std::string calleeName,
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
 
-  // Emit storage store intrinsics
+  // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
   llvm::Value *handleMStoreFunctionCall(YulFunctionCallNode &node);
-
+  llvm::Value *handleShl(YulFunctionCallNode &node);
+  llvm::Value *handleAllocateUnbounded(YulFunctionCallNode &node);
+  llvm::Value *handlePointerAdd(llvm::Value *v1, llvm::Value *v2);
+  llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst);
+  void rewriteCallIntrinsic(llvm::CallInst *callInst);
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
+  llvm::Value *handleSubFunctionCall(YulFunctionCallNode &node);
 };

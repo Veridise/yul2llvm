@@ -1,8 +1,9 @@
 #include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
 #include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
 FunctionDeclaratorVisitor::FunctionDeclaratorVisitor(llvm::LLVMContext &c,
-                                                     llvm::Module &m)
-    : TheContext(c), TheModule(m) {}
+                                                     llvm::Module &m,
+                                                     YulIntrinsicHelper &ih)
+    : TheContext(c), TheModule(m), intrinsicHelper(ih) {}
 
 llvm::Type *
 FunctionDeclaratorVisitor::getReturnType(YulFunctionDefinitionNode &node) {
@@ -41,6 +42,8 @@ void FunctionDeclaratorVisitor::visitYulContractNode(YulContractNode &node) {
 
 void FunctionDeclaratorVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
+  if (intrinsicHelper.skipDefinition(node.getName()))
+    return;
   int numargs = node.hasArgs() ? node.getArgs().size() : 0;
   std::vector<llvm::Type *> funcArgTypes(
       numargs, llvm::Type::getIntNTy(TheContext, 256));

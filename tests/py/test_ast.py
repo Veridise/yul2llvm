@@ -17,7 +17,7 @@ def test_walk_dfs():
 
     fun_names = []
 
-    def visit_defs(node: YulNode) -> bool:
+    def visit_defs(node: YulNode, parents) -> bool:
         if node.is_fun_def():
             fun_names.append(node.obj['children'][0]['children'][0])
             return False
