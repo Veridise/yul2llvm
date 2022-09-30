@@ -18,17 +18,6 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
   return false;
 }
 
-bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
-  if (calleeName.startswith("abi_encode_")) {
-    return true;
-  } else if (calleeName.startswith("abi_decode_tuple_")) {
-    return true;
-  } else if (calleeName.startswith("finalize_allocation")) {
-    return true;
-  } else
-    return false;
-}
-
 llvm::Value *
 YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   std::string calleeName = node.getCalleeName();
@@ -46,6 +35,17 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleAllocateUnbounded(node);
   }
   return nullptr;
+}
+
+bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
+  if (calleeName.startswith("abi_encode_")) {
+    return true;
+  } else if (calleeName.startswith("abi_decode_tuple_")) {
+    return true;
+  } else if (calleeName.startswith("finalize_allocation")) {
+    return true;
+  } else
+    return false;
 }
 
 llvm::Value *
@@ -83,8 +83,7 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
          "primitive is not integer in pointer addition");
   llvm::Type *bytePtrType = llvm::Type::getInt8PtrTy(visitor.getContext());
   llvm::ArrayType *arrayfiedType = llvm::ArrayType::get(bytePtrType, 0);
-  // This cast is required because
-  ptr->print(llvm::outs(), false);
+  // This cast is required because we GEP needs a container type
   ptr = visitor.getBuilder().CreatePointerCast(
       ptr, arrayfiedType->getPointerTo(), "arr_" + ptr->getName());
   llvm::SmallVector<llvm::Value *> index = {primitive};

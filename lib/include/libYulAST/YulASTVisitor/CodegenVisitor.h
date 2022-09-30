@@ -30,10 +30,9 @@ protected:
   llvm::StringMap<std::string> stringLiteralNames;
 
   // data structures for self
-  llvm::GlobalVariable *self;
   llvm::StructType *selfType;
   llvm::Type *getTypeByBitwidth(int bitWidth);
-  void constructStruct(YulContractNode &node);
+  void constructStructType(YulContractNode &node);
 
   // external call context
   /**
@@ -60,6 +59,8 @@ protected:
 public:
   YulContractNode *currentContract;
   llvm::Function *currentFunction;
+  llvm::StringMap<llvm::Function *> definedFunctions;
+
   virtual void visitYulAssignmentNode(YulAssignmentNode &) override;
   virtual void visitYulBlockNode(YulBlockNode &) override;
   virtual void visitYulBreakNode(YulBreakNode &) override;
@@ -97,11 +98,13 @@ public:
   llvm::LLVMContext &getContext();
   llvm::legacy::FunctionPassManager &getFPM();
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
-  llvm::GlobalVariable *getSelf() const;
+  llvm::Value *getSelf() const;
   llvm::StructType *getSelfType() const;
   llvm::StructType *getExtCallCtxType();
   llvm::SmallVector<llvm::Value *>
   getLLVMValueVector(llvm::ArrayRef<int> rawIndices);
+
+  llvm::Value *getSelfArg() const;
 
   std::stack<std::tuple<llvm::BasicBlock *, llvm::BasicBlock *>>
       loopControlFlowBlocks;

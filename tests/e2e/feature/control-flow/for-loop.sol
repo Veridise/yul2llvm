@@ -14,7 +14,7 @@ contract ForLoopTestContract {
     }
 }
 
-//CHECK: define {{.* @fun_loop_.*}}
+//CHECK: define {{.* @fun_loop_.*\(i256\*\ %.*\)}}
 //CHECK: for-cond
 //CHECK: for-body
 //CHECK: for-incr

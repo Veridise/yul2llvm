@@ -18,6 +18,6 @@ contract IfThenElseContract {
   }
 }
 
-//CHECK: define {{.* @fun_max_.*}}
+//CHECK: define {{.* @fun_max_.*\(i256\* \%.*\)}}
 //CHECK: switch
 //check: case

@@ -15,11 +15,15 @@ FunctionDeclaratorVisitor::getReturnType(YulFunctionDefinitionNode &node) {
   return retType;
 }
 
-std::vector<llvm::Type *> FunctionDeclaratorVisitor::getFunctionArgTypes(
+llvm::SmallVector<llvm::Type *> FunctionDeclaratorVisitor::getFunctionArgTypes(
     YulFunctionDefinitionNode &node) {
-  int numargs = node.getArgs().size();
-  std::vector<llvm::Type *> funcArgTypes(
+  int numargs = node.getNumArgs();
+  // make first arg as self arg
+  llvm::SmallVector<llvm::Type *> funcArgTypes = {
+      llvm::Type::getIntNPtrTy(TheContext, 256)};
+  llvm::SmallVector<llvm::Type *> origArgs(
       numargs, llvm::Type::getIntNTy(TheContext, 256));
+  funcArgTypes.append(origArgs);
   return funcArgTypes;
 }
 
@@ -44,18 +48,18 @@ void FunctionDeclaratorVisitor::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   if (intrinsicHelper.skipDefinition(node.getName()))
     return;
-  int numargs = node.hasArgs() ? node.getArgs().size() : 0;
-  std::vector<llvm::Type *> funcArgTypes(
-      numargs, llvm::Type::getIntNTy(TheContext, 256));
+  llvm::SmallVector<llvm::Type *> funcArgTypes = getFunctionArgTypes(node);
   llvm::Type *retType = getReturnType(node);
   llvm::FunctionType *FT =
       llvm::FunctionType::get(retType, funcArgTypes, false);
 
   llvm::Function *F = llvm::Function::Create(
       FT, llvm::Function::ExternalLinkage, node.getName(), TheModule);
-
   int idx = 0;
-  for (auto &arg : F->args()) {
-    arg.setName(node.getArgs().at(idx++)->getIdentfierValue());
+  // atleast one argument (self) is guranteed to be present
+  F->arg_begin()->setName("__self");
+  for (auto arg = F->arg_begin() + 1; arg != F->arg_end(); arg++) {
+    arg->setName(node.getArgs().at(idx++)->getIdentfierValue());
   }
+  intrinsicHelper.getVisitor().definedFunctions[node.getName()] = F;
 }

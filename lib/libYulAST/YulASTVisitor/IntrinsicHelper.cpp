@@ -23,8 +23,9 @@ YulIntrinsicHelper::getOrCreateFunction(std::string name,
   }
 }
 
-llvm::Value *
-YulIntrinsicHelper::getPointerToStorageVarByName(std::string name) {
+llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
+    std::string name, llvm::Instruction *insertPoint) {
+  llvm::IRBuilder<> tempBuilder(insertPoint);
   auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
   auto typeMap = visitor.currentContract->getTypeMap();
   auto fieldIt =
@@ -32,13 +33,14 @@ YulIntrinsicHelper::getPointerToStorageVarByName(std::string name) {
   assert(fieldIt != structFieldOrder.end());
   int structIndex = fieldIt - structFieldOrder.begin();
   llvm::SmallVector<llvm::Value *> indices;
+  llvm::Value *self = tempBuilder.CreatePointerCast(
+      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo());
   indices.push_back(
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
   indices.push_back(llvm::ConstantInt::get(
       visitor.getContext(), llvm::APInt(32, structIndex, false)));
-  llvm::Value *ptr = visitor.getBuilder().CreateGEP(
-      visitor.getSelfType(), (llvm::Value *)visitor.getSelf(), indices,
-      "ptr_self_" + name);
+  llvm::Value *ptr = tempBuilder.CreateGEP(visitor.getSelfType(), self, indices,
+                                           "ptr_self_" + name);
   return ptr;
 }
 
@@ -85,3 +87,5 @@ llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
   }
   return funcArgTypes;
 }
+
+LLVMCodegenVisitor &YulIntrinsicHelper::getVisitor() { return visitor; }

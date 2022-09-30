@@ -27,5 +27,6 @@ public:
   YulBlockNode &getBody() const;
   bool hasRets() const;
   bool hasArgs() const;
+  int getNumArgs();
 };
 }; // namespace yulast

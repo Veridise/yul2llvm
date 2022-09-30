@@ -123,7 +123,7 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   runFunctionDeclaratorVisitor(node);
-  constructStruct(node);
+  constructStructType(node);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
     visit(*f);
@@ -309,7 +309,7 @@ void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id,
   }
 }
 
-void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
+void LLVMCodegenVisitor::constructStructType(YulContractNode &node) {
   if (node.getStructFieldOrder().size() == 0)
     return;
   std::vector<llvm::Type *> memberTypes;
@@ -325,10 +325,6 @@ void LLVMCodegenVisitor::constructStruct(YulContractNode &node) {
     memberTypes.push_back(type);
   }
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
-  llvm::Constant *init = llvm::Constant::getNullValue(selfType);
-  self = new llvm::GlobalVariable(
-      *TheModule, selfType, false,
-      llvm::GlobalValue::LinkageTypes::ExternalLinkage, init, "__self");
 }
 
 llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
@@ -354,18 +350,22 @@ llvm::StructType *LLVMCodegenVisitor::getExtCallCtxType() {
   return extCallCtxType;
 }
 
+llvm::Value *LLVMCodegenVisitor::getSelfArg() const {
+  assert(currentFunction && "currentFunction null while getting silfArg");
+  return currentFunction->arg_begin();
+}
 void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
   TheModule->print(os, nullptr);
 }
 
 void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
 
-llvm::GlobalVariable *LLVMCodegenVisitor::getSelf() const {
-  assert(self && "Self is accessed but not built yet");
-  return self;
+llvm::Value *LLVMCodegenVisitor::getSelf() const {
+  assert(currentFunction && "currentFunction is null while accessing self");
+  return Builder->CreatePointerCast(getSelfArg(), selfType->getPointerTo());
 }
 llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
-  assert(self && "SelfTypeis accessed but not built yet");
+  assert(selfType && "SelfTypeis accessed but not built yet");
   return selfType;
 }
 
