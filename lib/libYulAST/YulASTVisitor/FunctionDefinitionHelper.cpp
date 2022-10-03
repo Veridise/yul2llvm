@@ -19,9 +19,14 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     }
   }
 
+  bool selfArgVisited = false;
   for (auto &f : F->args()) {
-    visitor.getBuilder().CreateStore(
-        &f, visitor.getNamedValuesMap()[f.getName().str()]);
+    if (!selfArgVisited) {
+      selfArgVisited = true; // skip self arg
+    } else {
+      visitor.getBuilder().CreateStore(
+          &f, visitor.getNamedValuesMap()[f.getName().str()]);
+    }
   }
 
   if (node.hasRets()) {

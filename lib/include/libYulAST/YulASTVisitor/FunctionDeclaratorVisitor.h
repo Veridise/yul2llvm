@@ -18,7 +18,7 @@ public:
 
   llvm::Type *getReturnType(YulFunctionDefinitionNode &node);
 
-  std::vector<llvm::Type *>
+  llvm::SmallVector<llvm::Type *>
   getFunctionArgTypes(YulFunctionDefinitionNode &node);
 
   std::unique_ptr<llvm::SmallVector<llvm::Attribute::AttrKind>>

@@ -20,7 +20,7 @@ contract WhileTestContract {
     
 }
 
-// CHECK: define {{.*@fun_loop_.*\(\)}}
+// CHECK: define {{.*@fun_loop_.*\(.*\)}}
 // CHECK: for-cond
 // CHECK: for-body
 // CHECK: for-incr

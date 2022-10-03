@@ -14,4 +14,4 @@ contract OverloadingTestContract {
     }
 }
 
-//CHECK: define {{.* @fun_loop_.*}}
+//CHECK: define {{.* @fun_loop_.*\(i256\*\ %.*\)}}

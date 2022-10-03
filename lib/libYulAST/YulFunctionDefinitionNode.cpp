@@ -66,3 +66,7 @@ bool YulFunctionDefinitionNode::hasRets() const { return rets != nullptr; }
 bool YulFunctionDefinitionNode::hasArgs() const { return args != nullptr; }
 
 YulBlockNode &YulFunctionDefinitionNode::getBody() const { return *body; }
+
+int YulFunctionDefinitionNode::getNumArgs() {
+  return hasArgs() ? getArgs().size() : 0;
+}

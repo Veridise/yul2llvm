@@ -36,12 +36,18 @@ YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
     return intrinsicEmitter.handleIntrinsicFunctionCall(node);
   }
   llvm::SmallVector<llvm::Value *> ArgsV;
-
+  auto functionIt = visitor.definedFunctions.find(node.getCalleeName());
+  if (functionIt != visitor.definedFunctions.end()) {
+    // Add self only to functions that are defined in this contract,
+    // not to functions representing evm opcodes and external functions
+    ArgsV.push_back(visitor.getSelfArg());
+  }
   for (auto &a : node.getArgs()) {
     llvm::Value *lv = visitor.visit(*a);
     assert(lv != nullptr && "null value argument to a function call");
     ArgsV.push_back(lv);
   }
+
   F = visitor.getModule().getFunction(node.getCalleeName());
   if (!F) {
     auto attrList = buildFunctionAttributes(node);

@@ -17,7 +17,8 @@ public:
       llvm::StringRef calleeName); // skip definition of functions that are
                                    // going to be replaced out
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
-  llvm::Value *getPointerToStorageVarByName(std::string);
+  llvm::Value *getPointerToStorageVarByName(std::string,
+                                            llvm::Instruction *insertPoint);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);
@@ -44,4 +45,6 @@ public:
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
   llvm::Value *handleSubFunctionCall(YulFunctionCallNode &node);
+
+  LLVMCodegenVisitor &getVisitor();
 };

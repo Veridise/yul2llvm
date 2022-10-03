@@ -18,17 +18,6 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
   return false;
 }
 
-bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
-  if (calleeName.startswith("abi_encode_")) {
-    return true;
-  } else if (calleeName.startswith("abi_decode_tuple_")) {
-    return true;
-  } else if (calleeName.startswith("finalize_allocation")) {
-    return true;
-  } else
-    return false;
-}
-
 llvm::Value *
 YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   std::string calleeName = node.getCalleeName();
@@ -46,6 +35,17 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleAllocateUnbounded(node);
   }
   return nullptr;
+}
+
+bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
+  if (calleeName.startswith("abi_encode_")) {
+    return true;
+  } else if (calleeName.startswith("abi_decode_tuple_")) {
+    return true;
+  } else if (calleeName.startswith("finalize_allocation")) {
+    return true;
+  } else
+    return false;
 }
 
 llvm::Value *
@@ -81,16 +81,15 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
   primitive = v1->getType()->isPointerTy() ? v2 : v1;
   assert(primitive->getType()->isIntegerTy() &&
          "primitive is not integer in pointer addition");
-  llvm::SmallVector<llvm::Value *> index = {primitive};
   llvm::Type *bytePtrType = llvm::Type::getInt8PtrTy(visitor.getContext());
-  llvm::ArrayType *arrayfied = llvm::ArrayType::get(bytePtrType, 0);
-  ptr = visitor.getBuilder().CreatePointerCast(ptr, arrayfied->getPointerTo(),
-                                               "ptr1");
-  ptr->print(llvm::outs(), false);
-  llvm::outs() << "\n";
-  arrayfied->print(llvm::outs(), false);
-
-  return visitor.getBuilder().CreateGEP(arrayfied, ptr, index, "asfd");
+  llvm::ArrayType *arrayfiedType = llvm::ArrayType::get(bytePtrType, 0);
+  // This cast is required because we GEP needs a container type
+  ptr = visitor.getBuilder().CreatePointerCast(
+      ptr, arrayfiedType->getPointerTo(), "arr_" + ptr->getName());
+  llvm::SmallVector<llvm::Value *> index = {primitive};
+  return visitor.getBuilder().CreateGEP(arrayfiedType, ptr, index,
+                                        ptr->getName() + "[" +
+                                            primitive->getName() + "]");
 }
 /**
  * @brief Here the contract is that atleast one of the argument is
@@ -104,6 +103,8 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
  */
 llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
                                                   llvm::Value *v2) {
+  assert(v1->getType()->isPointerTy() ||
+         v2->getType()->isPointerTy() && "Both values are not pointers");
   llvm::Value *ptr, *primitive;
   // if only one is prmitive
   if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {

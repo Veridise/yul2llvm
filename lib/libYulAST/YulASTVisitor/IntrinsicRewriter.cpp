@@ -77,7 +77,7 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   if (offset) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         offset->getZExtValue(), 0);
-    llvm::Value *mapPtr = getPointerToStorageVarByName(varname);
+    llvm::Value *mapPtr = getPointerToStorageVarByName(varname, callInst);
     llvm::Value *key = callInst->getArgOperand(1);
     llvm::SmallVector<llvm::Value *> args;
     args.push_back(mapPtr);
@@ -106,7 +106,7 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
 
-    llvm::Value *ptr = getPointerToStorageVarByName(varname);
+    llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
     int bitWidth = std::get<1>(visitor.currentContract->getTypeMap()[varname]);
     llvm::Type *loadType =
         llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
@@ -137,7 +137,7 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
 
-    llvm::Value *ptr = getPointerToStorageVarByName(varname);
+    llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
     llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
         storeValue->getType());
     auto newInst = new llvm::StoreInst(storeValue, ptr, false, align);
