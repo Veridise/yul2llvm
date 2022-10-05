@@ -98,7 +98,6 @@ public:
   llvm::LLVMContext &getContext();
   llvm::legacy::FunctionPassManager &getFPM();
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
-  llvm::Value *getSelf() const;
   llvm::StructType *getSelfType() const;
   llvm::StructType *getExtCallCtxType();
   llvm::SmallVector<llvm::Value *>

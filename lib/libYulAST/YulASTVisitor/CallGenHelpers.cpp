@@ -55,10 +55,7 @@ decodeArgsAndCleanup(llvm::Value *encodedArgs) {
           return false;
         auto name = callInst->getName();
         std::string encoderFunctionPrefix = "abi_encode_";
-        if (name.startswith(encoderFunctionPrefix))
-          return true;
-        else
-          return false;
+        return name.startswith(encoderFunctionPrefix);
       };
   if (sub) {
     abiEncodeCall = searchInstInDefs<llvm::CallInst>(sub, test);
@@ -66,13 +63,6 @@ decodeArgsAndCleanup(llvm::Value *encodedArgs) {
       int numArgs = abiEncodeCall->getNumArgOperands();
       for (int i = 1; i < numArgs; i++)
         args.push_back(abiEncodeCall->getArgOperand(i));
-      /**
-       * @brief We enter this code block if and only if we find an abiEncodeCall
-       * we are looking for toRemove conatins all the nodes that we visit while
-       * looking for the abi encode call. Therefore toRemove atleast contains
-       * the abiEncodeCall Instruction. 
-       */
-      removeInstChains(sub);
     } else {
       assert(false && "Did not find abi_encode funciton");
     }
@@ -118,4 +108,11 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
                                  "retLenPtr");
   builder.CreateStore(retLen, elementPtr);
   return ptrExtCallCtx;
+}
+
+void removeOldCallArgs(llvm::CallInst *callInst){
+  if(auto inst = llvm::dyn_cast<llvm::Instruction>(callInst->getArgOperand(4))){
+    if(inst->getNumUses() == 1)
+      removeInstChains(inst);
+  }
 }

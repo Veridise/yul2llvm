@@ -360,12 +360,6 @@ void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
 
 void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
 
-llvm::Value *LLVMCodegenVisitor::getSelf() const {
-  llvm::IRBuilder<> TmpB(&currentFunction->getEntryBlock(),
-                         currentFunction->getEntryBlock().begin());
-  assert(currentFunction && "currentFunction is null while accessing self");
-  return TmpB.CreatePointerCast(getSelfArg(), selfType->getPointerTo());
-}
 llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
   assert(selfType && "SelfTypeis accessed but not built yet");
   return selfType;

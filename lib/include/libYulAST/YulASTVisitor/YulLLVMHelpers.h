@@ -1,5 +1,6 @@
 #pragma once
 #include <llvm/IR/Function.h>
+#include <deque>
 
 template<class SearchInstType, typename Test>
 SearchInstType *searchInstInDefs(llvm::Instruction *,Test t);
@@ -23,9 +24,6 @@ SearchInstType *searchInstInDefs(llvm::Instruction *i, Test test){
     toVisit.push_back(i);
     while (!toVisit.empty()) {
       llvm::Instruction *x = toVisit.pop_back_val();
-      //@technius This seems like a redudant cast, as the lambda is also casting
-      // is this okay or can we micro optimize this further?
-
       auto currentInst = llvm::dyn_cast<SearchInstType>(x);
       if (currentInst && test(currentInst)) {
         return currentInst;
@@ -37,12 +35,5 @@ SearchInstType *searchInstInDefs(llvm::Instruction *i, Test test){
       }
     }
     return nullptr;
-}
-
-template<typename ElemType> 
-ElemType pop_front(llvm::SmallVector<ElemType> &v){
-    ElemType ret = v[0];
-    v.erase(v.begin()); 
-    return ret;
 }
 void removeInstChains(llvm::Instruction *);

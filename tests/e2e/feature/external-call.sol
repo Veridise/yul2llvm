@@ -18,4 +18,4 @@ contract CalleeContract{
 }
 
 //CHECK: define i256 @fun_add_
-//CHECK: {{call i256 @ext_fun_.*\(\%.*\)}}
+//CHECK: {{call i256 @ext_fun_.*\(i256\*.*\)}}
