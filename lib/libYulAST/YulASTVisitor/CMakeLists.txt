@@ -8,4 +8,5 @@ FunctionDeclaratorVisitor.cpp
 IntrinsicRewriter.cpp
 IntrinsicHelper.cpp
 CallGenHelpers.cpp
+YulLLVMHelpers.cpp
 )
