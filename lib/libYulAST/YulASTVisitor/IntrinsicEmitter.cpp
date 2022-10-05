@@ -14,7 +14,9 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "allocate_unbounded") {
     return true;
-  }
+  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+    return true;
+  } 
   return false;
 }
 
@@ -33,9 +35,12 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleShl(node);
   } else if (calleeName == "allocate_unbounded") {
     return handleAllocateUnbounded(node);
+  } else if (llvm::StringRef(calleeName).startswith("memory_array_index_access_t_array")) {
+    return handleArrayIndexAccess(node);
   }
   return nullptr;
 }
+
 
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
@@ -44,9 +49,37 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
+  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+    return true;
+  } else if (calleeName.startswith("read_from_memory")) {
+    return true;
+  } else if (calleeName.startswith("write_to_memory")) {
+    return true;
+  } else if (calleeName.startswith("allocate_memory")) {
+    return true;
   } else
     return false;
 }
+
+llvm::Value *YulIntrinsicHelper::handleArrayIndexAccess(YulFunctionCallNode &node){
+  assert(node.getArgs().size() == 2 && "Wrong number of arguments in memory_array_index_access");
+  auto &builder = visitor.getBuilder();
+  llvm::ArrayType *arrayType = llvm::ArrayType::get(llvm::Type::getIntNTy(visitor.getContext(), 256), 0);
+  llvm::Value *array = visitor.visit(*node.getArgs()[0]);
+  llvm::Value *idx = visitor.visit(*node.getArgs()[1]);
+  auto pointerFied = builder.CreateCast(llvm::Instruction::CastOps::IntToPtr, 
+                                        array, llvm::Type::getIntNPtrTy(visitor.getContext(),256), 
+                                        "ptr_"+array->getName());
+  auto castedArray = builder.CreatePointerCast(pointerFied, arrayType->getPointerTo(), 
+                                        "arr_"+array->getName());
+  auto indices = visitor.getLLVMValueVector({0});
+  indices.push_back(idx);
+  visitor.currentFunction->print(llvm::outs());
+  auto elementPtr = builder.CreateGEP(arrayType, castedArray,indices);
+  visitor.getModule().print(llvm::outs(), nullptr);
+  return elementPtr;
+}
+
 
 llvm::Value *
 YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {

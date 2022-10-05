@@ -42,6 +42,7 @@ YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
     // not to functions representing evm opcodes and external functions
     ArgsV.push_back(visitor.getSelfArg());
   }
+  bool selfvisited = false;
   for (auto &a : node.getArgs()) {
     llvm::Value *lv = visitor.visit(*a);
     assert(lv != nullptr && "null value argument to a function call");

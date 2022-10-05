@@ -33,8 +33,11 @@ public:
   llvm::Value *handleMStoreFunctionCall(YulFunctionCallNode &node);
   llvm::Value *handleShl(YulFunctionCallNode &node);
   llvm::Value *handleAllocateUnbounded(YulFunctionCallNode &node);
+  llvm::Value *handleArrayIndexAccess(YulFunctionCallNode &node);
   llvm::Value *handlePointerAdd(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
+  
+
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
