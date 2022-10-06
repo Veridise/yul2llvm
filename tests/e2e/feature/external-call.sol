@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
-// XFAIL: *
 pragma solidity ^0.8.10;
 
 
@@ -11,10 +10,12 @@ contract ExternalCallTest {
         return x + CalleeContract(addr).add1(10, x);
     }
 }
-        // addr.transfer(10);
 
 contract CalleeContract{
     function add1(uint256 x, uint256 y) external payable returns (uint256){
         return x+y+1;
     }
 }
+
+//CHECK: define i256 @fun_add_
+//CHECK: {{call i256 @ext_fun_.*\(i256\*.*\)}}

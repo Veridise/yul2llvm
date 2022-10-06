@@ -1,5 +1,6 @@
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
+#include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -23,6 +24,7 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
                            llvm::Value *address, llvm::Value *value,
                            llvm::Value *retBuffer, llvm::Value *retLen,
                            LLVMCodegenVisitor &v, llvm::IRBuilder<> &);
+void removeOldCallArgs(llvm::CallInst *callInst);
 /**
  * @brief The let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5,
  * 32) yul statement is going to be rewritten into call fun_<selector>(self,
@@ -34,7 +36,6 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
  * @param callInst
  */
 void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
-  // let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5, 32)
   assert(callInst->getNumArgOperands() == 7 &&
          "Wrong number of args to call intrinsic");
   llvm::Value *gas, *addr, *value, *retBuffer, *retLen;
@@ -54,7 +55,8 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
                                           retLen, visitor, builder);
 
   llvm::SmallVector<llvm::Value *> args;
-  args.push_back(visitor.getSelf());
+
+  args.push_back(visitor.getSelfArg());
   args.push_back(extCallCtx);
   args.append(callArgs);
   llvm::SmallVector<llvm::Type *> argtyps = getFunctionArgTypes("ext", args);
@@ -63,6 +65,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   llvm::Function *callF = getOrCreateFunction("ext_fun_" + selector, callFT);
 
   llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");
+  removeOldCallArgs(callInst);
   llvm::ReplaceInstWithInst(callInst, newCall);
 }
 
