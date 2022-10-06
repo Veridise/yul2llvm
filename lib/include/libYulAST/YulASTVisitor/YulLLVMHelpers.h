@@ -1,13 +1,6 @@
 #pragma once
 #include <llvm/IR/Function.h>
 #include <deque>
-
-template<class SearchInstType, typename Test>
-SearchInstType *searchInstInDefs(llvm::Instruction *,Test t);
-
-
-template<class SearchInstType, typename Test>
-SearchInstType *searchInstInDefs(llvm::Instruction *, Test);
 /**
  * @brief Search for passing certain test(expressed via lambda expr)
  *   in use def chain of i
@@ -36,4 +29,12 @@ SearchInstType *searchInstInDefs(llvm::Instruction *i, Test test){
     }
     return nullptr;
 }
+
+/**
+ * @brief Remove the instruction and all the operands directly and transitively used.
+ * The first instruction removed force removed and it is upon the caller to make sure that
+ * it is safe to remove the instruction. 
+ * 
+ * @param i 
+ */
 void removeInstChains(llvm::Instruction *);

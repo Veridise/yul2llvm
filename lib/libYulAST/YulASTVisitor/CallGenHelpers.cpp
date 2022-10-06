@@ -110,6 +110,14 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
   return ptrExtCallCtx;
 }
 
+/**
+ * @brief Remove the parameters encoded by abi_encode_xxx that are passed to 
+ * EVM call opcode. Arguments i.e. output of abi_encode_xxx
+ * is the 5th argument (index 4) to call opcode.
+ * 
+ * @param callInst 
+ */
+
 void removeOldCallArgs(llvm::CallInst *callInst){
   if(auto inst = llvm::dyn_cast<llvm::Instruction>(callInst->getArgOperand(4))){
     if(inst->getNumUses() == 1)
