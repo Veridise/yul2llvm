@@ -6,6 +6,8 @@ class LLVMCodegenVisitor;
 #include <llvm/IR/Value.h>
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include <regex>
+
 using namespace yulast;
 class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
@@ -27,6 +29,15 @@ public:
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
+  /**
+   * @brief Take any llvm value of arbitrary width return i256 values after
+   * performing necessary bit masking.
+   *
+   * @param v value
+   * @param bitwidth the width of the final datatype
+   * @return llvm::Value*
+   */
+  llvm::Value *cleanup(llvm::Value *v, int bitwidth);
 
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
@@ -36,7 +47,8 @@ public:
   llvm::Value *handleArrayIndexAccess(YulFunctionCallNode &node);
   llvm::Value *handlePointerAdd(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
-  
+  llvm::Value *handleReadFromMemory(YulFunctionCallNode &node);
+  llvm::Value *handleWriteToMemory(YulFunctionCallNode &node);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
