@@ -31,8 +31,8 @@ protected:
 
   // data structures for self
   llvm::StructType *selfType;
-  llvm::Type *getTypeByBitwidth(int bitWidth);
-  void constructStructType(YulContractNode &node);
+  llvm::Type *getTypeByInfo(llvm::StringRef typeStr, llvm::StringMap<TypeInfo> &typeInfoMap);
+  void constructSelfStructType(YulContractNode &node);
 
   // external call context
   /**

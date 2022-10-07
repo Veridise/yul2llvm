@@ -1,0 +1,2 @@
+#define STORAGE_ADDR_SPACE 0
+#define MEMORY_ADDR_SPACE 1

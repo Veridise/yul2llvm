@@ -2,6 +2,7 @@
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 
 bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
+  
   if (calleeName == "checked_add_t_uint256") {
     return true;
   } else if (calleeName == "mstore") {
@@ -14,7 +15,7 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "allocate_unbounded") {
     return true;
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.find("array_index_access_t_array") != calleeName.npos) {
     return true;
   } else if (calleeName.startswith("read_from_memory")) {
     return true;
@@ -40,7 +41,7 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleShl(node);
   } else if (calleeName == "allocate_unbounded") {
     return handleAllocateUnbounded(node);
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.find("array_index_access_t_array") != llvm::StringRef::npos) {
     return handleArrayIndexAccess(node);
   } else if (calleeName.startswith("read_from_memory")) {
     return handleReadFromMemory(node);
@@ -57,7 +58,7 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.find("array_index_access_t_array") != calleeName.npos) {
     return true;
   } else if (calleeName.startswith("read_from_memory")) {
     return true;
