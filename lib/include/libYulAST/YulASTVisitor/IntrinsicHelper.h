@@ -31,11 +31,11 @@ public:
                                       llvm::SmallVector<llvm::Value *> &argsV);
   /**
    * @brief Take any llvm value of arbitrary width return i256 values after
-   * performing necessary bit masking.
-   *
+   * performing necessary bit masking. 
+   * 
    * @param v value
    * @param bitwidth the width of the final datatype
-   * @return llvm::Value*
+   * @return llvm::Value* 
    */
   llvm::Value *cleanup(llvm::Value *v, int bitwidth);
 

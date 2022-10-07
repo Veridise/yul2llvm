@@ -131,10 +131,7 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
 /**
  * @brief
  * memory_array_index_access_t_array$_t_uint256_$dyn_memory_ptr(arrayptr, idx)
- *
  * rewritten to
- *
- *
  * %0 = getelementptr [0 x i256], [0 x i256]* %arr_ptr, i32 0, i256 %index
  *
  * @param node
