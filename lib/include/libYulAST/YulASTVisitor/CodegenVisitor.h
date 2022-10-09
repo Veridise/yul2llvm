@@ -108,6 +108,8 @@ public:
   std::stack<std::tuple<llvm::BasicBlock *, llvm::BasicBlock *>>
       loopControlFlowBlocks;
 
+  llvm::Type *getDefaultType() const;
+
   void dump(llvm::raw_ostream &os) const;
   void dumpToStdout() const;
 };

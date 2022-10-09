@@ -325,15 +325,14 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
 
 llvm::Type *LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr, 
                             llvm::StringMap<TypeInfo> &typeInfoMap) {
+  llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256);
   if(typeStr.startswith("t_mapping")){
-    auto valueTypeStr = TYPEINFO_VALUE_TYPE(typeInfoMap[typeStr]);
-    llvm::Type *valueType = getTypeByInfo(valueTypeStr, typeInfoMap);
-    return valueType->getPointerTo();
-  } else if (typeStr.find("array")){
-    auto elementTypeName = TYPEINFO_VALUE_TYPE(typeInfoMap[typeStr]);
-    int elementSize = TYPEINFO_SIZE(typeInfoMap[elementTypeName]);
+    return memPtrType;
+  } else if (typeStr.find("t_array")!=typeStr.npos){
+    return memPtrType;
   } else {
-
+    int bitwidth = TYPEINFO_SIZE(typeInfoMap[typeStr]) * 8;
+    return llvm::Type::getIntNTy(*TheContext, bitwidth);
   }
 }
 
@@ -364,6 +363,10 @@ void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
 llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
   assert(selfType && "SelfType is accessed but not built yet");
   return selfType;
+}
+
+llvm::Type *LLVMCodegenVisitor::getDefaultType() const { 
+  return llvm::Type::getIntNTy(*TheContext, 256);
 }
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

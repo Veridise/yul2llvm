@@ -21,6 +21,8 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("write_to_memory")) {
     return true;
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return true;
   }
   return false;
 }
@@ -47,9 +49,12 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleReadFromMemory(node);
   } else if (calleeName.startswith("write_to_memory")) {
     return handleWriteToMemory(node);
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return handleConvertRationalXByY(node);
   }
   return nullptr;
 }
+
 
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
@@ -66,8 +71,45 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("allocate_memory")) {
     return true;
-  } else
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return true;
+  }
+    else
     return false;
+}
+
+
+llvm::Value *YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node){
+  std::regex convertCallRegex(R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
+  std::smatch match;
+  std::string calleeName = node.getCalleeName();
+  bool found = std::regex_match(calleeName, match, convertCallRegex);
+  assert(found && "convert_t_rational did not match"); 
+  if(found && match.size() == 7){
+    std::string strNumerator = match[2].str();
+    std::string strDenominator = match[4].str();
+    llvm::StringRef srNumerator(strNumerator);
+    llvm::StringRef srDenominator(strDenominator);
+    llvm::APInt numerator, denominator, quotient, reminder;
+    if(srNumerator.getAsInteger(10, numerator)){
+    llvm::outs()<<numerator<<" "<<denominator;
+      assert(false && "Could not parse numerator in convert_t_rational");
+    }
+    if(srDenominator.getAsInteger(10, denominator) && denominator != 0){
+      assert(false && "Could not parse donominator in convert_t_rational");
+    }
+    if(match[1].matched)
+      numerator = -numerator;
+    if(match[3].matched)
+      denominator = -denominator;
+    //assert integral
+    llvm::APInt::udivrem(numerator, denominator, quotient, reminder);
+    quotient = quotient.sext(256);
+    assert(reminder == 0 && "Non integreal types not implemented");
+    return llvm::ConstantInt::get(visitor.getDefaultType(), quotient);
+  }
+  assert(false && "convert_t_rational either did not match regex or wrong count");
+  return nullptr;
 }
 
 llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v, int bitWidth) {

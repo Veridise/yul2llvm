@@ -43,10 +43,13 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
   std::string typeStr = type.str();
   assert(types[typeStr].contains("kind") && "mapping kind not found in types");
   if(type.startswith("t_array")){
-    std::regex arrayTypeRegex("t_array(.*)([0-9]+)_(storage|memory)?");
+    std::regex arrayTypeRegex("t_array\\((.*)\\)([0-9]+)_(storage|memory)?");
     std::smatch match;
-    int found = std::regex_search(typeStr, match, arrayTypeRegex);
+    bool found = std::regex_search(typeStr, match, arrayTypeRegex);
     assert(found && "Array type pattern did not match");
+    if(!found){
+      assert(false && "arry pattern did not match");
+    }
     assert(types.contains(match[1].str()) && "Array child type not found in types");
     i = std::make_tuple(types[type.str()]["kind"].get<std::string>(), //kind
                                   "", //keytype
@@ -77,8 +80,8 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
 }
 
 void YulContractNode::buildTypeInfoMap(const json &metadata) {
-  for(auto &type: metadata["types"]){
-    std::string typeStr = type.get<std::string>();
+  for(auto &type: metadata["types"].items()){
+    std::string typeStr = type.key();
     typeInfoMap[typeStr] = parseType(typeStr, metadata);
   }
 }
@@ -86,15 +89,15 @@ void YulContractNode::buildTypeInfoMap(const json &metadata) {
 void YulContractNode::buildVarTypeMap(const json &metadata) {
   // for each storage location i.e. var
   for (auto &var : metadata["state_vars"]) {
-    llvm::StringRef label(var["name"].get<std::string>());
-    llvm::StringRef typeStr(var["type"].get<std::string>());
-    int bitWidth;
-    
+    std::string varName = var["name"].get<std::string>();
+    llvm::StringRef label(varName);
+    std::string varType = var["type"].get<std::string>();
+    llvm::StringRef typeStr(varType);
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
     varTypeMap[label] =
         std::make_tuple(std::move(typeStr), slot, offset);
-    structFieldOrder.push_back(std::move(label.str()));
+    structFieldOrder.push_back(label.str());
   }
 }
 

@@ -49,6 +49,7 @@ public:
   llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handleReadFromMemory(YulFunctionCallNode &node);
   llvm::Value *handleWriteToMemory(YulFunctionCallNode &node);
+  llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
