@@ -11,14 +11,16 @@ pragma solidity ^0.8.10;
 
 
 contract ArrayTest {
-    uint256[10] array;
+    uint32 x;
+    uint32 y;
+    uint32[10] array;
     
 
-    function readArray(uint256 index) external view returns (uint256){
+    function readArray(uint256 index) external view returns (uint32){
         return array[index];
     }
 
-    function writeArray(uint256 index, uint256 value) external {
+    function writeArray(uint256 index, uint32 value) external {
         array[index] = value;
     }
 }
