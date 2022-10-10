@@ -17,6 +17,14 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
+option(ENABLE_ASAN "Enable address sanitizer" OFF)
+if(ENABLE_ASAN)
+  add_compile_options(
+    -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls
+  )
+  add_link_options(-fsanitize=address)
+endif()
+
 ### Dependency setup
 
 find_package(nlohmann_json 3 REQUIRED)
@@ -35,10 +43,7 @@ include(HandleLLVMOptions)
 add_compile_options(-Wswitch-enum)
 
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON CACHE BOOL "Hide inlines")
-# For static LLVM, ensure hidden visibility to be consistent with LLVM build
-if(NOT ${BUILD_SHARED_LIBS})
-  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-endif()
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 ### Project files
 

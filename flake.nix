@@ -27,10 +27,22 @@
         in
         final: prev: {
         # Fix the version of LLVM being used.
-        yul2llvm_libllvm = final.llvmPackages_13.tools.libllvm;
+        yul2llvm_llvm = final.llvmPackages_13;
+        yul2llvm_libllvm = final.yul2llvm_llvm.tools.libllvm;
+        yul2llvm_compiler-rt = final.yul2llvm_llvm.compiler-rt;
 
         # Yul2LLVM C++ component
-        yul2llvm_cpp = prev.stdenv.mkDerivation {
+        yul2llvm_cpp =
+          let
+            stdenv = final.stdenv;
+
+            # Need clang for address sanitizer.
+            # Unfortunately:
+            # 1. clang-12 or newer doesn't link correctly, see https://github.com/NixOS/nixpkgs/issues/166205
+            # 2. asan libs are only available on clang 12+: nix shell nixpkgs#nix-index -c nix-locate 'libclang_rt.asan'
+            # stdenv = final.overrideCC final.clangStdenv final.llvmPackages_latest.libcxxClang;
+          in stdenv.mkDerivation {
+
           name = "yul2llvm-cpp";
           version = "0.1.0";
           src = builtins.path {
@@ -156,6 +168,7 @@
 
               # C++ dev tools
               doxygen
+              yul2llvm_compiler-rt  # for address sanitizer
 
               # git-clang-format
               libclang.python
@@ -163,6 +176,9 @@
 
             # Use Debug by default so assertions are enabled by default.
             cmakeBuildType = "Debug";
+
+            # Disable _FORTIFY_SOURCE definition since it conflicts with address sanitizer
+            hardeningDisable = [ "fortify"];
 
             shellHook = ''
               # needed to get accurate compile_commands.json
