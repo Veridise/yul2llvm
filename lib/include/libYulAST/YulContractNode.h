@@ -7,16 +7,30 @@
 #include <regex>
 
 
-#define TYPEINFO_KIND(x) llvm::StringRef(std::get<0>(x))
-#define TYPEINFO_KEY_TYPE(x) llvm::StringRef(std::get<1>(x))
-#define TYPEINFO_VALUE_TYPE(x) llvm::StringRef(std::get<2>(x))
-#define TYPEINFO_SIZE(x) std::get<3>(x)
-
 namespace yulast {
-//                            kind        , key type, value type, size
-using TypeInfo = std::tuple<std::string, std::string, std::string, int>;
-  // map from var name to            typestr,  slot, offset
-using StorageVarInfo = std::tuple<std::string, int, int>;
+struct TypeInfo { 
+  public:
+  std::string kind;
+  std::string keyType;
+  std::string valueType;
+  int size;
+  TypeInfo(std::string kind, std::string keyType, std::string valueType, int size):
+    kind(kind), keyType(keyType), valueType(valueType), size(size){}
+  TypeInfo(){}
+    
+};
+
+struct StorageVarInfo{
+  public:
+  std::string type;
+  int slot;
+  int offset;
+  StorageVarInfo(std::string type, int slot, int offset) :
+    type(type), slot(slot), offset(offset){}
+  StorageVarInfo(){}
+  
+};
+
 class YulContractNode : public YulASTBase {
   // map from label -> (type name, bitwidth)
   // needed to maintain the index of a member in a struct

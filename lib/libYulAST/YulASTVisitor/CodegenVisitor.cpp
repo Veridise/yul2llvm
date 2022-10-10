@@ -315,7 +315,7 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   std::vector<llvm::Type *> memberTypes;
   auto &typeInfoMap = node.getTypeInfoMap();
   for (auto &field : node.getStructFieldOrder()) {
-    std::string typeStr = std::get<0>(node.getVarTypeMap()[field]);
+    std::string typeStr = node.getVarTypeMap()[field].type;
     llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap);
     memberTypes.push_back(type);
   }
@@ -331,7 +331,7 @@ llvm::Type *LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr,
   } else if (typeStr.find("t_array")!=typeStr.npos){
     return memPtrType;
   } else {
-    int bitwidth = TYPEINFO_SIZE(typeInfoMap[typeStr]) * 8;
+    int bitwidth = typeInfoMap[typeStr].size * 8;
     return llvm::Type::getIntNTy(*TheContext, bitwidth);
   }
 }

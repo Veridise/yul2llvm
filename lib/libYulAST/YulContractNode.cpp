@@ -39,7 +39,6 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
   auto &types = metadata["types"];
   assert(types.contains(type) && "Types does not contain the requested type");
 
-  TypeInfo i;
   std::string typeStr = type.str();
   assert(types[typeStr].contains("kind") && "mapping kind not found in types");
   if(type.startswith("t_array")){
@@ -51,7 +50,7 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
       assert(false && "arry pattern did not match");
     }
     assert(types.contains(match[1].str()) && "Array child type not found in types");
-    i = std::make_tuple(types[type.str()]["kind"].get<std::string>(), //kind
+    return TypeInfo(types[type.str()]["kind"].get<std::string>(), //kind
                                   "", //keytype
                                   match[1].str(), //valueType
                                   types[typeStr]["size"].get<int>()); //size
@@ -63,7 +62,7 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
     std::string valueType = types[typeStr]["value"].get<std::string>();
     assert(types.contains(keyType) && "keyType not found in metadata for mapping type");
     assert(types.contains(valueType) && "valueType not found in metadata for mapping type");
-    i = std::make_tuple(types[type.str()]["kind"].get<std::string>(), //kind
+    return TypeInfo(types[type.str()]["kind"].get<std::string>(), //kind
                                   keyType, 
                                   valueType,
                                   -1);
@@ -71,12 +70,12 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata){
     //assume primitive type 
     //@todo another branch will be added when we implement solidity structs
     assert(types[typeStr].contains("size") && "Primitive type does not conatiain size");
-    i = std::make_tuple(types[type.str()]["kind"].get<std::string>(), //kind
+    return TypeInfo(types[type.str()]["kind"].get<std::string>(), //kind
                                   "", 
                                   "",
                                   types[typeStr]["size"].get<int>());
   }
-  return i;
+  
 }
 
 void YulContractNode::buildTypeInfoMap(const json &metadata) {
@@ -96,7 +95,7 @@ void YulContractNode::buildVarTypeMap(const json &metadata) {
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
     varTypeMap[label] =
-        std::make_tuple(std::move(typeStr), slot, offset);
+        {std::move(varType), slot, offset};
     structFieldOrder.push_back(label.str());
   }
 }
@@ -126,8 +125,8 @@ llvm::StringMap<TypeInfo> &YulContractNode::getTypeInfoMap(){
 std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
   for (auto &f : structFieldOrder) {
     auto varEntry = varTypeMap[f];
-    int varSlot = std::get<1>(varEntry);
-    int varOffset = std::get<2>(varEntry);
+    int varSlot = varEntry.slot;
+    int varOffset = varEntry.offset;
     if (varOffset == offset && varSlot == slot) {
       return f;
     }
