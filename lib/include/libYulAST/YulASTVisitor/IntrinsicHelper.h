@@ -34,10 +34,11 @@ public:
    * performing necessary bit masking. 
    * 
    * @param v value
+   * @param type type to be read
    * @param bitwidth the width of the final datatype
    * @return llvm::Value* 
    */
-  llvm::Value *cleanup(llvm::Value *v, int bitwidth);
+  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type, int bitwidth);
 
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
@@ -50,6 +51,8 @@ public:
   llvm::Value *handleReadFromMemory(YulFunctionCallNode &node);
   llvm::Value *handleWriteToMemory(YulFunctionCallNode &node);
   llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
+  llvm::Value *handleAnd(YulFunctionCallNode &node);
+  
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);

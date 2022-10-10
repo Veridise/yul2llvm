@@ -13,9 +13,11 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "shl") {
     return true;
+  } else if (calleeName == "and") {
+    return true;
   } else if (calleeName == "allocate_unbounded") {
     return true;
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.startswith("memory_array_index_access_")) {
     return true;
   } else if (calleeName.startswith("read_from_memory")) {
     return true;
@@ -41,9 +43,11 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleSubFunctionCall(node);
   } else if (!calleeName.compare("shl")) {
     return handleShl(node);
+  } else if (!calleeName.compare("and")) {
+    return handleAnd(node);
   } else if (calleeName == "allocate_unbounded") {
     return handleAllocateUnbounded(node);
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.startswith("memory_array_index_access_")) {
     return handleArrayIndexAccess(node);
   } else if (calleeName.startswith("read_from_memory")) {
     return handleReadFromMemory(node);
@@ -59,11 +63,12 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
     return true;
-  } else if (calleeName.startswith("abi_decode_tuple_")) {
+  } 
+  else if (calleeName.startswith("abi_decode_tuple_")) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
-  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+  } else if (calleeName.startswith("memory_array_index_access_")) {
     return true;
   } else if (calleeName.startswith("read_from_memory")) {
     return true;
@@ -73,9 +78,28 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("convert_t_rational_")){
     return true;
+  } else if (calleeName == "checked_add_t_uint256") {
+    return true;
+  } else if (calleeName == "mstore") {
+    return true;
+  } else if (calleeName == "add") {
+    return true;
+  } else if (calleeName == "sub") {
+    return true;
+  } else if (calleeName == "shl") {
+    return true;
+  } else if (calleeName == "and") {
+    return true;
   }
     else
     return false;
+}
+
+llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node){
+  assert(node.getArgs().size() == 2 && "And not called with 2 arguments");
+  llvm::Value *lhs = visitor.visit(*node.getArgs()[0]);
+  llvm::Value *rhs = visitor.visit(*node.getArgs()[1]);
+  return visitor.getBuilder().CreateAnd(lhs, rhs);
 }
 
 
@@ -112,12 +136,22 @@ llvm::Value *YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &
   return nullptr;
 }
 
-llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v, int bitWidth) {
+llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v, llvm::StringRef type, int bitWidth) {
   auto &builder = visitor.getBuilder();
-  llvm::APInt bitmask(256, 0, false);
-  bitmask.setBits(0, bitWidth);
-  std::string widthStr = std::to_string(bitWidth);
-  return builder.CreateAnd(v, bitmask, "cleaned_up_t_" + widthStr);
+  if(type == "uint"){
+    llvm::APInt bitmask(256, 0, false);
+    bitmask.setBits(0, bitWidth);
+    std::string widthStr = std::to_string(bitWidth);
+    return builder.CreateAnd(v, bitmask, "cleaned_up_t_"+type + widthStr);
+  } else if (type == "bytes") {
+    std::string widthStr = std::to_string(bitWidth);
+    bitWidth = bitWidth * 8;
+    llvm::APInt bitmask(256, 0, false);
+    bitmask.setBits(256-bitWidth, 256);
+    return builder.CreateAnd(v, bitmask, "cleaned_up_t_" + type+widthStr);
+  }
+  assert(false && "Cleanupt unrecognized type");
+  return nullptr;
 }
 
 llvm::Value *
@@ -138,7 +172,7 @@ YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
       llvm::Value *loadedWord =
           builder.CreateLoad(llvm::Type::getIntNTy(visitor.getContext(), 256),
                              pointer, "arr_load");
-      return cleanup(loadedWord, bitWidth);
+      return cleanup(loadedWord, type, bitWidth);
     } else {
       assert(false && "handleReadFromMemory bitwidth group mismatch");
     }
@@ -162,7 +196,7 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
       llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
       llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
       auto &builder = visitor.getBuilder();
-      llvm::Value *cleanedUpValue = cleanup(valueToStore, bitWidth);
+      llvm::Value *cleanedUpValue = cleanup(valueToStore, type, bitWidth);
       builder.CreateStore(cleanedUpValue, pointer);
     } else {
       assert(false && "handleReadFromMemory bitwidth group mismatch");
