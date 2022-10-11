@@ -4,14 +4,14 @@ This testcase targets storage vaiable in different slot
 
  */
 
-// RUN: pyul %s --project-dir %S --stop-after preprocess > %t.pre
+// RUN: pyul %s --project-dir %S --stop-after preprocess > %t.pre && false
 
 //XFAIL: *
 
 pragma solidity ^0.8.10;
 
 
-contract MultipleSlotStorageVariableTestcase {
+contract StorageBytes2testCase {
     bytes2 x;
     bytes2 y;
 

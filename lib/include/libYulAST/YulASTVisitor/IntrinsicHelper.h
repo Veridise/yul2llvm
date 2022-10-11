@@ -52,6 +52,9 @@ public:
   llvm::Value *handleWriteToMemory(YulFunctionCallNode &node);
   llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
   llvm::Value *handleAnd(YulFunctionCallNode &node);
+  llvm::Value *handleByte(YulFunctionCallNode &node);
+  
+
   
 
   // Rewrites

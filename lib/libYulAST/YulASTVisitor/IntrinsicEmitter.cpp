@@ -5,7 +5,7 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
   
   if (calleeName == "checked_add_t_uint256") {
     return true;
-  } else if (calleeName == "mstore") {
+  } else if (calleeName.startswith("mstore")) {
     return true;
   } else if (calleeName == "add") {
     return true;
@@ -25,6 +25,8 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("convert_t_rational_")){
     return true;
+  } else if (calleeName.startswith("byte")){
+    return true;
   }
   return false;
 }
@@ -35,7 +37,7 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   llvm::StringRef calleeName(calleeNameStr);
   if (!calleeName.compare("checked_add_t_uint256")) {
     return handleAddFunctionCall(node);
-  } else if (!calleeName.compare("mstore")) {
+  } else if (calleeName.startswith("mstore")) {
     return handleMStoreFunctionCall(node);
   } else if (!calleeName.compare("add")) {
     return handleAddFunctionCall(node);
@@ -55,6 +57,8 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleWriteToMemory(node);
   } else if (calleeName.startswith("convert_t_rational_")){
     return handleConvertRationalXByY(node);
+  } else if (calleeName.startswith("byte")){
+    return handleByte(node);
   }
   return nullptr;
 }
@@ -80,7 +84,7 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "checked_add_t_uint256") {
     return true;
-  } else if (calleeName == "mstore") {
+  } else if (calleeName.startswith("mstore")) {
     return true;
   } else if (calleeName == "add") {
     return true;
@@ -90,9 +94,25 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "and") {
     return true;
-  }
+  } else if (calleeName == "byte") {
+    return true;
+  } else if (calleeName.startswith("panic_error")){
+    return true;
+  } else if (calleeName.startswith("revert")){
+    return true;
+  } 
     else
     return false;
+}
+
+llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node){
+  assert(node.getArgs().size() ==2 && "Unexpected number of args in byte(x, y)");
+  llvm::Value *v2 = visitor.visit(*node.getArgs()[1]);
+  if(v2->getType()->isIntegerTy()){
+    return visitor.getBuilder().CreateIntCast(v2, llvm::Type::getInt8Ty(visitor.getContext()), false,
+                                                "byte_"+v2->getName());
+  }  
+  return nullptr;
 }
 
 llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node){
@@ -351,15 +371,34 @@ llvm::Value *
 YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
          "Incorrect number of arguments to mstore");
+  std::regex mstoreFunNameRegex(R"(mstore([0-9]*))");
+  std::smatch match;
+  std::string functionName = node.getCalleeName();
   llvm::Value *val, *ptr;
   ptr = visitor.visit(*(node.getArgs()[0]));
   val = visitor.visit(*(node.getArgs()[1]));
-  /**
-   *  @todo: This pointer cast may not be correct check again
-   */
+  //@todo Remove this cast when abi_decode_is done
   if (!ptr->getType()->isPointerTy())
     ptr = visitor.getBuilder().CreateIntToPtr(ptr,
                                               val->getType()->getPointerTo());
-  visitor.getBuilder().CreateStore(val, ptr);
+  bool found = std::regex_search(functionName, match, mstoreFunNameRegex);
+  llvm::outs()<<"--";
+  for(auto m: match){
+    llvm::outs()<<m.str()<<"\n";
+  }
+  if(found){
+    if(match[1] != ""){
+      std::string bitWidthStr = match[1].str();
+      int bitWidth;
+      if(llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)){
+        //@todo refactor into raising runtime error
+        assert(false && "cannot parse bitwidth");
+      }
+      ptr = visitor.getBuilder().CreatePointerCast(ptr, 
+                        llvm::Type::getIntNPtrTy(visitor.getContext(), bitWidth), "truncated_"+ptr->getName());
+    }  
+    visitor.getBuilder().CreateStore(val, ptr);
+    
+  }
   return nullptr;
 }
