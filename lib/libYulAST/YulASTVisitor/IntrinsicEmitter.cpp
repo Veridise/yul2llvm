@@ -2,6 +2,7 @@
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 
 bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
+  
   if (calleeName == "checked_add_t_uint256") {
     return true;
   } else if (calleeName == "mstore") {
@@ -14,13 +15,22 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "allocate_unbounded") {
     return true;
+  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+    return true;
+  } else if (calleeName.startswith("read_from_memory")) {
+    return true;
+  } else if (calleeName.startswith("write_to_memory")) {
+    return true;
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return true;
   }
   return false;
 }
 
 llvm::Value *
 YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
-  std::string calleeName = node.getCalleeName();
+  std::string calleeNameStr = node.getCalleeName();
+  llvm::StringRef calleeName(calleeNameStr);
   if (!calleeName.compare("checked_add_t_uint256")) {
     return handleAddFunctionCall(node);
   } else if (!calleeName.compare("mstore")) {
@@ -33,9 +43,18 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleShl(node);
   } else if (calleeName == "allocate_unbounded") {
     return handleAllocateUnbounded(node);
+  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+    return handleArrayIndexAccess(node);
+  } else if (calleeName.startswith("read_from_memory")) {
+    return handleReadFromMemory(node);
+  } else if (calleeName.startswith("write_to_memory")) {
+    return handleWriteToMemory(node);
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return handleConvertRationalXByY(node);
   }
   return nullptr;
 }
+
 
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
@@ -44,8 +63,142 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
-  } else
+  } else if (calleeName.startswith("memory_array_index_access_t_array")) {
+    return true;
+  } else if (calleeName.startswith("read_from_memory")) {
+    return true;
+  } else if (calleeName.startswith("write_to_memory")) {
+    return true;
+  } else if (calleeName.startswith("allocate_memory")) {
+    return true;
+  } else if (calleeName.startswith("convert_t_rational_")){
+    return true;
+  }
+    else
     return false;
+}
+
+
+llvm::Value *YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node){
+  std::regex convertCallRegex(R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
+  std::smatch match;
+  std::string calleeName = node.getCalleeName();
+  bool found = std::regex_match(calleeName, match, convertCallRegex);
+  assert(found && "convert_t_rational did not match"); 
+  if(found && match.size() == 7){
+    std::string strNumerator = match[2].str();
+    std::string strDenominator = match[4].str();
+    llvm::StringRef srNumerator(strNumerator);
+    llvm::StringRef srDenominator(strDenominator);
+    llvm::APInt numerator, denominator, quotient, reminder;
+    if(srNumerator.getAsInteger(10, numerator)){
+    llvm::outs()<<numerator<<" "<<denominator;
+      assert(false && "Could not parse numerator in convert_t_rational");
+    }
+    if(srDenominator.getAsInteger(10, denominator) && denominator != 0){
+      assert(false && "Could not parse donominator in convert_t_rational");
+    }
+    if(match[1].matched)
+      numerator = -numerator;
+    if(match[3].matched)
+      denominator = -denominator;
+    //assert integral
+    llvm::APInt::udivrem(numerator, denominator, quotient, reminder);
+    quotient = quotient.sext(256);
+    assert(reminder == 0 && "Non integreal types not implemented");
+    return llvm::ConstantInt::get(visitor.getDefaultType(), quotient);
+  }
+  assert(false && "convert_t_rational either did not match regex or wrong count");
+  return nullptr;
+}
+
+llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v, int bitWidth) {
+  auto &builder = visitor.getBuilder();
+  llvm::APInt bitmask(256, 0, false);
+  bitmask.setBits(0, bitWidth);
+  std::string widthStr = std::to_string(bitWidth);
+  return builder.CreateAnd(v, bitmask, "cleaned_up_t_" + widthStr);
+}
+
+llvm::Value *
+YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 1 &&
+         "Wrong number of arguments read_from_memory_t_x call");
+  std::regex readCallNameRegex(R"(^read_from_memoryt_([a-z]+)(\d+))");
+  std::smatch match;
+  std::string calleeName = node.getCalleeName();
+  if (std::regex_match(calleeName, match, readCallNameRegex)) {
+    assert(match.size() == 3 && "read_from_memory does not match the pattern");
+    std::string type = match[1].str();
+    std::string widthStr = match[2].str();
+    int bitWidth;
+    if (!llvm::StringRef(widthStr).getAsInteger(10, bitWidth)) {
+      llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
+      auto &builder = visitor.getBuilder();
+      llvm::Value *loadedWord =
+          builder.CreateLoad(llvm::Type::getIntNTy(visitor.getContext(), 256),
+                             pointer, "arr_load");
+      return cleanup(loadedWord, bitWidth);
+    } else {
+      assert(false && "handleReadFromMemory bitwidth group mismatch");
+    }
+  }
+  assert(false && "regex did not match read_from_memoryt");
+  return nullptr;
+}
+llvm::Value *
+YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 2 &&
+         "Wrong number of arguments write_to_memory_t_x call");
+  std::regex readCallNameRegex(R"(^write_to_memory_t_([a-z]+)(\d+))");
+  std::smatch match;
+  std::string calleeName = node.getCalleeName();
+  if (std::regex_match(calleeName, match, readCallNameRegex)) {
+    assert(match.size() == 3 && "write_to_memory does not match the pattern");
+    std::string type = match[1].str();
+    std::string widthStr = match[2].str();
+    int bitWidth;
+    if (!llvm::StringRef(widthStr).getAsInteger(10, bitWidth)) {
+      llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
+      llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
+      auto &builder = visitor.getBuilder();
+      llvm::Value *cleanedUpValue = cleanup(valueToStore, bitWidth);
+      builder.CreateStore(cleanedUpValue, pointer);
+    } else {
+      assert(false && "handleReadFromMemory bitwidth group mismatch");
+    }
+  }
+  return nullptr;
+}
+
+/**
+ * @brief
+ * memory_array_index_access_t_array$_t_uint256_$dyn_memory_ptr(arrayptr, idx)
+ * rewritten to
+ * %0 = getelementptr [0 x i256], [0 x i256]* %arr_ptr, i32 0, i256 %index
+ *
+ * @param node
+ * @return llvm::Value*
+ */
+llvm::Value *
+YulIntrinsicHelper::handleArrayIndexAccess(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 2 &&
+         "Wrong number of arguments in memory_array_index_access");
+  auto &builder = visitor.getBuilder();
+  llvm::ArrayType *arrayType =
+      llvm::ArrayType::get(llvm::Type::getIntNTy(visitor.getContext(), 256), 0);
+  llvm::Value *array = visitor.visit(*node.getArgs()[0]);
+  llvm::Value *idx = visitor.visit(*node.getArgs()[1]);
+  auto pointerCast =
+      builder.CreateCast(llvm::Instruction::CastOps::IntToPtr, array,
+                         llvm::Type::getIntNPtrTy(visitor.getContext(), 256),
+                         "ptr_" + array->getName());
+  auto arrayCast = builder.CreatePointerCast(
+      pointerCast, arrayType->getPointerTo(), "arr_" + array->getName());
+  auto indices = visitor.getLLVMValueVector({0});
+  indices.push_back(idx);
+  auto elementPtr = builder.CreateGEP(arrayType, arrayCast, indices);
+  return elementPtr;
 }
 
 llvm::Value *

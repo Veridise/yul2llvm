@@ -31,8 +31,8 @@ protected:
 
   // data structures for self
   llvm::StructType *selfType;
-  llvm::Type *getTypeByBitwidth(int bitWidth);
-  void constructStructType(YulContractNode &node);
+  llvm::Type *getTypeByInfo(llvm::StringRef typeStr, llvm::StringMap<TypeInfo> &typeInfoMap);
+  void constructSelfStructType(YulContractNode &node);
 
   // external call context
   /**
@@ -107,6 +107,8 @@ public:
 
   std::stack<std::tuple<llvm::BasicBlock *, llvm::BasicBlock *>>
       loopControlFlowBlocks;
+
+  llvm::Type *getDefaultType() const;
 
   void dump(llvm::raw_ostream &os) const;
   void dumpToStdout() const;

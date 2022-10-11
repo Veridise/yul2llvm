@@ -27,7 +27,7 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
     std::string name, llvm::Instruction *insertPoint) {
   llvm::IRBuilder<> tempBuilder(insertPoint);
   auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
-  auto typeMap = visitor.currentContract->getTypeMap();
+  auto typeMap = visitor.currentContract->getVarTypeMap();
   auto fieldIt =
       std::find(structFieldOrder.begin(), structFieldOrder.end(), name);
   assert(fieldIt != structFieldOrder.end());

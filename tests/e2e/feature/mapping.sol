@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
-// XFAIL: *
 pragma solidity ^0.8.10;
 
 
@@ -17,4 +16,11 @@ contract MappingTestCase {
     }
 }
 
-//CHECK: define {{fun_add_[0-9]+}}
+//CHECK: {{define i256 @fun_mappingRead_[0-9]+\(i256\* \%.+\)}}
+//CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
+//CHECK: {{load i256, i256\*}}
+
+
+//CHECK: {{define void @fun_mappingWrite_[0-9]+\(i256\* \%.+, .+, .+\)}}
+//CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
+//CHECK: {{store i256 .+, i256\*.*}}

@@ -2,6 +2,13 @@
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
 
+llvm::Type *checkAndGetPointeeType(llvm::Value* ptr){
+  llvm::PointerType *ptrSelfVarType = llvm::dyn_cast<llvm::PointerType>(ptr->getType());
+  assert(ptrSelfVarType && "map field type is not a pointer");
+  return ptrSelfVarType->getElementType();
+  
+}
+
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> oldInstructions;
@@ -71,6 +78,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
 
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   llvm::SmallVector<llvm::Type *> argTypes;
+  auto tmpBuilder = llvm::IRBuilder<>(callInst);
   llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
   argTypes.push_back(retType);
   argTypes.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
@@ -80,7 +88,9 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   if (offset) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         offset->getZExtValue(), 0);
-    llvm::Value *mapPtr = getPointerToStorageVarByName(varname, callInst);
+    llvm::Value *ptrSelfVar = getPointerToStorageVarByName(varname, callInst);
+    llvm::Type *mapType = checkAndGetPointeeType(ptrSelfVar); 
+    llvm::Value *mapPtr = tmpBuilder.CreateLoad(mapType, ptrSelfVar, varname);
     llvm::Value *key = callInst->getArgOperand(1);
     llvm::SmallVector<llvm::Value *> args;
     args.push_back(mapPtr);
@@ -105,18 +115,23 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
          "Wrong number of arguments to storage load inst");
   auto slot = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
   auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1));
+  // llvm::IRBuilder<> tmp(callInst);
   if (offset && slot) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
 
     llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
-    int bitWidth = std::get<1>(visitor.currentContract->getTypeMap()[varname]);
-    llvm::Type *loadType =
-        llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
+    llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
     llvm::Align align =
-        visitor.getModule().getDataLayout().getABITypeAlign(loadType);
-    auto newInst = new llvm::LoadInst(loadType, ptr, "pyul_storage_var_load",
-                                      false, align);
+        visitor.getModule().getDataLayout().getABITypeAlign(selfVarType);
+    
+    
+    llvm::LoadInst *loadInst = new llvm::LoadInst(selfVarType, ptr, "pyul_storage_var_load",
+                                      false, align, callInst);
+    llvm::CastInst *newInst =  llvm::CastInst::CreateIntegerCast(loadInst, 
+                                                      visitor.getDefaultType(), false, 
+                                                      "i256_"+loadInst->getName()
+                                                      );
     llvm::ReplaceInstWithInst(callInst, newInst);
   } else {
     llvm::Type *loadType = llvm::Type::getIntNTy(visitor.getContext(), 256);
@@ -141,6 +156,10 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
         slot->getZExtValue(), offset->getZExtValue());
 
     llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
+    ptr = llvm::CastInst::CreateBitOrPointerCast(ptr, 
+                                        visitor.getDefaultType()->getPointerTo(), 
+                                        "casted_"+ptr->getName(),
+                                        callInst);
     llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
         storeValue->getType());
     auto newInst = new llvm::StoreInst(storeValue, ptr, false, align);

@@ -123,7 +123,7 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   runFunctionDeclaratorVisitor(node);
-  constructStructType(node);
+  constructSelfStructType(node);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
     visit(*f);
@@ -309,31 +309,31 @@ void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id,
   }
 }
 
-void LLVMCodegenVisitor::constructStructType(YulContractNode &node) {
+void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   if (node.getStructFieldOrder().size() == 0)
     return;
   std::vector<llvm::Type *> memberTypes;
+  auto &typeInfoMap = node.getTypeInfoMap();
   for (auto &field : node.getStructFieldOrder()) {
-    std::string typeStr = std::get<0>(node.getTypeMap()[field]);
-    int bitWidth = std::get<1>(node.getTypeMap()[field]);
-    llvm::Type *type;
-    if (bitWidth != 0)
-      type = getTypeByBitwidth(bitWidth);
-    else {
-      type = llvm::Type::getIntNTy(*TheContext, 256);
-    }
+    std::string typeStr = node.getVarTypeMap()[field].type;
+    llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap);
     memberTypes.push_back(type);
   }
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
 }
 
-llvm::Type *LLVMCodegenVisitor::getTypeByBitwidth(int bitWidth) {
-  /**
-   * @todo fix this for other types
-   *
-   */
-  assert(bitWidth == 256);
-  return llvm::Type::getIntNTy(*TheContext, bitWidth);
+
+llvm::Type *LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr, 
+                            llvm::StringMap<TypeInfo> &typeInfoMap) {
+  llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256);
+  if(typeStr.startswith("t_mapping")){
+    return memPtrType;
+  } else if (typeStr.find("t_array")!=typeStr.npos){
+    return memPtrType;
+  } else {
+    int bitwidth = typeInfoMap[typeStr].size * 8;
+    return llvm::Type::getIntNTy(*TheContext, bitwidth);
+  }
 }
 
 llvm::SmallVector<llvm::Value *>
@@ -361,8 +361,12 @@ void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
 void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
 
 llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
-  assert(selfType && "SelfTypeis accessed but not built yet");
+  assert(selfType && "SelfType is accessed but not built yet");
   return selfType;
+}
+
+llvm::Type *LLVMCodegenVisitor::getDefaultType() const { 
+  return llvm::Type::getIntNTy(*TheContext, 256);
 }
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }
