@@ -1,0 +1,3 @@
+RUN: pyul %S/Inputs/hello-multifile/MainContract.sol -o %t --project-dir %S/Inputs/hello-multifile
+
+CHECK: define void @constructor_MainContract
