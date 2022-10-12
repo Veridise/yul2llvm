@@ -111,25 +111,25 @@ def main():
 
 
 def json_summary(the_contract:ContractData, logger:logging.Logger):
-    logger.info(f'Summary of contract {the_contract.name}:')
-    logger.info('')
+    logger.debug(f'Summary of contract {the_contract.name}:')
+    logger.debug('')
     (named_fns, all_defs, unknown) = inspect_json_ast(the_contract.out_dir / 'yul.json')
 
     named_fns = set(named_fns)
     all_defs = set(all_defs)
     unknown = set(unknown)
-    logger.info('Functions defined in the Solidity source code:')
+    logger.debug('Functions defined in the Solidity source code:')
     for n in named_fns:
-        logger.info('  ' + n)
-    logger.info('Functions defined in the Yul IR:')
+        logger.debug('  ' + n)
+    logger.debug('Functions defined in the Yul IR:')
     for n in all_defs:
-        logger.info('  ' + n)
-    logger.info('Unknown function symbols:')
+        logger.debug('  ' + n)
+    logger.debug('Unknown function symbols:')
     for n in unknown:
-        logger.info('  ' + n)
-    logger.info('Dead symbols:')
+        logger.debug('  ' + n)
+    logger.debug('Dead symbols:')
     for n in all_defs.difference(unknown).difference(named_fns):
-        logger.info('  ' + n)
+        logger.debug('  ' + n)
 
 def translate_yul_to_llvm(contract:ContractData, disableVerify:bool, logger:logging.Logger):
     # TODO: move this into a translate() function
