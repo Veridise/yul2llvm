@@ -90,6 +90,8 @@ class YulNode(object):
             n_node = lit_node['children'][0]
             if n_node['type'] == 'yul_hex_number':
                 return int(n_node['children'][0], base=16)
+            elif n_node['type'] == 'yul_dec_number':
+                return int(n_node['children'][0])
         raise NotImplementedError(f'unknown literal node: {lit_node}')
 
     def get_identifier(self) -> str:
