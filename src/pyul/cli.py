@@ -145,7 +145,7 @@ def translate_yul_to_llvm(contract:ContractData, disableVerify:bool, logger:logg
     proc = subprocess.run(yul2llvm_cpp_cmd,
                         capture_output=True, text=True)
     if proc.returncode != 0:
-        logger.error('Failed to run yul2llvm_cpp:')
+        logger.error(f'Failed to run yul2llvm_cpp, exit code {proc.returncode}:')
         for line in proc.stderr.splitlines():
             logger.error(line)
         logger.error('Aborting pyul!')
@@ -230,7 +230,7 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path,
         'language': 'Solidity',
         'sources': {
             str(src_rel_path): {
-                'urls': [str(src_path.absolute())],
+                'urls': [str(src_rel_path)],
             }
         },
         'settings': {
@@ -247,7 +247,7 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path,
         json.dump(solc_opts, f)
 
     cmd = [solc_bin, '--standard-json', str(solc_input_path)]
-    cmd.extend(['--allow-paths', str(project_dir)])
+    cmd.extend(['--base-path', str(project_dir)])
 
     logger.info(f'Executing: {shlex.join(cmd)}')
     solc_proc = subprocess.run(cmd, text=True, capture_output=True)
