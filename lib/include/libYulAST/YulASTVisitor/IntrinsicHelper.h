@@ -21,6 +21,7 @@ public:
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
   llvm::Value *getPointerToStorageVarByName(std::string,
                                             llvm::Instruction *insertPoint);
+  llvm::StringRef getStorageVarYulTypeByName(llvm::StringRef name);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);
@@ -29,16 +30,18 @@ public:
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
+
   /**
    * @brief Take any llvm value of arbitrary width return i256 values after
-   * performing necessary bit masking. 
-   * 
+   * performing necessary bit masking.
+   *
    * @param v value
    * @param type type to be read
    * @param bitwidth the width of the final datatype
-   * @return llvm::Value* 
+   * @return llvm::Value*
    */
-  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type, int bitwidth);
+  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type, llvm::Value *offset, 
+                       llvm::Instruction *insertionPoint = nullptr);
 
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
@@ -53,15 +56,16 @@ public:
   llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
   llvm::Value *handleAnd(YulFunctionCallNode &node);
   llvm::Value *handleByte(YulFunctionCallNode &node);
-  
-
-  
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
-  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst);
+  void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst,
+                                         std::smatch &match);
+  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst,
+                                          std::smatch &match);
+  void rewriteStorageLoadIntrinsic(llvm::CallInst *callInst);
   void rewriteCallIntrinsic(llvm::CallInst *callInst);
 
   // Yul EVM functions

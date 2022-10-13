@@ -44,6 +44,60 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   return ptr;
 }
 
+llvm::StringRef
+YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
+  llvm::StringRef type(visitor.currentContract->getVarTypeMap()[name].type);
+  auto &typeMap = visitor.currentContract->getTypeInfoMap();
+  auto typeInfo = typeMap.find(type);
+  assert(typeInfo != typeMap.end() && "Unreconized type of a variable");
+  return type;
+}
+
+llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v,
+                                         llvm::StringRef typeRef,
+                                         llvm::Value *offset, 
+                                         llvm::Instruction *insertPoint) {
+  std::unique_ptr<llvm::IRBuilder<>> tempBuilder;
+  llvm::IRBuilder<> *builder;
+  if (insertPoint == nullptr)
+    builder = &visitor.getBuilder();
+  else {
+    tempBuilder = std::make_unique<llvm::IRBuilder<>>(insertPoint);
+    builder = tempBuilder.get();
+  }
+  std::regex typeRegex(R"(t_([a-z]+)([0-9]+))");
+  std::smatch typeMatch;
+  std::string typeStr = typeRef.str();
+  bool found = std::regex_match(typeStr, typeMatch, typeRegex);
+  if (!found) {
+    //@todo refactor to raise runtime error.
+    assert(false && "Type did not match pattern in cleanup");
+  }
+  std::string type = typeMatch[1].str();
+  std::string bitWidthStr = typeMatch[2].str();
+  int bitWidth;
+  if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
+    //@todo refactor to raise runtime error.
+    assert(false && "Could not parse type bitwidth in cleanup");
+  }
+
+  if (type == "uint") {
+    llvm::APInt bitmask(256, 0, false);
+    bitmask.setBits(0, bitWidth);
+    v = builder->CreateLShr(v, offset);
+    return builder->CreateAnd(v, bitmask,
+                              "cleaned_up_t_" + type + bitWidthStr + "_");
+  } else if (type == "bytes") {
+    bitWidth = bitWidth * 8;
+    llvm::APInt bitmask(256, 0, false);
+    bitmask.setBits(256 - bitWidth, 256);
+    return builder->CreateAnd(v, bitmask,
+                              "cleaned_up_t_" + type + bitWidthStr + "_");
+  }
+  assert(false && "Cleanupt unrecognized type");
+  return nullptr;
+}
+
 llvm::FunctionType *
 YulIntrinsicHelper::getFunctionType(YulFunctionCallNode &node,
                                     llvm::SmallVector<llvm::Value *> &argsV) {

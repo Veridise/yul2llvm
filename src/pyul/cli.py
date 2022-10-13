@@ -206,7 +206,7 @@ def run_preprocess_steps(the_contract:ContractData,
     preprocess.prune_deployed_code(the_contract, logger=logger)
     preprocess.attach_storage_layout(the_contract, logger=logger)
     preprocess.rewrite_map(the_contract, logger=logger)
-    preprocess.rewrite_storage_ops(the_contract, logger=logger)
+    # preprocess.rewrite_storage_ops(the_contract, logger=logger)
     preprocess.rewrite_shift_left(the_contract, logger=logger)
     preprocess.rewrite_call_inst(the_contract, logger=logger)
 

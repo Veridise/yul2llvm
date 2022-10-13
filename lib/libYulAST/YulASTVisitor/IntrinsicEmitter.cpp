@@ -2,7 +2,7 @@
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 
 bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
-  
+
   if (calleeName == "checked_add_t_uint256") {
     return true;
   } else if (calleeName.startswith("mstore")) {
@@ -23,9 +23,9 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("write_to_memory")) {
     return true;
-  } else if (calleeName.startswith("convert_t_rational_")){
+  } else if (calleeName.startswith("convert_t_rational_")) {
     return true;
-  } else if (calleeName.startswith("byte")){
+  } else if (calleeName.startswith("byte")) {
     return true;
   }
   return false;
@@ -55,20 +55,18 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleReadFromMemory(node);
   } else if (calleeName.startswith("write_to_memory")) {
     return handleWriteToMemory(node);
-  } else if (calleeName.startswith("convert_t_rational_")){
+  } else if (calleeName.startswith("convert_t_rational_")) {
     return handleConvertRationalXByY(node);
-  } else if (calleeName.startswith("byte")){
+  } else if (calleeName.startswith("byte")) {
     return handleByte(node);
   }
   return nullptr;
 }
 
-
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
     return true;
-  } 
-  else if (calleeName.startswith("abi_decode_tuple_")) {
+  } else if (calleeName.startswith("abi_decode_tuple_")) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
@@ -80,7 +78,7 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("allocate_memory")) {
     return true;
-  } else if (calleeName.startswith("convert_t_rational_")){
+  } else if (calleeName.startswith("convert_t_rational_")) {
     return true;
   } else if (calleeName == "checked_add_t_uint256") {
     return true;
@@ -96,81 +94,68 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "byte") {
     return true;
-  } else if (calleeName.startswith("panic_error")){
+  } else if (calleeName.startswith("panic_error")) {
     return true;
-  } else if (calleeName.startswith("revert")){
+  } else if (calleeName.startswith("revert")) {
     return true;
-  } 
-    else
+  } else if (calleeName.startswith("read_from_storage")) {
+    return true;
+  } else
     return false;
 }
 
-llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node){
-  assert(node.getArgs().size() ==2 && "Unexpected number of args in byte(x, y)");
+llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 2 &&
+         "Unexpected number of args in byte(x, y)");
   llvm::Value *v2 = visitor.visit(*node.getArgs()[1]);
-  if(v2->getType()->isIntegerTy()){
-    return visitor.getBuilder().CreateIntCast(v2, llvm::Type::getInt8Ty(visitor.getContext()), false,
-                                                "byte_"+v2->getName());
-  }  
+  if (v2->getType()->isIntegerTy()) {
+    return visitor.getBuilder().CreateIntCast(
+        v2, llvm::Type::getInt8Ty(visitor.getContext()), false,
+        "byte_" + v2->getName());
+  }
   return nullptr;
 }
 
-llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node){
+llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 && "And not called with 2 arguments");
   llvm::Value *lhs = visitor.visit(*node.getArgs()[0]);
   llvm::Value *rhs = visitor.visit(*node.getArgs()[1]);
   return visitor.getBuilder().CreateAnd(lhs, rhs);
 }
 
-
-llvm::Value *YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node){
-  std::regex convertCallRegex(R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
+llvm::Value *
+YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
+  std::regex convertCallRegex(
+      R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
   bool found = std::regex_match(calleeName, match, convertCallRegex);
-  assert(found && "convert_t_rational did not match"); 
-  if(found && match.size() == 7){
+  assert(found && "convert_t_rational did not match");
+  if (found && match.size() == 7) {
     std::string strNumerator = match[2].str();
     std::string strDenominator = match[4].str();
     llvm::StringRef srNumerator(strNumerator);
     llvm::StringRef srDenominator(strDenominator);
     llvm::APInt numerator, denominator, quotient, reminder;
-    if(srNumerator.getAsInteger(10, numerator)){
-    llvm::outs()<<numerator<<" "<<denominator;
+    if (srNumerator.getAsInteger(10, numerator)) {
+      llvm::outs() << numerator << " " << denominator;
       assert(false && "Could not parse numerator in convert_t_rational");
     }
-    if(srDenominator.getAsInteger(10, denominator) && denominator != 0){
+    if (srDenominator.getAsInteger(10, denominator) && denominator != 0) {
       assert(false && "Could not parse donominator in convert_t_rational");
     }
-    if(match[1].matched)
+    if (match[1].matched)
       numerator = -numerator;
-    if(match[3].matched)
+    if (match[3].matched)
       denominator = -denominator;
-    //assert integral
+    // assert integral
     llvm::APInt::udivrem(numerator, denominator, quotient, reminder);
     quotient = quotient.sext(256);
     assert(reminder == 0 && "Non integreal types not implemented");
     return llvm::ConstantInt::get(visitor.getDefaultType(), quotient);
   }
-  assert(false && "convert_t_rational either did not match regex or wrong count");
-  return nullptr;
-}
-
-llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v, llvm::StringRef type, int bitWidth) {
-  auto &builder = visitor.getBuilder();
-  if(type == "uint"){
-    llvm::APInt bitmask(256, 0, false);
-    bitmask.setBits(0, bitWidth);
-    std::string widthStr = std::to_string(bitWidth);
-    return builder.CreateAnd(v, bitmask, "cleaned_up_t_"+type + widthStr);
-  } else if (type == "bytes") {
-    std::string widthStr = std::to_string(bitWidth);
-    bitWidth = bitWidth * 8;
-    llvm::APInt bitmask(256, 0, false);
-    bitmask.setBits(256-bitWidth, 256);
-    return builder.CreateAnd(v, bitmask, "cleaned_up_t_" + type+widthStr);
-  }
-  assert(false && "Cleanupt unrecognized type");
+  assert(false &&
+         "convert_t_rational either did not match regex or wrong count");
   return nullptr;
 }
 
@@ -178,24 +163,19 @@ llvm::Value *
 YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 1 &&
          "Wrong number of arguments read_from_memory_t_x call");
-  std::regex readCallNameRegex(R"(^read_from_memoryt_([a-z]+)(\d+))");
+  std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+)(\d+))");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
   if (std::regex_match(calleeName, match, readCallNameRegex)) {
     assert(match.size() == 3 && "read_from_memory does not match the pattern");
     std::string type = match[1].str();
     std::string widthStr = match[2].str();
-    int bitWidth;
-    if (!llvm::StringRef(widthStr).getAsInteger(10, bitWidth)) {
-      llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
-      auto &builder = visitor.getBuilder();
-      llvm::Value *loadedWord =
-          builder.CreateLoad(llvm::Type::getIntNTy(visitor.getContext(), 256),
-                             pointer, "arr_load");
-      return cleanup(loadedWord, type, bitWidth);
-    } else {
-      assert(false && "handleReadFromMemory bitwidth group mismatch");
-    }
+    llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
+    auto &builder = visitor.getBuilder();
+    llvm::Value *loadedWord =
+        builder.CreateLoad(visitor.getDefaultType(), pointer, "arr_load");
+    return cleanup(loadedWord, type + widthStr,
+                      llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
   }
   assert(false && "regex did not match read_from_memoryt");
   return nullptr;
@@ -204,23 +184,18 @@ llvm::Value *
 YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
          "Wrong number of arguments write_to_memory_t_x call");
-  std::regex readCallNameRegex(R"(^write_to_memory_t_([a-z]+)(\d+))");
+  std::regex readCallNameRegex(R"(^write_to_memory_(t_[a-z]+)(\d+))");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
   if (std::regex_match(calleeName, match, readCallNameRegex)) {
     assert(match.size() == 3 && "write_to_memory does not match the pattern");
     std::string type = match[1].str();
     std::string widthStr = match[2].str();
-    int bitWidth;
-    if (!llvm::StringRef(widthStr).getAsInteger(10, bitWidth)) {
-      llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
-      llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
-      auto &builder = visitor.getBuilder();
-      llvm::Value *cleanedUpValue = cleanup(valueToStore, type, bitWidth);
-      builder.CreateStore(cleanedUpValue, pointer);
-    } else {
-      assert(false && "handleReadFromMemory bitwidth group mismatch");
-    }
+    llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
+    llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
+    auto &builder = visitor.getBuilder();
+    llvm::Value *cleanedUpValue = cleanup(valueToStore, type + widthStr, llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
+    builder.CreateStore(cleanedUpValue, pointer);
   }
   return nullptr;
 }
@@ -382,23 +357,19 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
     ptr = visitor.getBuilder().CreateIntToPtr(ptr,
                                               val->getType()->getPointerTo());
   bool found = std::regex_search(functionName, match, mstoreFunNameRegex);
-  llvm::outs()<<"--";
-  for(auto m: match){
-    llvm::outs()<<m.str()<<"\n";
-  }
-  if(found){
-    if(match[1] != ""){
+  if (found) {
+    if (match[1] != "") {
       std::string bitWidthStr = match[1].str();
       int bitWidth;
-      if(llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)){
+      if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
         //@todo refactor into raising runtime error
         assert(false && "cannot parse bitwidth");
       }
-      ptr = visitor.getBuilder().CreatePointerCast(ptr, 
-                        llvm::Type::getIntNPtrTy(visitor.getContext(), bitWidth), "truncated_"+ptr->getName());
-    }  
+      ptr = visitor.getBuilder().CreatePointerCast(
+          ptr, llvm::Type::getIntNPtrTy(visitor.getContext(), bitWidth),
+          "truncated_" + ptr->getName());
+    }
     visitor.getBuilder().CreateStore(val, ptr);
-    
   }
   return nullptr;
 }
