@@ -44,6 +44,11 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   return ptr;
 }
 
+llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type){
+  int bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size*8;
+  return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
+}
+
 llvm::StringRef
 YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
   llvm::StringRef type(visitor.currentContract->getVarTypeMap()[name].type);

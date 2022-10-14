@@ -25,4 +25,4 @@ contract NestedMappingTestCase {
 //CHECK: {{define void @fun_mappingWrite_[0-9]+\(i256\* \%.+, .+, .+, .+\)}}
 //CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
 //CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
-//CHECK: {{store i256 .+, i256\*.*}}
+//CHECK: {{store i32 .+, i32\*.*}}

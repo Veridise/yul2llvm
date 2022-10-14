@@ -221,6 +221,7 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
 // truncate and write
 void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
     llvm::CallInst *callInst) {
+  llvm::IRBuilder<> tempBuilder(callInst);
   assert(callInst->getNumArgOperands() == 3 &&
          "Wrong number of arguments to storage store inst");
   callInst->setName("");
@@ -230,8 +231,8 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
   std::smatch match;
   if (std::regex_match(calleeName, match, updateValueRegex)) {
     llvm::Value *storeValue = callInst->getArgOperand(2);
-    std::string srcType = match[2].str();
-    std::string destType = match[3].str();
+    std::string srcTypeName = match[2].str();
+    std::string destTypeName = match[3].str();
     std::string offsetStr = match[1].str();
     int offset;
     if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
@@ -246,17 +247,33 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
               slot->getZExtValue(), offset);
 
       llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
-      ptr = llvm::CastInst::CreateBitOrPointerCast(
-          ptr, visitor.getDefaultType()->getPointerTo(),
-          "casted_" + ptr->getName(), callInst);
+      llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
+          storeValue, ptr->getType()->getPointerElementType(), true,
+          "casted_" + storeValue->getName(), callInst);
       llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
-          storeValue->getType());
-      auto newInst = new llvm::StoreInst(storeValue, ptr, false, align);
+          castedValue->getType());
+      auto newInst = new llvm::StoreInst(castedValue, ptr, false, align);
       llvm::ReplaceInstWithInst(callInst, newInst);
     } else {
+      llvm::Type *destType = getTypeByTypeName(destTypeName);
+      llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
+          storeValue, destType, true,
+          "casted_" + storeValue->getName(), callInst);
       llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
-          storeValue->getType());
-      auto newInst = new llvm::StoreInst(storeValue, callInst->getArgOperand(1),
+          castedValue->getType());
+      int numElementsInSlot = SLOT_SIZE/destType->getIntegerBitWidth();
+
+      llvm::Constant *zeroConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()), 
+                                                          0, 10);
+      llvm::Constant *offsetConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()), 
+                                                          offset, 10);
+      llvm::ArrayType *slotArrayType = llvm::ArrayType::get(destType, numElementsInSlot);
+      llvm::Value *arrayCastedSlot = tempBuilder.CreatePointerCast(callInst->getArgOperand(1), slotArrayType->getPointerTo());
+      llvm::Value *storageLocation = tempBuilder.CreateGEP(slotArrayType,
+                                                                      arrayCastedSlot,
+                                                                      {zeroConst, offsetConst},
+                                                                      "storageLocation");
+      auto newInst = new llvm::StoreInst(castedValue, storageLocation,
                                          false, align);
       llvm::ReplaceInstWithInst(callInst, newInst);
     }

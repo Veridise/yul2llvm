@@ -1,6 +1,7 @@
 #pragma once
 class LLVMCodegenVisitor;
 #include <libYulAST/YulFunctionCallNode.h>
+#include <libYulAST/YulASTVisitor/CodegenConstants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Value.h>
@@ -22,6 +23,7 @@ public:
   llvm::Value *getPointerToStorageVarByName(std::string,
                                             llvm::Instruction *insertPoint);
   llvm::StringRef getStorageVarYulTypeByName(llvm::StringRef name);
+  llvm::Type *getTypeByTypeName(llvm::StringRef type);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);
