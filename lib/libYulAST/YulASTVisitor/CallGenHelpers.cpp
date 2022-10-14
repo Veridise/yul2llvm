@@ -13,9 +13,9 @@ llvm::Value *getAddress(llvm::Value *address) {
     assert(mayBeContractToAddr->getNumArgOperands() == 2 &&
            "Incorrect number of arguments in address for call inst");
     std::regex castContToAddrRE(
-        "convert_t_contract\\$_(.*)_\\$(\\d+)_to_t_address");
+        "convert_t_(contract|address)(.*)_to_t_address");
     std::regex castAddrToContRE(
-        "convert_t_address(_payable)?_to_t_contract\\$_(.*)_\\$(\\d*)");
+        "convert_t_address(_payable)?_to_t_(contract|address).*");
     if (std::regex_match(mayBeContractToAddr->getName().str(),
                          castContToAddrRE)) {
       llvm::CallInst *mayBeAddrToContract =
@@ -23,6 +23,7 @@ llvm::Value *getAddress(llvm::Value *address) {
       assert(mayBeAddrToContract && "casting issues in external call");
       if (std::regex_match(mayBeAddrToContract->getName().str(),
                            castAddrToContRE)) {
+      llvm::outs()<<"HERE\n";
         llvm::Value *addr = mayBeAddrToContract->getArgOperand(1);
         mayBeAddrToContract->eraseFromParent();
         mayBeContractToAddr->eraseFromParent();
@@ -45,6 +46,9 @@ llvm::SmallVector<llvm::Value *>
 decodeArgsAndCleanup(llvm::Value *encodedArgs) {
   llvm::SmallVector<llvm::Value *> args;
   llvm::CallInst *abiEncodeCall = nullptr;
+  if(auto zeroArgs = llvm::dyn_cast<llvm::ConstantInt>(encodedArgs)){
+    return args;
+  }
   auto sub = llvm::dyn_cast<llvm::BinaryOperator>(encodedArgs);
   assert(sub && "Encoded args not sub");
 
