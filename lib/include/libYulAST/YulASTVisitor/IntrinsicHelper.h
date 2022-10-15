@@ -1,7 +1,7 @@
 #pragma once
 class LLVMCodegenVisitor;
-#include <libYulAST/YulFunctionCallNode.h>
 #include <libYulAST/YulASTVisitor/CodegenConstants.h>
+#include <libYulAST/YulFunctionCallNode.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Value.h>
@@ -12,6 +12,17 @@ class LLVMCodegenVisitor;
 using namespace yulast;
 class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
+  void rewriteUpdateStorageVar(llvm::CallInst *callInst, std::string name,
+                               llvm::Value *val);
+  void rewriteLoadStorageVar(llvm::CallInst *callInst, std::string name);
+  void rewriteUpdateStorageLocation(llvm::CallInst *callInst, llvm::Value *slot,
+                                    llvm::Value *offset, llvm::Type *type,
+                                    llvm::Value *val);
+  void rewriteLoadStorageLocation(llvm::CallInst *callInst, llvm::Value *slot,
+                                  llvm::Value *offset, llvm::Type *type);
+  llvm::Value *getPointerBySlotOffset(llvm::CallInst *callInst,
+                                      llvm::Value *slot, llvm::Value *offset,
+                                      llvm::Type *type);
 
 public:
   // Helpers
@@ -42,7 +53,8 @@ public:
    * @param bitwidth the width of the final datatype
    * @return llvm::Value*
    */
-  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type, llvm::Value *offset, 
+  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type,
+                       llvm::Value *offset,
                        llvm::Instruction *insertionPoint = nullptr);
 
   // Emit intrinsics

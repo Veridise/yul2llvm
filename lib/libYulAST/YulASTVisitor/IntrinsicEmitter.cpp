@@ -175,7 +175,7 @@ YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
     llvm::Value *loadedWord =
         builder.CreateLoad(visitor.getDefaultType(), pointer, "arr_load");
     return cleanup(loadedWord, type + widthStr,
-                      llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
+                   llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
   }
   assert(false && "regex did not match read_from_memoryt");
   return nullptr;
@@ -194,7 +194,9 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
     llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
     auto &builder = visitor.getBuilder();
-    llvm::Value *cleanedUpValue = cleanup(valueToStore, type + widthStr, llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
+    llvm::Value *cleanedUpValue =
+        cleanup(valueToStore, type + widthStr,
+                llvm::ConstantInt::get(visitor.getDefaultType(), 0, 10));
     builder.CreateStore(cleanedUpValue, pointer);
   }
   return nullptr;

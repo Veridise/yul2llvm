@@ -44,8 +44,8 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   return ptr;
 }
 
-llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type){
-  int bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size*8;
+llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
+  int bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size * 8;
   return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
 }
 
@@ -60,7 +60,7 @@ YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
 
 llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v,
                                          llvm::StringRef typeRef,
-                                         llvm::Value *offset, 
+                                         llvm::Value *offset,
                                          llvm::Instruction *insertPoint) {
   std::unique_ptr<llvm::IRBuilder<>> tempBuilder;
   llvm::IRBuilder<> *builder;

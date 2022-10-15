@@ -109,6 +109,83 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   }
 }
 
+void YulIntrinsicHelper::rewriteUpdateStorageLocation(llvm::CallInst *callInst,
+                                                      llvm::Value *slot,
+                                                      llvm::Value *offset,
+                                                      llvm::Type *destType,
+                                                      llvm::Value *storeValue) {
+  llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
+      storeValue, destType, true, "casted_" + storeValue->getName(), callInst);
+  llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
+      castedValue->getType());
+  llvm::Value *storageLocation =
+      getPointerBySlotOffset(callInst, slot, offset, destType);
+  auto newInst =
+      new llvm::StoreInst(castedValue, storageLocation, false, align);
+  llvm::ReplaceInstWithInst(callInst, newInst);
+}
+
+void YulIntrinsicHelper::rewriteLoadStorageLocation(llvm::CallInst *callInst,
+                                                    llvm::Value *slot,
+                                                    llvm::Value *offset,
+                                                    llvm::Type *loadType) {
+  llvm::Value *ptr = getPointerBySlotOffset(callInst, slot, offset, loadType);
+  llvm::Align align =
+      visitor.getModule().getDataLayout().getABITypeAlign(loadType);
+  auto loadedValue = new llvm::LoadInst(loadType, ptr, "pyul_storage_var_load",
+                                        false, align, callInst);
+  llvm::Instruction *casted = llvm::CastInst::CreateIntegerCast(
+      loadedValue, visitor.getDefaultType(), true);
+  llvm::ReplaceInstWithInst(callInst, casted);
+}
+
+void YulIntrinsicHelper::rewriteLoadStorageVar(llvm::CallInst *callInst,
+                                               std::string varName) {
+  llvm::Value *ptr = getPointerToStorageVarByName(varName, callInst);
+  llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
+  llvm::Align align =
+      visitor.getModule().getDataLayout().getABITypeAlign(selfVarType);
+
+  llvm::LoadInst *loadInst = new llvm::LoadInst(
+      selfVarType, ptr, "pyul_storage_var_load", false, align, callInst);
+
+  llvm::CastInst *newInst = llvm::CastInst::CreateIntegerCast(
+      loadInst, visitor.getDefaultType(), false, "i256_" + loadInst->getName());
+  llvm::ReplaceInstWithInst(callInst, newInst);
+}
+
+void YulIntrinsicHelper::rewriteUpdateStorageVar(llvm::CallInst *callInst,
+                                                 std::string varname,
+                                                 llvm::Value *storeValue) {
+  llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
+  llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
+      storeValue, ptr->getType()->getPointerElementType(), true,
+      "casted_" + storeValue->getName(), callInst);
+  llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
+      castedValue->getType());
+  auto newInst = new llvm::StoreInst(castedValue, ptr, false, align);
+  llvm::ReplaceInstWithInst(callInst, newInst);
+}
+
+llvm::Value *YulIntrinsicHelper::getPointerBySlotOffset(
+    llvm::CallInst *callInst, llvm::Value *slot, llvm::Value *offset,
+    llvm::Type *opType) {
+  llvm::IRBuilder<> tempBuilder(callInst);
+  int numElementsInSlot = SLOT_SIZE / opType->getIntegerBitWidth();
+
+  llvm::Constant *zeroConst = llvm::ConstantInt::get(
+      llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
+  llvm::Value *offsetConst = tempBuilder.CreateIntCast(
+      offset, llvm::Type::getInt32Ty(visitor.getContext()), false);
+  llvm::ArrayType *slotArrayType =
+      llvm::ArrayType::get(opType, numElementsInSlot);
+  llvm::Value *arrayCastedSlot =
+      tempBuilder.CreatePointerCast(slot, slotArrayType->getPointerTo());
+  llvm::Value *location = tempBuilder.CreateGEP(
+      slotArrayType, arrayCastedSlot, {zeroConst, offset}, "ptr_slot_offset");
+  return location;
+}
+
 void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
     llvm::CallInst *callInst, std::smatch &match) {
   // R"(^read_from_storage_split_dynamic_(.*))"
@@ -119,34 +196,11 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
   if (offset && slot) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
-
-    llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
-    llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
-    llvm::Align align =
-        visitor.getModule().getDataLayout().getABITypeAlign(selfVarType);
-
-    llvm::LoadInst *loadInst = new llvm::LoadInst(
-        selfVarType, ptr, "pyul_storage_var_load", false, align, callInst);
-
-    llvm::CastInst *newInst =
-        llvm::CastInst::CreateIntegerCast(loadInst, visitor.getDefaultType(),
-                                          false, "i256_" + loadInst->getName());
-    llvm::ReplaceInstWithInst(callInst, newInst);
+    rewriteLoadStorageVar(callInst, varname);
   } else {
-    llvm::Type *loadType = llvm::Type::getIntNTy(visitor.getContext(), 256);
-    llvm::Align align =
-        visitor.getModule().getDataLayout().getABITypeAlign(loadType);
-    auto loadedValue =
-        new llvm::LoadInst(loadType, callInst->getArgOperand(0),
-                           "pyul_storage_var_load", false, align, callInst);
-    auto cleanedUp = cleanup(loadedValue, yulTypeStr, callInst->getArgOperand(1), callInst);
-    llvm::Value *casted = llvm::CastInst::CreateIntegerCast(
-        cleanedUp, visitor.getDefaultType(), true);
-    if (auto newInst = llvm::dyn_cast<llvm::Instruction>(casted))
-      llvm::ReplaceInstWithInst(callInst, newInst);
-    else
-      //@todo raise runtime error
-      assert(false && "cleanedUp is not inst");
+    rewriteLoadStorageLocation(callInst, callInst->getArgOperand(0),
+                               callInst->getArgOperand(1),
+                               getTypeByTypeName(yulTypeStr));
   }
 }
 
@@ -170,33 +224,13 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
     slot = slotConst->getZExtValue();
     std::string varname =
         visitor.currentContract->getStateVarNameBySlotOffset(slot, offset);
-    llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
-    llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
-    llvm::Align align =
-        visitor.getModule().getDataLayout().getABITypeAlign(selfVarType);
-    llvm::LoadInst *loadInst = new llvm::LoadInst(
-        selfVarType, ptr, "pyul_storage_var_load", false, align, callInst);
-
-    llvm::CastInst *newInst =
-        llvm::CastInst::CreateIntegerCast(loadInst, visitor.getDefaultType(),
-                                          false, "i256_" + loadInst->getName());
-    llvm::ReplaceInstWithInst(callInst, newInst);
+    rewriteLoadStorageVar(callInst, varname);
   } else {
-    llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
-        visitor.getDefaultType());
-    llvm::Constant *zero = llvm::ConstantInt::get(visitor.getDefaultType(), offset, 256);
-    llvm::LoadInst *loadedValue =
-        new llvm::LoadInst(visitor.getDefaultType(), callInst->getArgOperand(0),
-                           "pyul_storage_var_load", false, align, callInst);
-    llvm::Value *cleanedUp = cleanup(loadedValue, yulTypeStr, zero, callInst);
-    llvm::Value *casted = llvm::CastInst::CreateIntegerCast(
-        cleanedUp, visitor.getDefaultType(), true);
-    if (llvm::Instruction *newInst = llvm::dyn_cast<llvm::Instruction>(casted))
-      llvm::ReplaceInstWithInst(callInst, newInst);
-
-    else
-      //@todo cleaned up value is not Instruction
-      assert(false && "Cleaned up value is not instruction");
+    llvm::Type *loadType = getTypeByTypeName(yulTypeStr);
+    llvm::Constant *offsetConst =
+        llvm::ConstantInt::get(visitor.getDefaultType(), offset, 10);
+    rewriteLoadStorageLocation(callInst, callInst->getArgOperand(0),
+                               offsetConst, loadType);
   }
 }
 
@@ -245,37 +279,14 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
       std::string varname =
           visitor.currentContract->getStateVarNameBySlotOffset(
               slot->getZExtValue(), offset);
+      rewriteUpdateStorageVar(callInst, varname, storeValue);
 
-      llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
-      llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
-          storeValue, ptr->getType()->getPointerElementType(), true,
-          "casted_" + storeValue->getName(), callInst);
-      llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
-          castedValue->getType());
-      auto newInst = new llvm::StoreInst(castedValue, ptr, false, align);
-      llvm::ReplaceInstWithInst(callInst, newInst);
     } else {
       llvm::Type *destType = getTypeByTypeName(destTypeName);
-      llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
-          storeValue, destType, true,
-          "casted_" + storeValue->getName(), callInst);
-      llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
-          castedValue->getType());
-      int numElementsInSlot = SLOT_SIZE/destType->getIntegerBitWidth();
-
-      llvm::Constant *zeroConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()), 
-                                                          0, 10);
-      llvm::Constant *offsetConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()), 
-                                                          offset, 10);
-      llvm::ArrayType *slotArrayType = llvm::ArrayType::get(destType, numElementsInSlot);
-      llvm::Value *arrayCastedSlot = tempBuilder.CreatePointerCast(callInst->getArgOperand(1), slotArrayType->getPointerTo());
-      llvm::Value *storageLocation = tempBuilder.CreateGEP(slotArrayType,
-                                                                      arrayCastedSlot,
-                                                                      {zeroConst, offsetConst},
-                                                                      "storageLocation");
-      auto newInst = new llvm::StoreInst(castedValue, storageLocation,
-                                         false, align);
-      llvm::ReplaceInstWithInst(callInst, newInst);
+      llvm::Constant *offsetConst = llvm::ConstantInt::get(
+          llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
+      rewriteUpdateStorageLocation(callInst, callInst->getArgOperand(0),
+                                   offsetConst, destType, storeValue);
     }
 
   } else {
