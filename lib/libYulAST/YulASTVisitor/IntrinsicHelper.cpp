@@ -49,27 +49,26 @@ llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
   std::regex uintTypeRegex(R"(^t_uint(\d+)$)");
   std::regex bytesTypeRegex(R"(^t_bytes(\d+)$)");
   std::smatch match;
-  std::string typeStr= type.str();;
-  int bitWidth=0;
-  if(typeInfoMap.find(type.str()) != typeInfoMap.end()){
+  std::string typeStr = type.str();
+  int bitWidth = 0;
+  if (typeInfoMap.find(type.str()) != typeInfoMap.end()) {
     bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size * 8;
-  } else if(std::regex_match(typeStr, match, uintTypeRegex)){
-      if(llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)){
-        //@todo raise runtime error
-        assert(false && "could not parse bitwidth while inferring datatype");
-      }
-  } else if(std::regex_match(typeStr, match, bytesTypeRegex)){
-    if(llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)){
+  } else if (std::regex_match(typeStr, match, uintTypeRegex)) {
+    if (llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)) {
       //@todo raise runtime error
       assert(false && "could not parse bitwidth while inferring datatype");
     }
-    bitWidth = bitWidth*8;
+  } else if (std::regex_match(typeStr, match, bytesTypeRegex)) {
+    if (llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)) {
+      //@todo raise runtime error
+      assert(false && "could not parse bitwidth while inferring datatype");
+    }
+    bitWidth = bitWidth * 8;
   } else {
     //@todo raise runtime error
     assert(false && "type not found in typeinfomap and could not infer");
   }
   return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
-
 }
 
 llvm::StringRef
@@ -80,8 +79,6 @@ YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
   assert(typeInfo != typeMap.end() && "Unreconized type of a variable");
   return type;
 }
-
-
 
 llvm::FunctionType *
 YulIntrinsicHelper::getFunctionType(YulFunctionCallNode &node,

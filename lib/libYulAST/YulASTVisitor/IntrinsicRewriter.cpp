@@ -181,8 +181,9 @@ llvm::Value *YulIntrinsicHelper::getPointerBySlotOffset(
       llvm::ArrayType::get(opType, numElementsInSlot);
   llvm::Value *arrayCastedSlot =
       tempBuilder.CreatePointerCast(slot, slotArrayType->getPointerTo());
-  llvm::Value *location = tempBuilder.CreateGEP(
-      slotArrayType, arrayCastedSlot, {zeroConst, offsetTrunc}, "ptr_slot_offset");
+  llvm::Value *location =
+      tempBuilder.CreateGEP(slotArrayType, arrayCastedSlot,
+                            {zeroConst, offsetTrunc}, "ptr_slot_offset");
   return location;
 }
 

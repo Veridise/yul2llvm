@@ -160,7 +160,7 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
-  llvm::outs()<<node.to_string()<<"\n";
+  llvm::outs() << node.to_string() << "\n";
   assert(node.getArgs().size() == 1 &&
          "Wrong number of arguments read_from_memory_t_x call");
   std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
@@ -171,9 +171,9 @@ YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
     auto &builder = visitor.getBuilder();
     llvm::Type *loadType = getTypeByTypeName(type);
-    llvm::Value *loadedWord =
-        builder.CreateLoad(loadType, pointer, "arr_load");
-    return builder.CreateIntCast(loadedWord, visitor.getDefaultType(), false,  "word_"+loadedWord->getName());
+    llvm::Value *loadedWord = builder.CreateLoad(loadType, pointer, "arr_load");
+    return builder.CreateIntCast(loadedWord, visitor.getDefaultType(), false,
+                                 "word_" + loadedWord->getName());
   }
   assert(false && "regex did not match write_to_memory");
   return nullptr;
@@ -191,7 +191,7 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
     llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
     llvm::Type *elementType = getTypeByTypeName(type);
-    if(valueToStore->getType()->isPointerTy()){
+    if (valueToStore->getType()->isPointerTy()) {
       valueToStore = builder.CreatePtrToInt(valueToStore, elementType);
     } else {
       valueToStore = builder.CreateIntCast(valueToStore, elementType, false);
@@ -216,32 +216,32 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
          "Wrong number of arguments in memory_array_index_access");
   auto &builder = visitor.getBuilder();
   std::string calleeName = node.getCalleeName();
-  std::regex bytesArrayIndexRegex(R"(memory_array_index_access_t_bytes_memory_ptr)");
-  std::regex memoryArrayIndexRegex(R"(memory_array_index_access_t_array\$_(.+)_\$(\d+)_memory_ptr)");
+  std::regex bytesArrayIndexRegex(
+      R"(memory_array_index_access_t_bytes_memory_ptr)");
+  std::regex memoryArrayIndexRegex(
+      R"(memory_array_index_access_t_array\$_(.+)_\$(\d+)_memory_ptr)");
   std::smatch match;
   std::string elementTypeName;
-  if(std::regex_match(calleeName, match, memoryArrayIndexRegex)){
+  if (std::regex_match(calleeName, match, memoryArrayIndexRegex)) {
     elementTypeName = match[1].str();
-  } else if(std::regex_match(calleeName, bytesArrayIndexRegex)){
+  } else if (std::regex_match(calleeName, bytesArrayIndexRegex)) {
     elementTypeName = "t_bytes1";
-  }
-  else {
+  } else {
     //@todo raise runtime error
-    llvm::outs()<<calleeName;
+    llvm::outs() << calleeName;
     assert(false && "memory_array_index did not match regex");
   }
   llvm::Type *elementType = getTypeByTypeName(elementTypeName);
-  llvm::ArrayType *arrayType =
-      llvm::ArrayType::get(elementType, 0);
+  llvm::ArrayType *arrayType = llvm::ArrayType::get(elementType, 0);
   llvm::Value *array = visitor.visit(*node.getArgs()[0]);
   llvm::Value *idx = visitor.visit(*node.getArgs()[1]);
-  if(array->getType()->isIntegerTy())
-  array =
-      builder.CreateCast(llvm::Instruction::CastOps::IntToPtr, array,
-                         llvm::Type::getIntNPtrTy(visitor.getContext(), 256),
-                         "ptr_" + array->getName());
-  auto arrayCast = builder.CreatePointerCast(
-      array, arrayType->getPointerTo(), "arr_" + array->getName());
+  if (array->getType()->isIntegerTy())
+    array =
+        builder.CreateCast(llvm::Instruction::CastOps::IntToPtr, array,
+                           llvm::Type::getIntNPtrTy(visitor.getContext(), 256),
+                           "ptr_" + array->getName());
+  auto arrayCast = builder.CreatePointerCast(array, arrayType->getPointerTo(),
+                                             "arr_" + array->getName());
   auto indices = visitor.getLLVMValueVector({0});
   indices.push_back(idx);
   auto elementPtr = builder.CreateGEP(arrayType, arrayCast, indices);
