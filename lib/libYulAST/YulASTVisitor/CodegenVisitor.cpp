@@ -90,8 +90,9 @@ llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
 // visitors
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
-  for (auto &var : node.getLHSIdentifiers()) {
-    std::string lvalname = var->getIdentfierValue();
+  int idx = 0;
+  if(node.getLHSIdentifiers().size() == 1){
+    std::string lvalname = node.getLHSIdentifiers()[0]->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
       llvm::WithColor::error() << "Assignment Node: lval not found " << lvalname
@@ -100,6 +101,30 @@ void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
     }
     llvm::Value *rval = visit(node.getRHSExpression());
     Builder->CreateStore(rval, lval, false);
+  }
+  else {
+    for (auto &var : node.getLHSIdentifiers()) {
+      std::string lvalname = var->getIdentfierValue();
+      llvm::AllocaInst *lval = NamedValues[lvalname];
+      if (lval == nullptr) {
+        llvm::WithColor::error() << "Assignment Node: lval not found " << lvalname
+                                << " in " << node.to_string();
+        exit(EXIT_FAILURE);
+      }
+      YulExpressionNode &rhsExpression = node.getRHSExpression();
+      if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
+        YulFunctionCallNode &callNode = (YulFunctionCallNode&)rhsExpression;
+        std::string calleeName = callNode.getCalleeName();
+        callNode.setCalleeName(calleeName+"_"+std::to_string(idx));
+        idx++;
+        llvm::Value *rval = visit(callNode);
+        Builder->CreateStore(rval, lval, false);
+      } else {
+        //@todo raise runtime error
+        llvm::outs()<<node.to_string();
+        assert(false && "unhandled rhs in assignment");
+      }  
+    }
   }
 }
 void LLVMCodegenVisitor::visitYulBlockNode(YulBlockNode &node) {
@@ -289,14 +314,38 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 }
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
-  for (auto &id : node.getVars()) {
+  if(node.getVars().size() == 1){
+    auto &id = node.getVars()[0];
     if (node.hasValue()) {
-      llvm::Value *initValue = visit(node.getValue());
-      codeGenForOneVarDeclaration(*id, initValue->getType());
-      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
-      Builder->CreateStore(initValue, lval);
-    } else {
-      codeGenForOneVarDeclaration(*id, nullptr);
+        llvm::Value *initValue = visit(node.getValue());
+        codeGenForOneVarDeclaration(*id, initValue->getType());
+        llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+        Builder->CreateStore(initValue, lval);
+      } else {
+        codeGenForOneVarDeclaration(*id, nullptr);
+    }
+  } else {
+    int idx = 0;
+    for (auto &id : node.getVars()) {
+      if (node.hasValue()) {
+        YulExpressionNode &rhsExpression = node.getValue();
+        if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
+          YulFunctionCallNode &callNode = (YulFunctionCallNode&)rhsExpression;
+          std::string oldName = callNode.getCalleeName();
+          callNode.setCalleeName(oldName+"_"+std::to_string(idx));
+          idx++;
+          llvm::Value *initValue = visit(callNode);
+          callNode.setCalleeName(oldName);
+          codeGenForOneVarDeclaration(*id, initValue->getType());
+          llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+          Builder->CreateStore(initValue, lval);
+        } else {
+          //@todo raise runtime error
+          assert(false && "unhandled rhs in var decl");
+        }
+      } else {
+        codeGenForOneVarDeclaration(*id, nullptr);
+      }
     }
   }
 }

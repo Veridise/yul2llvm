@@ -45,7 +45,7 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
 }
 
 llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
-  auto typeInfoMap = visitor.currentContract->getTypeInfoMap();
+  auto &typeInfoMap = visitor.currentContract->getTypeInfoMap();
   std::regex uintTypeRegex(R"(^t_uint(\d+)$)");
   std::regex bytesTypeRegex(R"(^t_bytes(\d+)$)");
   std::smatch match;
@@ -64,6 +64,8 @@ llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
       assert(false && "could not parse bitwidth while inferring datatype");
     }
     bitWidth = bitWidth * 8;
+  } else if(type.startswith("t_array")) {
+    return visitor.getDefaultType()->getPointerTo();
   } else {
     //@todo raise runtime error
     assert(false && "type not found in typeinfomap and could not infer");

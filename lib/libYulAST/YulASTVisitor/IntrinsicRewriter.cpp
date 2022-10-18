@@ -116,7 +116,7 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   }
 }
 
-void YulIntrinsicHelper::rewriteUpdateStorageLocation(llvm::CallInst *callInst,
+void YulIntrinsicHelper::rewriteUpdateStorageByLocation(llvm::CallInst *callInst,
                                                       llvm::Value *slot,
                                                       llvm::Value *offset,
                                                       llvm::Type *destType,
@@ -126,17 +126,17 @@ void YulIntrinsicHelper::rewriteUpdateStorageLocation(llvm::CallInst *callInst,
   llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
       castedValue->getType());
   llvm::Value *storageLocation =
-      getPointerBySlotOffset(callInst, slot, offset, destType);
+      getPointerInSlotByOffset(callInst, slot, offset, destType);
   auto newInst =
       new llvm::StoreInst(castedValue, storageLocation, false, align);
   llvm::ReplaceInstWithInst(callInst, newInst);
 }
 
-void YulIntrinsicHelper::rewriteLoadStorageLocation(llvm::CallInst *callInst,
+void YulIntrinsicHelper::rewriteLoadStorageByLocation(llvm::CallInst *callInst,
                                                     llvm::Value *slot,
                                                     llvm::Value *offset,
                                                     llvm::Type *loadType) {
-  llvm::Value *ptr = getPointerBySlotOffset(callInst, slot, offset, loadType);
+  llvm::Value *ptr = getPointerInSlotByOffset(callInst, slot, offset, loadType);
   llvm::Align align =
       visitor.getModule().getDataLayout().getABITypeAlign(loadType);
   auto loadedValue = new llvm::LoadInst(loadType, ptr, "pyul_storage_var_load",
@@ -146,7 +146,7 @@ void YulIntrinsicHelper::rewriteLoadStorageLocation(llvm::CallInst *callInst,
   llvm::ReplaceInstWithInst(callInst, casted);
 }
 
-void YulIntrinsicHelper::rewriteLoadStorageVar(llvm::CallInst *callInst,
+void YulIntrinsicHelper::rewriteLoadStorageVarByName(llvm::CallInst *callInst,
                                                std::string varName) {
   llvm::Value *ptr = getPointerToStorageVarByName(varName, callInst);
   llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
@@ -161,7 +161,7 @@ void YulIntrinsicHelper::rewriteLoadStorageVar(llvm::CallInst *callInst,
   llvm::ReplaceInstWithInst(callInst, newInst);
 }
 
-void YulIntrinsicHelper::rewriteUpdateStorageVar(llvm::CallInst *callInst,
+void YulIntrinsicHelper::rewriteUpdateStorageVarByName(llvm::CallInst *callInst,
                                                  std::string varname,
                                                  llvm::Value *storeValue) {
   llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
@@ -174,7 +174,7 @@ void YulIntrinsicHelper::rewriteUpdateStorageVar(llvm::CallInst *callInst,
   llvm::ReplaceInstWithInst(callInst, newInst);
 }
 
-llvm::Value *YulIntrinsicHelper::getPointerBySlotOffset(
+llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
     llvm::CallInst *callInst, llvm::Value *slot, llvm::Value *offset,
     llvm::Type *opType) {
   llvm::IRBuilder<> tempBuilder(callInst);
@@ -204,9 +204,9 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
   if (offset && slot) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
-    rewriteLoadStorageVar(callInst, varname);
+    rewriteLoadStorageVarByName(callInst, varname);
   } else {
-    rewriteLoadStorageLocation(callInst, callInst->getArgOperand(0),
+    rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
                                callInst->getArgOperand(1),
                                getTypeByTypeName(yulTypeStr));
   }
@@ -232,12 +232,12 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
     slot = slotConst->getZExtValue();
     std::string varname =
         visitor.currentContract->getStateVarNameBySlotOffset(slot, offset);
-    rewriteLoadStorageVar(callInst, varname);
+    rewriteLoadStorageVarByName(callInst, varname);
   } else {
     llvm::Type *loadType = getTypeByTypeName(yulTypeStr);
     llvm::Constant *offsetConst =
         llvm::ConstantInt::get(visitor.getDefaultType(), offset, 10);
-    rewriteLoadStorageLocation(callInst, callInst->getArgOperand(0),
+    rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
                                offsetConst, loadType);
   }
 }
@@ -260,47 +260,142 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
   }
 }
 
-// truncate and write
-void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
-    llvm::CallInst *callInst) {
-  llvm::IRBuilder<> tempBuilder(callInst);
-  assert(callInst->getNumArgOperands() == 3 &&
-         "Wrong number of arguments to storage store inst");
+void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst){
+   std::regex updateValueOffsetRegex(
+      R"(^update_storage_value_offset_([0-9]+)(.*)_to_(.*)$)");
+   std::regex updateValueDynamicRegex(
+      R"(^update_storage_value_(.*)_to_(.*)$)");
+  std::smatch match;
+  std::string calleeName = callInst->getCalledFunction()->getName().str();
+  if(std::regex_match(calleeName, match, updateValueOffsetRegex)){
+    rewriteStorageOffsetUpdateIntrinsic(callInst, match);
+  } else if(std::regex_match(calleeName, match, updateValueDynamicRegex)){
+    rewriteStorageDynamicUpdateIntrinsic(callInst, match);
+  } else {
+    // @todo raise runtime error
+    assert(false && "update_storage_value did not match any regex");
+  }
+
+
+}
+void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst,
+                                          std::smatch &match){
+    llvm::IRBuilder<> tempBuilder(callInst);
+  assert(callInst->getNumArgOperands() == 4 &&
+          "Wrong number of arguments to dynamic storage store inst");
   callInst->setName("");
   std::string calleeName = callInst->getCalledFunction()->getName().str();
-  std::regex updateValueRegex(
-      R"(^update_storage_value_offset_([0-9]+)(.*)_to_(.*)$)");
-  std::smatch match;
-  if (std::regex_match(calleeName, match, updateValueRegex)) {
-    llvm::Value *storeValue = callInst->getArgOperand(2);
-    std::string srcTypeName = match[2].str();
-    std::string destTypeName = match[3].str();
-    std::string offsetStr = match[1].str();
-    int offset;
-    if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
-      //@todo raise runtime error
-      assert(false && "could not parse offset in update");
-    }
-
-    if (auto slot =
-            llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1))) {
-      std::string varname =
-          visitor.currentContract->getStateVarNameBySlotOffset(
-              slot->getZExtValue(), offset);
-      rewriteUpdateStorageVar(callInst, varname, storeValue);
-
-    } else {
-      llvm::Type *destType = getTypeByTypeName(destTypeName);
-      llvm::Constant *offsetConst = llvm::ConstantInt::get(
-          llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
-      rewriteUpdateStorageLocation(callInst, callInst->getArgOperand(0),
-                                   offsetConst, destType, storeValue);
-    }
-
+  llvm::Value *slotArg = callInst->getArgOperand(1);
+  llvm::Value *offsetArg = callInst->getArgOperand(2);
+  llvm::Value *storeValue = callInst->getArgOperand(3);
+  std::string srcTypeName = match[1].str();
+  std::string destTypeName = match[2].str();
+  auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slotArg);
+  auto offsetConst = llvm::dyn_cast<llvm::ConstantInt>(offsetArg);
+  if (slotConst && offsetConst) {
+    std::string varname =
+        visitor.currentContract->getStateVarNameBySlotOffset(
+            slotConst->getZExtValue(), offsetConst->getZExtValue());
+    rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
-    //@todo raise runtime error
-    assert(false && "update_storage_value failed regex_match");
+    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Value *offsetIndex = tempBuilder.CreateIntCast(offsetArg,
+      llvm::Type::getInt32Ty(visitor.getContext()), false, "array_offset");
+    rewriteUpdateStorageByLocation(callInst, slotArg,
+                                  offsetIndex, destType, storeValue);
   }
+
+}
+
+// truncate and write
+void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
+    llvm::CallInst *callInst, std::smatch &match) {
+  llvm::IRBuilder<> tempBuilder(callInst);
+  assert(callInst->getNumArgOperands() == 3 &&
+          "Wrong number of arguments to storage store inst");
+  callInst->setName("");
+  std::string calleeName = callInst->getCalledFunction()->getName().str();
+  llvm::Value *storeValue = callInst->getArgOperand(2);
+  std::string srcTypeName = match[2].str();
+  std::string destTypeName = match[3].str();
+  std::string offsetStr = match[1].str();
+  int offset;
+  if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
+    //@todo raise runtime error
+    assert(false && "could not parse offset in update");
+  }
+
+  if (auto slot =
+          llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1))) {
+    std::string varname =
+        visitor.currentContract->getStateVarNameBySlotOffset(
+            slot->getZExtValue(), offset);
+    rewriteUpdateStorageVarByName(callInst, varname, storeValue);
+  } else {
+    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Constant *offsetConst = llvm::ConstantInt::get(
+        llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
+    rewriteUpdateStorageByLocation(callInst, callInst->getArgOperand(0),
+                                  offsetConst, destType, storeValue);
+  }
+
+  
+}
+
+void YulIntrinsicHelper::rewriteStorageArrayIndexAccessRetOffset(llvm::CallInst *callInst){
+  auto zero = llvm::ConstantInt::get(llvm::Type::getInt8Ty(visitor.getContext()), 0, 10);
+  auto &instList = callInst->getParent()->getInstList();
+  llvm::BasicBlock::iterator found = callInst->getIterator();
+  llvm::ReplaceInstWithValue(instList, found, zero);
+}
+
+void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst){
+  assert(callInst->getNumArgOperands() == 2 && "Wrong number of args in storage_array_index access");
+  llvm::IRBuilder<> builder(callInst);
+  std::regex storageArrayIndexRegex(R"(^storage_array_index_access_t_array\$_(.*)_\$(\d+)_storage_(\d+)$)");
+  std::string name = callInst->getCalledFunction()->getName().str();
+  std::smatch match;
+  if(!std::regex_match(name, match, storageArrayIndexRegex)){
+    //@todo raise runtime error
+    assert(false && "didnt match storage array index regex");
+  }
+  std::string elementTypeName = match[1].str();
+  std::string sizeStr = match[2].str();
+  std::string retIndex = match[3].str();
+  if(retIndex == "1"){
+    rewriteStorageArrayIndexAccessRetOffset(callInst);
+    return;
+  } 
+  int size;
+  if(llvm::StringRef(sizeStr).getAsInteger(10, size)){
+    //@todo raise runtime error
+    assert(false && "could not parse array size");
+  }
+  llvm::Type *elementType = getTypeByTypeName(elementTypeName);
+  llvm::Value *slot = callInst->getArgOperand(0);
+  llvm::Value *index = callInst->getArgOperand(1);
+  assert(index->getType()->isIntegerTy() && "index is not int type");
+  llvm::Value *truncIndex = builder.CreateIntCast(index, llvm::Type::getInt32Ty(visitor.getContext()), false, "index32");
+  auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slot);
+  llvm::Value *arrayPtr;
+  std::string arrayName = "";
+  if(slotConst){
+    arrayName = visitor.currentContract->getStateVarNameBySlotOffset(slotConst->getZExtValue(), 0);
+    arrayPtr = getPointerToStorageVarByName(arrayName, callInst);
+  } else {
+    if(slot->getType()->isPointerTy())
+      arrayPtr = builder.CreatePointerCast(slot, elementType->getPointerTo(), "ptr_"+slot->getName());
+    else
+      arrayPtr = builder.CreateIntToPtr(slot, elementType->getPointerTo(), "ptr_"+slot->getName());
+  }
+  llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()),
+                                                              0, 10);
+  arrayPtr = builder.CreateLoad(getTypeByTypeName(elementTypeName)->getPointerTo(), arrayPtr, "ptr_" + arrayName);
+  llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
+  auto castedArrayPtr = builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo(), "arrayfied_"+arrayPtr->getName());
+  llvm::Instruction *elementPtr = llvm::GetElementPtrInst::Create(arrayType, castedArrayPtr, {zero, truncIndex}, 
+                              "slot_"+arrayPtr->getName()+"["+index->getName()+"]");
+  llvm::ReplaceInstWithInst(callInst, elementPtr);
 }
 
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
@@ -317,6 +412,8 @@ void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
       rewriteStorageLoadIntrinsic(c);
     } else if (c->getCalledFunction()->getName() == "call") {
       rewriteCallIntrinsic(c);
+    } else if (c->getCalledFunction()->getName().startswith("storage_array_index_access_t_array")) {
+      rewriteStorageArrayIndexAccess(c);
     }
   }
 }

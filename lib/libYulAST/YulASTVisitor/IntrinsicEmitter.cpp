@@ -27,7 +27,7 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("byte")) {
     return true;
-  }
+  } 
   return false;
 }
 
@@ -59,7 +59,7 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleConvertRationalXByY(node);
   } else if (calleeName.startswith("byte")) {
     return handleByte(node);
-  }
+  } 
   return nullptr;
 }
 
@@ -100,13 +100,16 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("read_from_storage")) {
     return true;
+  } else if (calleeName.startswith("storage_array_index_access_t_array")) {
+    return true;
   } else
     return false;
 }
 
+
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
-         "Unexpected number of args in byte(x, y)");
+         "Unexpected number of args in byte(x, y)");  
   llvm::Value *v2 = visitor.visit(*node.getArgs()[1]);
   if (v2->getType()->isIntegerTy()) {
     return visitor.getBuilder().CreateIntCast(
