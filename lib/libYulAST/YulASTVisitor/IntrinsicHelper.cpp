@@ -45,8 +45,31 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
 }
 
 llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
-  int bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size * 8;
+  auto typeInfoMap = visitor.currentContract->getTypeInfoMap();
+  std::regex uintTypeRegex(R"(^t_uint(\d+)$)");
+  std::regex bytesTypeRegex(R"(^t_bytes(\d+)$)");
+  std::smatch match;
+  std::string typeStr= type.str();;
+  int bitWidth=0;
+  if(typeInfoMap.find(type.str()) != typeInfoMap.end()){
+    bitWidth = visitor.currentContract->getTypeInfoMap()[type.str()].size * 8;
+  } else if(std::regex_match(typeStr, match, uintTypeRegex)){
+      if(llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)){
+        //@todo raise runtime error
+        assert(false && "could not parse bitwidth while inferring datatype");
+      }
+  } else if(std::regex_match(typeStr, match, bytesTypeRegex)){
+    if(llvm::StringRef(match[1].str()).getAsInteger(10, bitWidth)){
+      //@todo raise runtime error
+      assert(false && "could not parse bitwidth while inferring datatype");
+    }
+    bitWidth = bitWidth*8;
+  } else {
+    //@todo raise runtime error
+    assert(false && "type not found in typeinfomap and could not infer");
+  }
   return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
+
 }
 
 llvm::StringRef
@@ -58,50 +81,7 @@ YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
   return type;
 }
 
-llvm::Value *YulIntrinsicHelper::cleanup(llvm::Value *v,
-                                         llvm::StringRef typeRef,
-                                         llvm::Value *offset,
-                                         llvm::Instruction *insertPoint) {
-  std::unique_ptr<llvm::IRBuilder<>> tempBuilder;
-  llvm::IRBuilder<> *builder;
-  if (insertPoint == nullptr)
-    builder = &visitor.getBuilder();
-  else {
-    tempBuilder = std::make_unique<llvm::IRBuilder<>>(insertPoint);
-    builder = tempBuilder.get();
-  }
-  std::regex typeRegex(R"(t_([a-z]+)([0-9]+))");
-  std::smatch typeMatch;
-  std::string typeStr = typeRef.str();
-  bool found = std::regex_match(typeStr, typeMatch, typeRegex);
-  if (!found) {
-    //@todo refactor to raise runtime error.
-    assert(false && "Type did not match pattern in cleanup");
-  }
-  std::string type = typeMatch[1].str();
-  std::string bitWidthStr = typeMatch[2].str();
-  int bitWidth;
-  if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
-    //@todo refactor to raise runtime error.
-    assert(false && "Could not parse type bitwidth in cleanup");
-  }
 
-  if (type == "uint") {
-    llvm::APInt bitmask(256, 0, false);
-    bitmask.setBits(0, bitWidth);
-    v = builder->CreateLShr(v, offset);
-    return builder->CreateAnd(v, bitmask,
-                              "cleaned_up_t_" + type + bitWidthStr + "_");
-  } else if (type == "bytes") {
-    bitWidth = bitWidth * 8;
-    llvm::APInt bitmask(256, 0, false);
-    bitmask.setBits(256 - bitWidth, 256);
-    return builder->CreateAnd(v, bitmask,
-                              "cleaned_up_t_" + type + bitWidthStr + "_");
-  }
-  assert(false && "Cleanupt unrecognized type");
-  return nullptr;
-}
 
 llvm::FunctionType *
 YulIntrinsicHelper::getFunctionType(YulFunctionCallNode &node,

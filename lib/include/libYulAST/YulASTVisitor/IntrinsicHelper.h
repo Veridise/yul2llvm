@@ -44,25 +44,12 @@ public:
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
 
-  /**
-   * @brief Take any llvm value of arbitrary width return i256 values after
-   * performing necessary bit masking.
-   *
-   * @param v value
-   * @param type type to be read
-   * @param bitwidth the width of the final datatype
-   * @return llvm::Value*
-   */
-  llvm::Value *cleanup(llvm::Value *v, llvm::StringRef type,
-                       llvm::Value *offset,
-                       llvm::Instruction *insertionPoint = nullptr);
-
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
   llvm::Value *handleMStoreFunctionCall(YulFunctionCallNode &node);
   llvm::Value *handleShl(YulFunctionCallNode &node);
   llvm::Value *handleAllocateUnbounded(YulFunctionCallNode &node);
-  llvm::Value *handleArrayIndexAccess(YulFunctionCallNode &node);
+  llvm::Value *handleMemoryArrayIndexAccess(YulFunctionCallNode &node);
   llvm::Value *handlePointerAdd(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handleReadFromMemory(YulFunctionCallNode &node);

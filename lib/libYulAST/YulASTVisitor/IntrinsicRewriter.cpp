@@ -175,14 +175,14 @@ llvm::Value *YulIntrinsicHelper::getPointerBySlotOffset(
 
   llvm::Constant *zeroConst = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
-  llvm::Value *offsetConst = tempBuilder.CreateIntCast(
+  llvm::Value *offsetTrunc = tempBuilder.CreateIntCast(
       offset, llvm::Type::getInt32Ty(visitor.getContext()), false);
   llvm::ArrayType *slotArrayType =
       llvm::ArrayType::get(opType, numElementsInSlot);
   llvm::Value *arrayCastedSlot =
       tempBuilder.CreatePointerCast(slot, slotArrayType->getPointerTo());
   llvm::Value *location = tempBuilder.CreateGEP(
-      slotArrayType, arrayCastedSlot, {zeroConst, offset}, "ptr_slot_offset");
+      slotArrayType, arrayCastedSlot, {zeroConst, offsetTrunc}, "ptr_slot_offset");
   return location;
 }
 
