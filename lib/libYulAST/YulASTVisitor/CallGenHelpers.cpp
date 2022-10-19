@@ -23,7 +23,6 @@ llvm::Value *getAddress(llvm::Value *address) {
       assert(mayBeAddrToContract && "casting issues in external call");
       if (std::regex_match(mayBeAddrToContract->getName().str(),
                            castAddrToContRE)) {
-      llvm::outs()<<"HERE\n";
         llvm::Value *addr = mayBeAddrToContract->getArgOperand(1);
         mayBeAddrToContract->eraseFromParent();
         mayBeContractToAddr->eraseFromParent();
