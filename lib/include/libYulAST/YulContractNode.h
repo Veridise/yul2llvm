@@ -6,29 +6,27 @@
 #include <llvm/ADT/StringMap.h>
 #include <regex>
 
-
 namespace yulast {
-struct TypeInfo { 
-  public:
+struct TypeInfo {
+public:
   std::string kind;
   std::string keyType;
   std::string valueType;
   int size;
-  TypeInfo(std::string kind, std::string keyType, std::string valueType, int size):
-    kind(kind), keyType(keyType), valueType(valueType), size(size){}
-  TypeInfo(){}
-    
+  TypeInfo(std::string kind, std::string keyType, std::string valueType,
+           int size)
+      : kind(kind), keyType(keyType), valueType(valueType), size(size) {}
+  TypeInfo() {}
 };
 
-struct StorageVarInfo{
-  public:
+struct StorageVarInfo {
+public:
   std::string type;
   int slot;
   int offset;
-  StorageVarInfo(std::string type, int slot, int offset) :
-    type(type), slot(slot), offset(offset){}
-  StorageVarInfo(){}
-  
+  StorageVarInfo(std::string type, int slot, int offset)
+      : type(type), slot(slot), offset(offset) {}
+  StorageVarInfo() {}
 };
 
 class YulContractNode : public YulASTBase {
@@ -54,7 +52,6 @@ public:
   llvm::SmallVector<std::string> &getStructFieldOrder();
   std::string getStateVarNameBySlotOffset(int slot, int offset);
   llvm::StringMap<TypeInfo> &getTypeInfoMap();
-
 };
 
 }; // namespace yulast

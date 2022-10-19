@@ -20,11 +20,10 @@ contract ArrayTest {
 
 //CHECK: define i256 @fun_readArray_{{[0-9]+}}(i256* %{{.+, .+, .+}})
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]*
-//CHECK: arr_load{{.*}} = load i256, i256*
-//CHECK: cleaned_up{{.*}} = and i256
+//CHECK: arr_load{{.*}} = load i32, i32*
+//CHECK: %word_arr_load = zext i32
 
 
 //CHECK: define void @fun_writeArray_{{[0-9]+}}(i256* %{{.*, .+, .+, .+}})
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]*
-//CHECK: cleaned_up{{.*}} = and i256
-//CHECK: store i256 {{.*}}, i256*
+//CHECK: store i32 {{.*}}, i32*

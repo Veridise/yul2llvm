@@ -357,7 +357,7 @@ def rewrite_call_inst(contract: ContractData,
                         logger: Optional[logging.Logger] = None):
     call_re = re.compile("^call$")
 
-    def get_selector(node: YulNode, parents:List[YulNode]):
+    def get_selector(node: YulNode, parents: List[YulNode]):
         parents.reverse()
         child = node
         for parent in parents:
@@ -366,8 +366,9 @@ def rewrite_call_inst(contract: ContractData,
             child = parent
         statements = parent.children.underlying
         idx = statements.index(child.obj)
+        selector_var = None
         while idx >= 0:
-            idx-=1
+            idx -= 1
             node = YulNode(statements[idx])
             if(node.is_fun_call_and_name('mstore')):
                 shl_call = node.children[2]
@@ -376,24 +377,28 @@ def rewrite_call_inst(contract: ContractData,
                     selector_var = shl_call.children[1].children[0].obj
                     statements.remove(statements[idx])
 
+        assert selector_var is not None, "Could not find selector"
+
         for s in statements:
             node = YulNode(s)
-            if(node.is_var_decl_with_name(selector_var)):
+            if node.is_var_decl_with_name(selector_var):
                 # assignment to the var declaraion is the constant value selector
                 return node.children[1].get_literal_value()
-
-
-
+        assert False, "Could not find selector"
 
     def _rewrite_call(node: YulNode, parents:List[YulNode]):
-        if(not node.is_fun_call()):
-            return True
-        match = call_re.match(node.get_fun_name())
-        if(match):
-            selector = get_selector(node, parents)
-            selector_node = create_yul_number_literal(selector)
+        if not node.is_fun_call():
+            return
+
+        if call_re.match(node.get_fun_name()):
             # 5th (idx = 4) argument to call argument is the function selector
+            if node.children[4].type == 'yul_literal':
+                selector = node.children[4].get_literal_value()
+            else:
+                selector = get_selector(node, parents)
+            selector_node = create_yul_number_literal(selector)
             node.children[4] = selector_node
-            
+
+
     walk_dfs(contract.yul_ast['contract_body'], _rewrite_call)
     walk_dfs(contract.yul_ast['object_body']['contract_body'], _rewrite_call)

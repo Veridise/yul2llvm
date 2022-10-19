@@ -51,6 +51,7 @@ LLVMCodegenVisitor::LLVMCodegenVisitor() : intrinsicHelper(*this) {
   FPM = std::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
   FPM->add(llvm::createLoopSimplifyPass());
   FPM->add(llvm::createPromoteMemoryToRegisterPass());
+  //@todo add dce
 }
 
 void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
@@ -290,10 +291,10 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
   for (auto &id : node.getVars()) {
     if (node.hasValue()) {
-      llvm::Value *constant = visit(node.getValue());
-      codeGenForOneVarDeclaration(*id, constant->getType());
+      llvm::Value *initValue = visit(node.getValue());
+      codeGenForOneVarDeclaration(*id, initValue->getType());
       llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
-      Builder->CreateStore(constant, lval);
+      Builder->CreateStore(initValue, lval);
     } else {
       codeGenForOneVarDeclaration(*id, nullptr);
     }
@@ -322,13 +323,13 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
 }
 
-
-llvm::Type *LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr, 
-                            llvm::StringMap<TypeInfo> &typeInfoMap) {
+llvm::Type *
+LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr,
+                                  llvm::StringMap<TypeInfo> &typeInfoMap) {
   llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256);
-  if(typeStr.startswith("t_mapping")){
+  if (typeStr.startswith("t_mapping")) {
     return memPtrType;
-  } else if (typeStr.find("t_array")!=typeStr.npos){
+  } else if (typeStr.find("t_array") != typeStr.npos) {
     return memPtrType;
   } else {
     int bitwidth = typeInfoMap[typeStr].size * 8;
@@ -365,7 +366,7 @@ llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
   return selfType;
 }
 
-llvm::Type *LLVMCodegenVisitor::getDefaultType() const { 
+llvm::Type *LLVMCodegenVisitor::getDefaultType() const {
   return llvm::Type::getIntNTy(*TheContext, 256);
 }
 

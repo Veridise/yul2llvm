@@ -34,6 +34,6 @@ contract SameSlotStorageVariableTestcase {
 
 // CHECK: define void @fun_writeStorageVariable_{{.*}}
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 0
-// CHECK: store i256 10, i256* %casted_ptr_self_x, align 4
+// CHECK: store i32 {{.*}}, i32* %{{.*}}, align 4
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 1
-// CHECK: store i256 20, i256* %casted_ptr_self_y, align 4
+// CHECK: store i32 {{.*}}, i32* %{{.*}}, align 4
