@@ -90,19 +90,18 @@ llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
 // visitors
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
-  int idx = 0;
   if(node.getLHSIdentifiers().size() == 1){
     std::string lvalname = node.getLHSIdentifiers()[0]->getIdentfierValue();
     llvm::AllocaInst *lval = NamedValues[lvalname];
     if (lval == nullptr) {
-      llvm::WithColor::error() << "Assignment Node: lval not found " << lvalname
-                               << " in " << node.to_string();
-      exit(EXIT_FAILURE);
+      //@todo raise runtime error
+      assert(false && "Assignment Node: lval not found");
     }
     llvm::Value *rval = visit(node.getRHSExpression());
     Builder->CreateStore(rval, lval, false);
   }
   else {
+    int idx = 0;
     for (auto &var : node.getLHSIdentifiers()) {
       std::string lvalname = var->getIdentfierValue();
       llvm::AllocaInst *lval = NamedValues[lvalname];
@@ -418,5 +417,10 @@ llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
 llvm::Type *LLVMCodegenVisitor::getDefaultType() const {
   return llvm::Type::getIntNTy(*TheContext, 256);
 }
+
+llvm::StringMap<llvm::Type*> LLVMCodegenVisitor::getReturnTypesMap(){
+  return returnTypes;
+}
+
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

@@ -28,6 +28,7 @@ protected:
   llvm::StringMap<llvm::AllocaInst *> NamedValues;
   // This is a map from <string-literal> -> global variable location
   llvm::StringMap<std::string> stringLiteralNames;
+  llvm::StringMap<llvm::Type*> returnTypes;
 
   // data structures for self
   llvm::StructType *selfType;
@@ -47,7 +48,7 @@ protected:
    * }
    *
    */
-  llvm::StructType *extCallCtxType;
+  llvm::StructType *extCallCtxType; 
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
   void codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *);
@@ -113,4 +114,7 @@ public:
 
   void dump(llvm::raw_ostream &os) const;
   void dumpToStdout() const;
+
+  llvm::StringMap<llvm::Type*> getReturnTypesMap();
+
 };
