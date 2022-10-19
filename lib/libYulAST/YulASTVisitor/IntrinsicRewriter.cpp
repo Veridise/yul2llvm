@@ -376,6 +376,13 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst
   llvm::Value *index = callInst->getArgOperand(1);
   assert(index->getType()->isIntegerTy() && "index is not int type");
   llvm::Value *truncIndex = builder.CreateIntCast(index, llvm::Type::getInt32Ty(visitor.getContext()), false, "index32");
+  std::string indexString;
+  auto offsetConst = llvm::dyn_cast<llvm::ConstantInt>(truncIndex);
+  if(offsetConst){
+    indexString = std::to_string(offsetConst->getZExtValue());
+  } else {
+    indexString = truncIndex->getName();
+  }
   auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slot);
   llvm::Value *arrayPtr;
   std::string arrayName = "";
@@ -383,18 +390,19 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst
     arrayName = visitor.currentContract->getStateVarNameBySlotOffset(slotConst->getZExtValue(), 0);
     arrayPtr = getPointerToStorageVarByName(arrayName, callInst);
   } else {
+    arrayName = slot->getName();
     if(slot->getType()->isPointerTy())
-      arrayPtr = builder.CreatePointerCast(slot, elementType->getPointerTo(), "ptr_"+slot->getName());
+      arrayPtr = builder.CreatePointerCast(slot, visitor.getDefaultType()->getPointerTo(), slot->getName()+"_casted");
     else
-      arrayPtr = builder.CreateIntToPtr(slot, elementType->getPointerTo(), "ptr_"+slot->getName());
+      arrayPtr = builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(), slot->getName()+"_casted");
   }
   llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(visitor.getContext()),
                                                               0, 10);
-  arrayPtr = builder.CreateLoad(getTypeByTypeName(elementTypeName)->getPointerTo(), arrayPtr, "ptr_" + arrayName);
+  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(), arrayPtr, arrayPtr->getName().drop_front(4));
   llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
-  auto castedArrayPtr = builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo(), "arrayfied_"+arrayPtr->getName());
+  auto castedArrayPtr = builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo());
   llvm::Instruction *elementPtr = llvm::GetElementPtrInst::Create(arrayType, castedArrayPtr, {zero, truncIndex}, 
-                              "slot_"+arrayPtr->getName()+"["+index->getName()+"]");
+                              "ptr_"+arrayPtr->getName()+"["+indexString+"]");
   llvm::ReplaceInstWithInst(callInst, elementPtr);
 }
 

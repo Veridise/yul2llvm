@@ -129,12 +129,13 @@ llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node) {
 llvm::Value *
 YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
   std::regex convertCallRegex(
-      R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
+      R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_(.*)$)");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
+  llvm::outs()<<calleeName;
   bool found = std::regex_match(calleeName, match, convertCallRegex);
   assert(found && "convert_t_rational did not match");
-  if (found && match.size() == 7) {
+  if (found && match.size() == 6) {
     std::string strNumerator = match[2].str();
     std::string strDenominator = match[4].str();
     llvm::StringRef srNumerator(strNumerator);
