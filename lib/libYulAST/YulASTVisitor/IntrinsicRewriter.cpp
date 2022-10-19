@@ -53,7 +53,14 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   value = callInst->getArgOperand(2);
   selector = getSelector(callInst->getArgOperand(3));
   callArgs = decodeArgsAndCleanup(callInst->getArgOperand(4));
-  retBuffer = callInst->getArgOperand(5);
+  if(callInst->getArgOperand(5)->getType()->isPointerTy())
+    retBuffer = callInst->getArgOperand(5);
+  else
+    retBuffer = llvm::IntToPtrInst::Create(llvm::Instruction::CastOps::IntToPtr, 
+                                           callInst->getArgOperand(5), 
+                                           visitor.getDefaultType()->getPointerTo(), 
+                                           "casted_ret_buffer",
+                                           callInst);
   retLen = callInst->getArgOperand(6);
 
   llvm::IRBuilder<> builder(visitor.getContext());
