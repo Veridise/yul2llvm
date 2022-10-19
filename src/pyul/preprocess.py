@@ -91,7 +91,7 @@ def prune_deploy_obj(contract: ContractData,
     # Identify the main constructor
     ctor_calls: List[YulNode] = [
         n for n in blk_node.children
-        if n.is_fun_call()
+        if n.is_fun_def()
         and n.get_fun_name().startswith('constructor_')
     ]
     assert len(ctor_calls) == 1, (
@@ -165,9 +165,14 @@ def prune_deployed_code(contract: ContractData,
         if node.type == 'yul_case':
             # FIXME: flatten yul_literal->yul_number_literal->yul_hex_literal
             selector: str = node.children[0].children[0].children[0].children[0].obj
-            case_body = node.children[1].children[0]
-            assert case_body.is_fun_call(), f'got {node.children[0].type}'
-            contract.metadata.external_fns[selector] = case_body.get_fun_name()
+            case_body = node.children[1]
+            call_found = False
+            for stmt in case_body.children:
+                if stmt.is_fun_call():
+                    call_found = True
+                    break
+            assert call_found, f'call not found'
+            contract.metadata.external_fns[selector] = stmt.get_fun_name()
 
     walk_dfs(new_selector_fun, walk_selector)
 
