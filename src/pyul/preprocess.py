@@ -94,10 +94,13 @@ def prune_deploy_obj(contract: ContractData,
         if n.is_fun_call()
         and n.get_fun_name().startswith('constructor_')
     ]
-    assert len(ctor_calls) == 1, (
+    assert len(ctor_calls) <= 1, (
         f'expected only 1 main constructor, got {len(ctor_calls)}'
     )
-    main_ctor: str = ctor_calls[0].get_fun_name()
+    if len(ctor_calls) == 0:
+        main_ctor: str = ""
+    else:
+        main_ctor: str = ctor_calls[0].get_fun_name()
     contract.metadata.main_ctor = main_ctor
     if logger:
         logger.debug(f'Main constructor is: {main_ctor}')
@@ -165,9 +168,13 @@ def prune_deployed_code(contract: ContractData,
         if node.type == 'yul_case':
             # FIXME: flatten yul_literal->yul_number_literal->yul_hex_literal
             selector: str = node.children[0].children[0].children[0].children[0].obj
-            case_body = node.children[1].children[0]
-            assert case_body.is_fun_call(), f'got {node.children[0].type}'
-            contract.metadata.external_fns[selector] = case_body.get_fun_name()
+            case_body = node.children[1]
+            case_body_fun_calls:List[YulNode] = []
+            for stmt in case_body.children:
+                if stmt.is_fun_call():
+                    case_body_fun_calls.append(stmt)
+            assert len(case_body_fun_calls) == 1, f'Incorrect number of function in selector case body'
+            contract.metadata.external_fns[selector] = case_body_fun_calls[0].get_fun_name()
 
     walk_dfs(new_selector_fun, walk_selector)
 
