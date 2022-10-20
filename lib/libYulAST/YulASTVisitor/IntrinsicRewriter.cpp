@@ -179,7 +179,9 @@ llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
     llvm::Type *opType) {
   llvm::IRBuilder<> tempBuilder(callInst);
   int numElementsInSlot = SLOT_SIZE / opType->getIntegerBitWidth();
-
+  if(!slot->getType()->isPointerTy()){
+    slot = tempBuilder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo());
+  }
   llvm::Constant *zeroConst = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
   llvm::Value *offsetTrunc = tempBuilder.CreateIntCast(
@@ -342,17 +344,11 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
   
 }
 
-void YulIntrinsicHelper::rewriteStorageArrayIndexAccessRetOffset(llvm::CallInst *callInst){
-  auto zero = llvm::ConstantInt::get(llvm::Type::getInt8Ty(visitor.getContext()), 0, 10);
-  auto &instList = callInst->getParent()->getInstList();
-  llvm::BasicBlock::iterator found = callInst->getIterator();
-  llvm::ReplaceInstWithValue(instList, found, zero);
-}
 
 void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst){
-  assert(callInst->getNumArgOperands() == 2 && "Wrong number of args in storage_array_index access");
+  assert(callInst->getNumArgOperands() == 3 && "Wrong number of args in storage_array_index access");
   llvm::IRBuilder<> builder(callInst);
-  std::regex storageArrayIndexRegex(R"(^storage_array_index_access_t_array\$_(.*)_\$(\d+)_storage_(\d+)$)");
+  std::regex storageArrayIndexRegex(R"(^storage_array_index_access_t_array\$_(.*)_\$(\d+)_storage$)");
   std::string name = callInst->getCalledFunction()->getName().str();
   std::smatch match;
   if(!std::regex_match(name, match, storageArrayIndexRegex)){
@@ -361,19 +357,14 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst
   }
   std::string elementTypeName = match[1].str();
   std::string sizeStr = match[2].str();
-  std::string retIndex = match[3].str();
-  if(retIndex == "1"){
-    rewriteStorageArrayIndexAccessRetOffset(callInst);
-    return;
-  } 
   int size;
   if(llvm::StringRef(sizeStr).getAsInteger(10, size)){
     //@todo raise runtime error
     assert(false && "could not parse array size");
   }
   llvm::Type *elementType = getTypeByTypeName(elementTypeName);
-  llvm::Value *slot = callInst->getArgOperand(0);
-  llvm::Value *index = callInst->getArgOperand(1);
+  llvm::Value *slot = callInst->getArgOperand(1);
+  llvm::Value *index = callInst->getArgOperand(2);
   assert(index->getType()->isIntegerTy() && "index is not int type");
   llvm::Value *truncIndex = builder.CreateIntCast(index, llvm::Type::getInt32Ty(visitor.getContext()), false, "index32");
   std::string indexString;
@@ -401,9 +392,18 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst
   arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(), arrayPtr, arrayPtr->getName().drop_front(4));
   llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
   auto castedArrayPtr = builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo());
-  llvm::Instruction *elementPtr = llvm::GetElementPtrInst::Create(arrayType, castedArrayPtr, {zero, truncIndex}, 
+  llvm::Value *elementPtr = builder.CreateGEP(arrayType, castedArrayPtr, {zero, truncIndex}, 
                               "ptr_"+arrayPtr->getName()+"["+indexString+"]");
-  llvm::ReplaceInstWithInst(callInst, elementPtr);
+  // Now we have computed the pointer to return. But yul expectes two return values. 
+  // These values are packed in a struct. These will be unpacked in a parent AST node that uses this struct
+  llvm::Value *scalarizedElementPtr = builder.CreatePtrToInt(elementPtr, visitor.getDefaultType());
+  llvm::Value *zero256 = llvm::ConstantInt::get(visitor.getDefaultType(),
+                                                              0, 10);
+                                                          
+  llvm::Value *structPtr = visitor.packRetsInStruct(name, {scalarizedElementPtr, zero256}, callInst);
+  llvm::BasicBlock::InstListType &instList = callInst->getParent()->getInstList();
+  llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
+  llvm::ReplaceInstWithValue(instList, callInstIt, structPtr);
 }
 
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {

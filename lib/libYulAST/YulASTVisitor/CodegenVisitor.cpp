@@ -91,38 +91,30 @@ llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
   if(node.getLHSIdentifiers().size() == 1){
-    std::string lvalname = node.getLHSIdentifiers()[0]->getIdentfierValue();
-    llvm::AllocaInst *lval = NamedValues[lvalname];
-    if (lval == nullptr) {
-      //@todo raise runtime error
-      assert(false && "Assignment Node: lval not found");
-    }
-    llvm::Value *rval = visit(node.getRHSExpression());
-    Builder->CreateStore(rval, lval, false);
-  }
-  else {
-    int idx = 0;
-    for (auto &var : node.getLHSIdentifiers()) {
-      std::string lvalname = var->getIdentfierValue();
-      llvm::AllocaInst *lval = NamedValues[lvalname];
-      if (lval == nullptr) {
-        llvm::WithColor::error() << "Assignment Node: lval not found " << lvalname
-                                << " in " << node.to_string();
-        exit(EXIT_FAILURE);
-      }
-      YulExpressionNode &rhsExpression = node.getRHSExpression();
-      if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
-        YulFunctionCallNode &callNode = (YulFunctionCallNode&)rhsExpression;
-        std::string calleeName = callNode.getCalleeName();
-        callNode.setCalleeName(calleeName+"_"+std::to_string(idx));
+    auto &id = node.getLHSIdentifiers()[0];
+    //CASE: Assignment to one variable with initilizer value
+      llvm::Value *initValue = visit(node.getRHSExpression());
+      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+      Builder->CreateStore(initValue, lval); 
+  } else {
+      //CASE: Assignment of multiple value (tuple assignment)
+    YulExpressionNode &rhsExpression = node.getRHSExpression();
+    if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
+      //CASE: RHS is a function call. 
+      auto rets = unpackFunctionCallReturns(rhsExpression);
+      llvm::Value *initValue;
+      // Make sure number of variables in LHS == number of values returned by function.
+      assert(node.getLHSIdentifiers().size() == rets.size() && "Number of vars and returns mismatch");
+      int idx  = 0;
+      for (auto &id : node.getLHSIdentifiers()) {
+        initValue = rets[idx];
+        llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+        Builder->CreateStore(initValue, lval);
         idx++;
-        llvm::Value *rval = visit(callNode);
-        Builder->CreateStore(rval, lval, false);
-      } else {
+      }
+    } else {
         //@todo raise runtime error
-        llvm::outs()<<node.to_string();
         assert(false && "unhandled rhs in assignment");
-      }  
     }
   }
 }
@@ -314,44 +306,53 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
   if(node.getVars().size() == 1){
+    // CASE: Declaring one variable
     auto &id = node.getVars()[0];
     if (node.hasValue()) {
+      //CASE: Declaring one variable with initilizer value
         llvm::Value *initValue = visit(node.getValue());
-        codeGenForOneVarDeclaration(*id, initValue->getType());
+        codeGenForOneVarAllocation(*id, initValue->getType());
         llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
         Builder->CreateStore(initValue, lval);
       } else {
-        codeGenForOneVarDeclaration(*id, nullptr);
+        //CASE: Declaring one variable without intialial value
+        codeGenForOneVarAllocation(*id, nullptr);
     }
   } else {
-    int idx = 0;
-    for (auto &id : node.getVars()) {
-      if (node.hasValue()) {
-        YulExpressionNode &rhsExpression = node.getValue();
-        if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
-          YulFunctionCallNode &callNode = (YulFunctionCallNode&)rhsExpression;
-          std::string oldName = callNode.getCalleeName();
-          callNode.setCalleeName(oldName+"_"+std::to_string(idx));
-          idx++;
-          llvm::Value *initValue = visit(callNode);
-          callNode.setCalleeName(oldName);
-          codeGenForOneVarDeclaration(*id, initValue->getType());
+    //CASE: Multiple variables declared in one decl statement
+    if (node.hasValue()) {
+      //CASE: Multiple variables declared in one decl statement initialized with a node that returns
+      // multiple values.
+      YulExpressionNode &rhsExpression = node.getValue();
+      if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
+        //CASE: Initilizer is a function call. 
+        llvm::Value *initValue;
+        // Make sure number of variables declared == number of values returned by function.
+        auto rets = unpackFunctionCallReturns(rhsExpression);
+        assert(node.getVars().size() == rets.size() && "Number of vars and returns mismatch");
+        int idx  = 0;
+        for (auto &id : node.getVars()) {
+          initValue = rets[idx];
+          codeGenForOneVarAllocation(*id, initValue->getType());
           llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
           Builder->CreateStore(initValue, lval);
-        } else {
-          //@todo raise runtime error
-          assert(false && "unhandled rhs in var decl");
+          idx++;
         }
       } else {
-        codeGenForOneVarDeclaration(*id, nullptr);
+          //@todo raise runtime error
+          assert(false && "unhandled rhs in var decl");
+      }
+    } else {
+      //CASE: Muiltiple variabled declared without an initializer
+      for (auto &id : node.getVars()) {
+        codeGenForOneVarAllocation(*id, nullptr);
       }
     }
   }
 }
-void LLVMCodegenVisitor::codeGenForOneVarDeclaration(YulIdentifierNode &id,
+void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
                                                      llvm::Type *type) {
   if (NamedValues[id.getIdentfierValue()] == nullptr) {
-
     llvm::AllocaInst *v =
         CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue(), type);
     NamedValues[id.getIdentfierValue()] = v;
@@ -418,9 +419,43 @@ llvm::Type *LLVMCodegenVisitor::getDefaultType() const {
   return llvm::Type::getIntNTy(*TheContext, 256);
 }
 
-llvm::StringMap<llvm::Type*> LLVMCodegenVisitor::getReturnTypesMap(){
+llvm::StringMap<llvm::StructType*>& LLVMCodegenVisitor::getReturnTypesMap(){
   return returnTypes;
 }
+llvm::StringMap<llvm::Value*>& LLVMCodegenVisitor::getReturnStructs(){
+  return returnStructs;
+}
 
+llvm::Value * LLVMCodegenVisitor::packRetsInStruct(llvm::StringRef functionName, 
+                                            llvm::ArrayRef<llvm::Value*> rets, 
+                                            llvm::Instruction* callInst){
+  llvm::IRBuilder<> builder(callInst);
+  llvm::StructType *retType = returnTypes[functionName];
+  llvm::Value *retStructPtr = returnStructs[functionName];
+  int idx = 0;
+  for(llvm::Value *v: rets){
+    llvm::Value *elementPtr = builder.CreateGEP(retType, retStructPtr, getLLVMValueVector({0,idx}));
+    builder.CreateStore(v, elementPtr);
+    idx++;
+  }
+  return retStructPtr;
+}
+
+llvm::SmallVector<llvm::Value*> LLVMCodegenVisitor::unpackFunctionCallReturns(YulExpressionNode &rhsExpression){
+  YulFunctionCallNode &callNode = static_cast<YulFunctionCallNode&>(rhsExpression);
+  std::string functionName = callNode.getCalleeName();
+  auto typeIt = returnTypes.find(functionName);
+  assert(typeIt!=returnTypes.end() && "could not find return type to unpack");
+  llvm::StructType *retType = typeIt->getValue();
+  llvm::Value *retStructPtr = visit(callNode);
+  llvm::SmallVector<llvm::Value*> rets;
+  for (unsigned int idx = 0; idx< retType->getNumElements(); idx++) {
+    llvm::Value *retElemPtr = Builder->CreateGEP((llvm::Type*)retType, 
+          retStructPtr, getLLVMValueVector({0,static_cast<int>(idx)}));
+    llvm::Value *initValue = Builder->CreateLoad(retType->getElementType(idx), retElemPtr);
+    rets.push_back(initValue);
+  }
+  return rets;
+}
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

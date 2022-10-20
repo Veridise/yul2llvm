@@ -24,8 +24,6 @@ class YulIntrinsicHelper {
                                       llvm::Value *slot, llvm::Value *offset,
                                       llvm::Type *type);
 
-  void rewriteStorageArrayIndexAccessRetOffset(llvm::CallInst*);
-
 
 public:
   // Helpers

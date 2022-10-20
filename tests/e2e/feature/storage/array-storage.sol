@@ -31,7 +31,7 @@ contract ArrayTest {
 //CHECK: %{{.*}} = load i256*, i256** %{{.*}}, align 8
 //CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*]*
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}*]* %{{.*}}, i32 0, i32 %{{.*}}
-//CHECK: bitcast {{.*}} %{{.*}} to i256* 
+//CHECK: {{(bitcast)|(inttoptr)}} {{.*}} %{{.*}} to i256* 
 //CHECK: %{{.*}} = load i256*, i256* %{{.*}}, align 8
 //CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}]*
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]* %{{.*}}, i32 0, i32 {{.*}}

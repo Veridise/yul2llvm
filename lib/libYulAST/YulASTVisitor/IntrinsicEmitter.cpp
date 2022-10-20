@@ -66,8 +66,6 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
     return true;
-  } else if (calleeName.startswith("abi_decode_tuple_")) {
-    return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
   } else if (calleeName.startswith("memory_array_index_access_")) {
@@ -100,8 +98,6 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("read_from_storage")) {
     return true;
-  } else if (calleeName.startswith("storage_array_index_access_t_array")) {
-    return true;
   } else
     return false;
 }
@@ -132,7 +128,6 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
       R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_(.*)$)");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
-  llvm::outs()<<calleeName;
   bool found = std::regex_match(calleeName, match, convertCallRegex);
   assert(found && "convert_t_rational did not match");
   if (found && match.size() == 6) {
@@ -164,7 +159,6 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
-  llvm::outs() << node.to_string() << "\n";
   assert(node.getArgs().size() == 1 &&
          "Wrong number of arguments read_from_memory_t_x call");
   std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
@@ -232,7 +226,6 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
     elementTypeName = "t_bytes1";
   } else {
     //@todo raise runtime error
-    llvm::outs() << calleeName;
     assert(false && "memory_array_index did not match regex");
   }
   llvm::Type *elementType = getTypeByTypeName(elementTypeName);
@@ -254,9 +247,10 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
-  return visitor.CreateEntryBlockAlloca(
+  llvm::Value *addr =  visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
       llvm::Type::getIntNTy(visitor.getContext(), 256));
+  return addr;
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&

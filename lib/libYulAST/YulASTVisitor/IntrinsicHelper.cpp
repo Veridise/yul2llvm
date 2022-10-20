@@ -78,7 +78,8 @@ YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
   llvm::StringRef type(visitor.currentContract->getVarTypeMap()[name].type);
   auto &typeMap = visitor.currentContract->getTypeInfoMap();
   auto typeInfo = typeMap.find(type);
-  assert(typeInfo != typeMap.end() && "Unreconized type of a variable");
+  if(typeInfo != typeMap.end())
+    assert(false && "Unreconized type of a variable");
   return type;
 }
 
