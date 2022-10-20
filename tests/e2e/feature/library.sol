@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
-// XFAIL: *
 pragma solidity ^0.8.10;
 
 library ExampleLibrary {
@@ -10,4 +9,4 @@ library ExampleLibrary {
     }
 }
 
-// CHECK: define {{fun_myAdd_[0-9]+}}
+// CHECK: define i256 @fun_myAdd_{{[0-9]+}}({{[^)]+}}) {
