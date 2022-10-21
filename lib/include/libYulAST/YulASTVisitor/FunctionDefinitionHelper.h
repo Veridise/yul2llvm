@@ -9,6 +9,7 @@ class YulFunctionDefinitionHelper {
   void createVarsForArgsAndRets(YulFunctionDefinitionNode &node,
                                 llvm::Function *F);
   YulIntrinsicHelper &intrinsicEmitter;
+  void addReturnNode(YulFunctionDefinitionNode &node);
 
 public:
   void visitYulFunctionDefinitionNode(YulFunctionDefinitionNode &node);

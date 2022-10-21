@@ -12,17 +12,18 @@ class LLVMCodegenVisitor;
 using namespace yulast;
 class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
-  void rewriteUpdateStorageVar(llvm::CallInst *callInst, std::string name,
+  void rewriteUpdateStorageVarByName(llvm::CallInst *callInst, std::string name,
                                llvm::Value *val);
-  void rewriteLoadStorageVar(llvm::CallInst *callInst, std::string name);
-  void rewriteUpdateStorageLocation(llvm::CallInst *callInst, llvm::Value *slot,
+  void rewriteLoadStorageVarByName(llvm::CallInst *callInst, std::string name);
+  void rewriteUpdateStorageByLocation(llvm::CallInst *callInst, llvm::Value *slot,
                                     llvm::Value *offset, llvm::Type *type,
                                     llvm::Value *val);
-  void rewriteLoadStorageLocation(llvm::CallInst *callInst, llvm::Value *slot,
+  void rewriteLoadStorageByLocation(llvm::CallInst *callInst, llvm::Value *slot,
                                   llvm::Value *offset, llvm::Type *type);
-  llvm::Value *getPointerBySlotOffset(llvm::CallInst *callInst,
+  llvm::Value *getPointerInSlotByOffset(llvm::CallInst *callInst,
                                       llvm::Value *slot, llvm::Value *offset,
                                       llvm::Type *type);
+
 
 public:
   // Helpers
@@ -61,6 +62,10 @@ public:
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
+  void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst, 
+                                          std::smatch &match);
+  void rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst,
+                                            std::smatch &match);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst,
                                          std::smatch &match);
@@ -68,6 +73,8 @@ public:
                                           std::smatch &match);
   void rewriteStorageLoadIntrinsic(llvm::CallInst *callInst);
   void rewriteCallIntrinsic(llvm::CallInst *callInst);
+  void rewriteStorageArrayIndexAccess(llvm::CallInst *callInst);
+
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);

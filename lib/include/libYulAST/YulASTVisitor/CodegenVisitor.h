@@ -28,6 +28,8 @@ protected:
   llvm::StringMap<llvm::AllocaInst *> NamedValues;
   // This is a map from <string-literal> -> global variable location
   llvm::StringMap<std::string> stringLiteralNames;
+  llvm::StringMap<llvm::StructType*> returnTypes;
+  llvm::StringMap<llvm::Value*> returnStructs;
 
   // data structures for self
   llvm::StructType *selfType;
@@ -47,10 +49,10 @@ protected:
    * }
    *
    */
-  llvm::StructType *extCallCtxType;
+  llvm::StructType *extCallCtxType; 
   std::unique_ptr<YulFunctionCallHelper> funCallHelper;
   std::unique_ptr<YulFunctionDefinitionHelper> funDefHelper;
-  void codeGenForOneVarDeclaration(YulIdentifierNode &id, llvm::Type *);
+  void codeGenForOneVarAllocation(YulIdentifierNode &id, llvm::Type *);
   void runFunctionDeclaratorVisitor(YulContractNode &node);
   std::unique_ptr<llvm::legacy::FunctionPassManager> FPM;
   void connectToBasicBlock(llvm::BasicBlock *nextBlock);
@@ -113,4 +115,13 @@ public:
 
   void dump(llvm::raw_ostream &os) const;
   void dumpToStdout() const;
+
+  llvm::StringMap<llvm::StructType*> &getReturnTypesMap();
+  llvm::StringMap<llvm::Value*> &getReturnStructs();
+  llvm::Value * packRetsInStruct(llvm::StringRef functionName, 
+                                      llvm::ArrayRef<llvm::Value*> rets,
+                                      llvm::Instruction *insertPoint);
+  llvm::SmallVector<llvm::Value*> unpackFunctionCallReturns(YulExpressionNode &rhsExpression);
+
+
 };

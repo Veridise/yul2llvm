@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
+// XFAIL:*
+// This will be unxfailed after abi_decode_ is implemented, this requires rets
+// to be packed in tuple
 pragma solidity ^0.8.10;
 
 

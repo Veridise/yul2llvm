@@ -8,10 +8,26 @@ FunctionDeclaratorVisitor::FunctionDeclaratorVisitor(llvm::LLVMContext &c,
 llvm::Type *
 FunctionDeclaratorVisitor::getReturnType(YulFunctionDefinitionNode &node) {
   llvm::Type *retType;
+  LLVMCodegenVisitor &visitor = intrinsicHelper.getVisitor();
   if (!node.hasRets())
     retType = llvm::Type::getVoidTy(TheContext);
-  else
-    retType = llvm::Type::getIntNTy(TheContext, 256);
+  else{
+    int numRets = node.getRets().size();
+    if(numRets > 1){
+
+      llvm::SmallVector<llvm::Type*> typeMembers(numRets, 
+                                      llvm::Type::getIntNTy(visitor.getContext(), 256));
+      llvm::StructType *newType = llvm::StructType::create(visitor.getContext(), typeMembers, node.getName()+"_type");
+      visitor.getReturnTypesMap()[node.getName()] = newType;
+      retType = newType->getPointerTo();
+      llvm::Value *structVar = new llvm::GlobalVariable(visitor.getModule(), newType, false,
+                                                          llvm::GlobalValue::LinkageTypes::ExternalLinkage,
+                                                          nullptr,
+                                                          node.getName()+"_ret");
+      visitor.getReturnStructs()[node.getName()] = structVar;
+    } else 
+      retType = llvm::Type::getIntNTy(TheContext, 256);
+  }
   return retType;
 }
 

@@ -38,6 +38,30 @@ void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
   }
 }
 
+void YulFunctionDefinitionHelper::addReturnNode(YulFunctionDefinitionNode &node){
+  assert(node.hasRets() && "Function definition node does not have return but creating nodes");
+  int numRets = node.getRets().size();
+
+  if(numRets == 1){
+    llvm::Value *v = visitor.getBuilder().CreateLoad(
+        llvm::Type::getIntNTy(visitor.getContext(), 256),
+        visitor.getNamedValuesMap()[node.getRets()[0]->getIdentfierValue()]);
+    visitor.getBuilder().CreateRet(v);
+  } else if(numRets > 1) {
+    llvm::Value *retStruct = visitor.getReturnStructs()[node.getName()];
+    llvm::Type *retType = visitor.getReturnTypesMap()[node.getName()];
+    for(int i = 0; i  < numRets; i++){
+      llvm::Value *v = visitor.getBuilder().CreateLoad(
+        llvm::Type::getIntNTy(visitor.getContext(), 256),
+        visitor.getNamedValuesMap()[node.getRets()[i]->getIdentfierValue()]);
+      llvm::Value *retPtr = visitor.getBuilder().CreateGEP(retType, retStruct, visitor.getLLVMValueVector({0,i}));
+      visitor.getBuilder().CreateStore(v, retPtr);
+    }
+    visitor.getBuilder().CreateRet(retStruct);
+  }
+}
+
+
 void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   llvm::Function *F;
@@ -58,11 +82,9 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     visitor.getBuilder().CreateRetVoid();
   } else {
     // @todo assuming rets has only a single element
-    llvm::Value *v = visitor.getBuilder().CreateLoad(
-        llvm::Type::getIntNTy(visitor.getContext(), 256),
-        visitor.getNamedValuesMap()[node.getRets()[0]->getIdentfierValue()]);
-    visitor.getBuilder().CreateRet(v);
+    addReturnNode(node);
   }
+
   visitor.getFPM().run(*F);
   intrinsicEmitter.rewriteIntrinsics(F);
   visitor.getFPM().run(*F);

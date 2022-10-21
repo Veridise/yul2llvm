@@ -27,7 +27,7 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("byte")) {
     return true;
-  }
+  } 
   return false;
 }
 
@@ -59,14 +59,12 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleConvertRationalXByY(node);
   } else if (calleeName.startswith("byte")) {
     return handleByte(node);
-  }
+  } 
   return nullptr;
 }
 
 bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   if (calleeName.startswith("abi_encode_")) {
-    return true;
-  } else if (calleeName.startswith("abi_decode_tuple_")) {
     return true;
   } else if (calleeName.startswith("finalize_allocation")) {
     return true;
@@ -104,9 +102,10 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return false;
 }
 
+
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
-         "Unexpected number of args in byte(x, y)");
+         "Unexpected number of args in byte(x, y)");  
   llvm::Value *v2 = visitor.visit(*node.getArgs()[1]);
   if (v2->getType()->isIntegerTy()) {
     return visitor.getBuilder().CreateIntCast(
@@ -126,12 +125,12 @@ llvm::Value *YulIntrinsicHelper::handleAnd(YulFunctionCallNode &node) {
 llvm::Value *
 YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
   std::regex convertCallRegex(
-      R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_t_([a-z]+)([0-9]+)$)");
+      R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_(.*)$)");
   std::smatch match;
   std::string calleeName = node.getCalleeName();
   bool found = std::regex_match(calleeName, match, convertCallRegex);
   assert(found && "convert_t_rational did not match");
-  if (found && match.size() == 7) {
+  if (found && match.size() == 6) {
     std::string strNumerator = match[2].str();
     std::string strDenominator = match[4].str();
     llvm::StringRef srNumerator(strNumerator);
@@ -160,7 +159,6 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
-  llvm::outs() << node.to_string() << "\n";
   assert(node.getArgs().size() == 1 &&
          "Wrong number of arguments read_from_memory_t_x call");
   std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
@@ -228,7 +226,6 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
     elementTypeName = "t_bytes1";
   } else {
     //@todo raise runtime error
-    llvm::outs() << calleeName;
     assert(false && "memory_array_index did not match regex");
   }
   llvm::Type *elementType = getTypeByTypeName(elementTypeName);
@@ -250,9 +247,10 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
-  return visitor.CreateEntryBlockAlloca(
+  llvm::Value *addr =  visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
       llvm::Type::getIntNTy(visitor.getContext(), 256));
+  return addr;
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
