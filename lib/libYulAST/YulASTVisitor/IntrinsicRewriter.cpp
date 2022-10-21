@@ -376,12 +376,11 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(llvm::CallInst *callInst
   }
   auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slot);
   llvm::Value *arrayPtr;
-  std::string arrayName = "";
+  
   if(slotConst){
-    arrayName = visitor.currentContract->getStateVarNameBySlotOffset(slotConst->getZExtValue(), 0);
+    std::string arrayName = visitor.currentContract->getStateVarNameBySlotOffset(slotConst->getZExtValue(), 0);
     arrayPtr = getPointerToStorageVarByName(arrayName, callInst);
   } else {
-    arrayName = slot->getName();
     if(slot->getType()->isPointerTy())
       arrayPtr = builder.CreatePointerCast(slot, visitor.getDefaultType()->getPointerTo(), slot->getName()+"_casted");
     else
