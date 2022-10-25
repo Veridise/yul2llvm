@@ -17,5 +17,3 @@ void removeInstChains(llvm::Instruction *i) {
     }
   }
 }
-
-

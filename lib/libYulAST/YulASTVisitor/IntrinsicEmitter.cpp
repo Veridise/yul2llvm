@@ -29,7 +29,9 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("iszero")) {
     return true;
-  } 
+  } else if (calleeName == "checked_add_t_int256") {
+    return true;
+  }
   return false;
 }
 
@@ -63,7 +65,9 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleByte(node);
   } else if (calleeName.startswith("iszero")) {
     return handleIsZero(node);
-  } 
+  } else if (calleeName == "checked_add_t_int256") {
+    return handleAddFunctionCall(node);
+  }
   return nullptr;
 }
 
@@ -83,6 +87,8 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
   } else if (calleeName.startswith("convert_t_rational_")) {
     return true;
   } else if (calleeName == "checked_add_t_uint256") {
+    return true;
+  } else if (calleeName == "checked_add_t_int256") {
     return true;
   } else if (calleeName.startswith("mstore")) {
     return true;
@@ -106,16 +112,17 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return false;
 }
 
-llvm::Value *YulIntrinsicHelper::handleIsZero(YulFunctionCallNode &node){
-  assert(node.getArgs().size()==1 && "Wrong number of args in isZero");
+llvm::Value *YulIntrinsicHelper::handleIsZero(YulFunctionCallNode &node) {
+  assert(node.getArgs().size() == 1 && "Wrong number of args in isZero");
   llvm::Value *arg = visitor.visit(*node.getArgs()[0]);
   llvm::Constant *zero = llvm::ConstantInt::get(arg->getType(), 0, false);
-  return visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg, zero);
+  return visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg,
+                                        zero);
 }
 
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
-         "Unexpected number of args in byte(x, y)");  
+         "Unexpected number of args in byte(x, y)");
   llvm::Value *v2 = visitor.visit(*node.getArgs()[1]);
   if (v2->getType()->isIntegerTy()) {
     return visitor.getBuilder().CreateIntCast(
@@ -257,7 +264,7 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
 
 llvm::Value *
 YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
-  llvm::Value *addr =  visitor.CreateEntryBlockAlloca(
+  llvm::Value *addr = visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
       llvm::Type::getIntNTy(visitor.getContext(), 256));
   return addr;

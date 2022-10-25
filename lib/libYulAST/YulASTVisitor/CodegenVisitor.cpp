@@ -90,22 +90,25 @@ llvm::StringMap<llvm::AllocaInst *> &LLVMCodegenVisitor::getNamedValuesMap() {
 // visitors
 
 void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
-  if(node.getLHSIdentifiers().size() == 1){
+  if (node.getLHSIdentifiers().size() == 1) {
     auto &id = node.getLHSIdentifiers()[0];
-    //CASE: Assignment to one variable with initilizer value
-      llvm::Value *initValue = visit(node.getRHSExpression());
-      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
-      Builder->CreateStore(initValue, lval); 
+    // CASE: Assignment to one variable with initilizer value
+    llvm::Value *initValue = visit(node.getRHSExpression());
+    llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+    Builder->CreateStore(initValue, lval);
   } else {
-      //CASE: Assignment of multiple value (tuple assignment)
+    // CASE: Assignment of multiple value (tuple assignment)
     YulExpressionNode &rhsExpression = node.getRHSExpression();
-    if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
-      //CASE: RHS is a function call. 
+    if (rhsExpression.expressionType ==
+        YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL) {
+      // CASE: RHS is a function call.
       auto rets = unpackFunctionCallReturns(rhsExpression);
       llvm::Value *initValue;
-      // Make sure number of variables in LHS == number of values returned by function.
-      assert(node.getLHSIdentifiers().size() == rets.size() && "Number of vars and returns mismatch");
-      int idx  = 0;
+      // Make sure number of variables in LHS == number of values returned by
+      // function.
+      assert(node.getLHSIdentifiers().size() == rets.size() &&
+             "Number of vars and returns mismatch");
+      int idx = 0;
       for (auto &id : node.getLHSIdentifiers()) {
         initValue = rets[idx];
         llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
@@ -113,8 +116,8 @@ void LLVMCodegenVisitor::visitYulAssignmentNode(YulAssignmentNode &node) {
         idx++;
       }
     } else {
-        //@todo raise runtime error
-        assert(false && "unhandled rhs in assignment");
+      //@todo raise runtime error
+      assert(false && "unhandled rhs in assignment");
     }
   }
 }
@@ -305,32 +308,36 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
 }
 void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     YulVariableDeclarationNode &node) {
-  if(node.getVars().size() == 1){
+  if (node.getVars().size() == 1) {
     // CASE: Declaring one variable
     auto &id = node.getVars()[0];
     if (node.hasValue()) {
-      //CASE: Declaring one variable with initilizer value
-        llvm::Value *initValue = visit(node.getValue());
-        codeGenForOneVarAllocation(*id, initValue->getType());
-        llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
-        Builder->CreateStore(initValue, lval);
-      } else {
-        //CASE: Declaring one variable without intialial value
-        codeGenForOneVarAllocation(*id, nullptr);
+      // CASE: Declaring one variable with initilizer value
+      llvm::Value *initValue = visit(node.getValue());
+      codeGenForOneVarAllocation(*id, initValue->getType());
+      llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
+      Builder->CreateStore(initValue, lval);
+    } else {
+      // CASE: Declaring one variable without intialial value
+      codeGenForOneVarAllocation(*id, nullptr);
     }
   } else {
-    //CASE: Multiple variables declared in one decl statement
+    // CASE: Multiple variables declared in one decl statement
     if (node.hasValue()) {
-      //CASE: Multiple variables declared in one decl statement initialized with a node that returns
+      // CASE: Multiple variables declared in one decl statement initialized
+      // with a node that returns
       // multiple values.
       YulExpressionNode &rhsExpression = node.getValue();
-      if(rhsExpression.expressionType == YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL){
-        //CASE: Initilizer is a function call. 
+      if (rhsExpression.expressionType ==
+          YUL_AST_EXPRESSION_NODE_TYPE::YUL_AST_EXPRESSION_FUNCTION_CALL) {
+        // CASE: Initilizer is a function call.
         llvm::Value *initValue;
-        // Make sure number of variables declared == number of values returned by function.
+        // Make sure number of variables declared == number of values returned
+        // by function.
         auto rets = unpackFunctionCallReturns(rhsExpression);
-        assert(node.getVars().size() == rets.size() && "Number of vars and returns mismatch");
-        int idx  = 0;
+        assert(node.getVars().size() == rets.size() &&
+               "Number of vars and returns mismatch");
+        int idx = 0;
         for (auto &id : node.getVars()) {
           initValue = rets[idx];
           codeGenForOneVarAllocation(*id, initValue->getType());
@@ -339,11 +346,11 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
           idx++;
         }
       } else {
-          //@todo raise runtime error
-          assert(false && "unhandled rhs in var decl");
+        //@todo raise runtime error
+        assert(false && "unhandled rhs in var decl");
       }
     } else {
-      //CASE: Muiltiple variabled declared without an initializer
+      // CASE: Muiltiple variabled declared without an initializer
       for (auto &id : node.getVars()) {
         codeGenForOneVarAllocation(*id, nullptr);
       }
@@ -351,7 +358,7 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
   }
 }
 void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
-                                                     llvm::Type *type) {
+                                                    llvm::Type *type) {
   if (NamedValues[id.getIdentfierValue()] == nullptr) {
     llvm::AllocaInst *v =
         CreateEntryBlockAlloca(currentFunction, id.getIdentfierValue(), type);
@@ -419,48 +426,53 @@ llvm::Type *LLVMCodegenVisitor::getDefaultType() const {
   return llvm::Type::getIntNTy(*TheContext, 256);
 }
 
-llvm::StringMap<llvm::StructType*>& LLVMCodegenVisitor::getReturnTypesMap(){
+llvm::StringMap<llvm::StructType *> &LLVMCodegenVisitor::getReturnTypesMap() {
   return returnTypes;
 }
-llvm::StringMap<llvm::Value*>& LLVMCodegenVisitor::getReturnStructs(){
+llvm::StringMap<llvm::Value *> &LLVMCodegenVisitor::getReturnStructs() {
   return returnStructs;
 }
 
-llvm::Value * LLVMCodegenVisitor::packRetsInStruct(llvm::StringRef functionName, 
-                                            llvm::ArrayRef<llvm::Value*> rets, 
-                                            llvm::Instruction* callInst){
+llvm::Value *
+LLVMCodegenVisitor::packRetsInStruct(llvm::StringRef functionName,
+                                     llvm::ArrayRef<llvm::Value *> rets,
+                                     llvm::Instruction *callInst) {
   llvm::IRBuilder<> builder(callInst);
   llvm::StructType *retType = returnTypes[functionName];
   llvm::Value *retStructPtr = returnStructs[functionName];
   int idx = 0;
-  for(llvm::Value *v: rets){
-    llvm::Value *elementPtr = builder.CreateGEP(retType, retStructPtr, getLLVMValueVector({0,idx}));
+  for (llvm::Value *v : rets) {
+    llvm::Value *elementPtr =
+        builder.CreateGEP(retType, retStructPtr, getLLVMValueVector({0, idx}));
     builder.CreateStore(v, elementPtr);
     idx++;
   }
   return retStructPtr;
 }
 
-llvm::SmallVector<llvm::Value*> LLVMCodegenVisitor::unpackFunctionCallReturns(YulExpressionNode &rhsExpression){
-  YulFunctionCallNode &callNode = static_cast<YulFunctionCallNode&>(rhsExpression);
+llvm::SmallVector<llvm::Value *> LLVMCodegenVisitor::unpackFunctionCallReturns(
+    YulExpressionNode &rhsExpression) {
+  YulFunctionCallNode &callNode =
+      static_cast<YulFunctionCallNode &>(rhsExpression);
   std::string functionName = callNode.getCalleeName();
   auto typeIt = returnTypes.find(functionName);
-  assert(typeIt!=returnTypes.end() && "could not find return type to unpack");
+  assert(typeIt != returnTypes.end() && "could not find return type to unpack");
   llvm::StructType *retType = typeIt->getValue();
   llvm::Value *retStructPtr = visit(callNode);
-  llvm::SmallVector<llvm::Value*> rets;
-  for (unsigned int idx = 0; idx< retType->getNumElements(); idx++) {
-    llvm::Value *retElemPtr = Builder->CreateGEP((llvm::Type*)retType, 
-          retStructPtr, getLLVMValueVector({0,static_cast<int>(idx)}));
-    llvm::Value *initValue = Builder->CreateLoad(retType->getElementType(idx), retElemPtr);
+  llvm::SmallVector<llvm::Value *> rets;
+  for (unsigned int idx = 0; idx < retType->getNumElements(); idx++) {
+    llvm::Value *retElemPtr =
+        Builder->CreateGEP((llvm::Type *)retType, retStructPtr,
+                           getLLVMValueVector({0, static_cast<int>(idx)}));
+    llvm::Value *initValue =
+        Builder->CreateLoad(retType->getElementType(idx), retElemPtr);
     rets.push_back(initValue);
   }
   return rets;
 }
 
-YulIntrinsicHelper &LLVMCodegenVisitor::getYulIntrisicHelper(){
+YulIntrinsicHelper &LLVMCodegenVisitor::getYulIntrisicHelper() {
   return intrinsicHelper;
 }
-
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

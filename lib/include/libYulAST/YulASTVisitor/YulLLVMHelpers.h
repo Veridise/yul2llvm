@@ -42,20 +42,19 @@ SearchInstType *searchInstInDefs(llvm::Instruction *i, Test test) {
  * @return SearchInstType*
  */
 template <class SearchInstType, typename Test>
-SearchInstType *searchInstInUses(llvm::Value *i, Test test){
-  std::deque<llvm::User*> toVisit;
-  for(auto u: i->users()){
+SearchInstType *searchInstInUses(llvm::Value *i, Test test) {
+  std::deque<llvm::User *> toVisit;
+  for (auto u : i->users()) {
     toVisit.push_back(u);
   }
-  while(!toVisit.empty()){
+  while (!toVisit.empty()) {
     auto x = toVisit.front();
     toVisit.pop_front();
     SearchInstType *inst = llvm::dyn_cast<SearchInstType>(x);
-    if(inst && test(inst)){
+    if (inst && test(inst)) {
       return inst;
     }
-    llvm::outs()<<"\n";
-    for(auto u: x->users()){
+    for (auto u : x->users()) {
       toVisit.push_back(u);
     }
   }
