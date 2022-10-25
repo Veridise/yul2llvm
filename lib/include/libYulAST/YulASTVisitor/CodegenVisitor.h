@@ -122,6 +122,6 @@ public:
                                       llvm::ArrayRef<llvm::Value*> rets,
                                       llvm::Instruction *insertPoint);
   llvm::SmallVector<llvm::Value*> unpackFunctionCallReturns(YulExpressionNode &rhsExpression);
-
+  YulIntrinsicHelper &getYulIntrisicHelper();
 
 };

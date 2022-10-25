@@ -112,6 +112,98 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
   return ptrExtCallCtx;
 }
 
+llvm::CallInst *findDecodeCall(llvm::CallInst *callInst){
+  llvm::Value *retBuff = callInst->getArgOperand(5);
+  std::regex abiDecodeRegex(R"(abi_decode_(.*)*_from.*)");
+  std::smatch wholeMatch;
+  const auto test = [abiDecodeRegex](llvm::CallInst* call)->bool {
+    std::string callName = call->getCalledFunction()->getName().str();
+    if(std::regex_match(callName, abiDecodeRegex)){
+      return true;
+    } else {
+      return false;
+    }
+  };
+  llvm::CallInst *decodeCall = searchInstInUses<llvm::CallInst>(retBuff, test);
+  if(decodeCall != nullptr)
+    return decodeCall;
+  else { 
+    //@todo raise runtime error
+    assert(false && "could not find abi_decode for an external call");
+  }
+}
+
+llvm::Type* getExtCallReturnType(llvm::CallInst *callInst, LLVMCodegenVisitor &v, 
+                                        std::string selectorName){
+  llvm::CallInst *decodeCall = findDecodeCall(callInst);
+  llvm::SmallVector<llvm::Type*> decodeRetTypes;
+  std::string decodeName = decodeCall->getCalledFunction()->getName().str();
+  std::regex abiDecodeRegex(R"(abi_decode_tuple_(.*)_from.*)");
+  std::smatch wholeMatch;
+  llvm::Type* retType;
+  if(std::regex_match(decodeName, wholeMatch, abiDecodeRegex)){
+    std::string typesStr = wholeMatch[1].str();
+    std::regex typesRegex(R"(((t_uint\d+)|(t_array.*)|(t_mapping.*)))");
+    std::smatch typeMatch;
+    while(std::regex_search(typesStr, typeMatch, typesRegex)){
+      if(typeMatch[2].matched){
+        std::string type = typeMatch[2].str();
+        retType = v.getYulIntrisicHelper().getTypeByTypeName(type);
+      } else if(typeMatch[3].matched || typeMatch[4].matched){
+          //@todo raise runtime error
+          assert(false && "unhandled return types from external calls");
+      }
+      decodeRetTypes.push_back(retType);
+      typesStr = typeMatch.suffix();
+    }
+  }
+  llvm::StructType *rets, *retWithStatus;
+  if(decodeRetTypes.size() == 1){
+    retWithStatus = llvm::StructType::create(v.getContext(), {v.getDefaultType(), v.getDefaultType()}, selectorName+"_statusRetType"); 
+    return retWithStatus; 
+  } else if(decodeRetTypes.size() > 1){
+    rets = llvm::StructType::create(v.getContext(), decodeRetTypes, selectorName+"_retType");
+    retWithStatus = llvm::StructType::create(v.getContext(), {v.getDefaultType(), rets->getPointerTo()}, selectorName+"_statusRetType");  
+    return retWithStatus;
+  } 
+  return v.getDefaultType();
+}
+
+/**
+ * @brief Adjust return values, remove the abidecode function call and store
+ * the return values directly from call instruction
+ * @todo handle array and mapping returns
+ */
+void  adjustCallReturns(llvm::CallInst *callInst, llvm::Value *returnedVals, llvm::StructType *retStructType, 
+                        LLVMCodegenVisitor &v){
+  llvm::Instruction *decodeInstruction = findDecodeCall(callInst);
+  llvm::BasicBlock::InstListType &decodeParentList = decodeInstruction->getParent()->getInstList();
+  llvm::BasicBlock::iterator it = decodeInstruction->getIterator();
+  llvm::Value *ptrVals = llvm::GetElementPtrInst::Create(retStructType, 
+                                                returnedVals, 
+                                                v.getLLVMValueVector({0,1}),
+                                                "ptr_returns", 
+                                                decodeInstruction);  
+  llvm::Value *vals = new llvm::LoadInst(ptrVals->getType()->getPointerElementType(), ptrVals, "returns", &*it++);
+  it--;
+  llvm::ReplaceInstWithValue(decodeParentList, it, vals);
+  
+  llvm::BasicBlock::InstListType &callInstParentList = callInst->getParent()->getInstList();
+  it = callInst->getIterator();
+  llvm::Value *ptrStatus = llvm::GetElementPtrInst::Create(retStructType, 
+                                                          returnedVals, 
+                                                          v.getLLVMValueVector({0,0}),  
+                                                          "ptr_status", callInst);
+  llvm::Value *status = new llvm::LoadInst(ptrStatus->getType()->getPointerElementType(), 
+                                            ptrStatus, 
+                                            "status",
+                                             &*it++);
+  it--;
+
+  llvm::ReplaceInstWithValue(callInstParentList, it, status);
+  
+}
+
 /**
  * @brief Remove the parameters encoded by abi_encode_xxx that are passed to
  * EVM call opcode. Arguments i.e. output of abi_encode_xxx
@@ -123,7 +215,8 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
 void removeOldCallArgs(llvm::CallInst *callInst) {
   if (auto inst =
           llvm::dyn_cast<llvm::Instruction>(callInst->getArgOperand(4))) {
-    if (inst->getNumUses() == 1)
+    if (inst->getNumUses() == 1){
       removeInstChains(inst);
+    }
   }
 }

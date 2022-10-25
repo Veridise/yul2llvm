@@ -27,6 +27,8 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("byte")) {
     return true;
+  } else if (calleeName.startswith("iszero")) {
+    return true;
   } 
   return false;
 }
@@ -59,6 +61,8 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleConvertRationalXByY(node);
   } else if (calleeName.startswith("byte")) {
     return handleByte(node);
+  } else if (calleeName.startswith("iszero")) {
+    return handleIsZero(node);
   } 
   return nullptr;
 }
@@ -102,6 +106,12 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return false;
 }
 
+llvm::Value *YulIntrinsicHelper::handleIsZero(YulFunctionCallNode &node){
+  assert(node.getArgs().size()==1 && "Wrong number of args in isZero");
+  llvm::Value *arg = visitor.visit(*node.getArgs()[0]);
+  llvm::Constant *zero = llvm::ConstantInt::get(arg->getType(), 0, false);
+  return visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg, zero);
+}
 
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&

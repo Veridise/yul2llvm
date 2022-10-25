@@ -458,4 +458,9 @@ llvm::SmallVector<llvm::Value*> LLVMCodegenVisitor::unpackFunctionCallReturns(Yu
   return rets;
 }
 
+YulIntrinsicHelper &LLVMCodegenVisitor::getYulIntrisicHelper(){
+  return intrinsicHelper;
+}
+
+
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }

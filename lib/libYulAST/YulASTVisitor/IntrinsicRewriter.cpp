@@ -31,6 +31,9 @@ llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
                            llvm::Value *address, llvm::Value *value,
                            llvm::Value *retBuffer, llvm::Value *retLen,
                            LLVMCodegenVisitor &v, llvm::IRBuilder<> &);
+void adjustCallReturns(llvm::CallInst*, llvm::Value *returnedVals, llvm::StructType*, 
+                      LLVMCodegenVisitor &v);
+llvm::Type* getExtCallReturnType(llvm::CallInst *callInst, LLVMCodegenVisitor &v, std::string name);
 void removeOldCallArgs(llvm::CallInst *callInst);
 /**
  * @brief The let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5,
@@ -53,34 +56,34 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   value = callInst->getArgOperand(2);
   selector = getSelector(callInst->getArgOperand(3));
   callArgs = decodeArgsAndCleanup(callInst->getArgOperand(4));
-  if(callInst->getArgOperand(5)->getType()->isPointerTy())
-    retBuffer = callInst->getArgOperand(5);
-  else
-    retBuffer = llvm::IntToPtrInst::Create(llvm::Instruction::CastOps::IntToPtr, 
-                                           callInst->getArgOperand(5), 
-                                           visitor.getDefaultType()->getPointerTo(), 
-                                           "casted_ret_buffer",
-                                           callInst);
+  retBuffer = visitor.CreateEntryBlockAlloca(visitor.currentFunction, 
+                                            "ret_buffer",
+                                            visitor.getDefaultType());
   retLen = callInst->getArgOperand(6);
 
   llvm::IRBuilder<> builder(visitor.getContext());
   builder.SetInsertPoint(callInst);
   llvm::Value *extCallCtx = getExtCallCtx(selector, gas, addr, value, retBuffer,
                                           retLen, visitor, builder);
-
   llvm::SmallVector<llvm::Value *> args;
-
   args.push_back(visitor.getSelfArg());
   args.push_back(extCallCtx);
   args.append(callArgs);
+  llvm::Type *retType = getExtCallReturnType(callInst, visitor, selector);
   llvm::SmallVector<llvm::Type *> argtyps = getFunctionArgTypes("ext", args);
   llvm::FunctionType *callFT = llvm::FunctionType::get(
-      llvm::Type::getIntNTy(visitor.getContext(), 256), argtyps, false);
-  llvm::Function *callF = getOrCreateFunction("ext_fun_" + selector, callFT);
-
-  llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");
+      retType->getPointerTo(), argtyps, false);
+  llvm::Function *callF = getOrCreateFunction("pyul_call_" + selector, callFT);
+  llvm::StructType *retStructType = llvm::dyn_cast<llvm::StructType>(retType);
+  if(retStructType){
+    llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "ret_struct", callInst);
+    adjustCallReturns(callInst, newCall, retStructType, visitor);
+  } else {
+    llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");    
+    llvm::ReplaceInstWithInst(callInst, newCall);
+  }
   removeOldCallArgs(callInst);
-  llvm::ReplaceInstWithInst(callInst, newCall);
+  
 }
 
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {

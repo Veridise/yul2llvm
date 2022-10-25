@@ -68,6 +68,7 @@ llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
     return visitor.getDefaultType()->getPointerTo();
   } else {
     //@todo raise runtime error
+    llvm::outs()<<typeStr;
     assert(false && "type not found in typeinfomap and could not infer");
   }
   return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);

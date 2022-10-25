@@ -58,6 +58,7 @@ public:
   llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
   llvm::Value *handleAnd(YulFunctionCallNode &node);
   llvm::Value *handleByte(YulFunctionCallNode &node);
+  llvm::Value *handleIsZero(YulFunctionCallNode &node);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
