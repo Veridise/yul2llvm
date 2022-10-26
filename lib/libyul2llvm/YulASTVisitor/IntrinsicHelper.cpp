@@ -101,8 +101,6 @@ llvm::Type *YulIntrinsicHelper::getReturnType(llvm::StringRef calleeName) {
     return llvm::Type::getVoidTy(visitor.getContext());
   else if (calleeName == "__pyul_storage_var_dynamic_load")
     return llvm::Type::getIntNTy(visitor.getContext(), 256);
-  else if (calleeName.startswith("abi_encode_"))
-    return llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
   return llvm::Type::getIntNTy(visitor.getContext(), 256);
 }
 

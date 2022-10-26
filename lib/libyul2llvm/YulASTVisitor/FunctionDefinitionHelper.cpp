@@ -74,7 +74,7 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   assert(F && "Function not defined in declarator pass");
   visitor.currentFunction = F;
   if (F->getBasicBlockList().size() > 0) {
-    llvm::WithColor::error() << "Redeclaring function " << F->getName();
+    llvm::WithColor::error() << "Redeclaring function " << F->getName()<<"\n";
     return;
   }
   visitor.getNamedValuesMap().clear();
