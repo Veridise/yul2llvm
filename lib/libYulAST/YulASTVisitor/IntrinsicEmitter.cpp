@@ -385,7 +385,6 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
   llvm::Value *val, *ptr;
   ptr = visitor.visit(*(node.getArgs()[0]));
   val = visitor.visit(*(node.getArgs()[1]));
-  //@todo Remove this cast when abi_decode_is done
   if (!ptr->getType()->isPointerTy())
     ptr = visitor.getBuilder().CreateIntToPtr(ptr,
                                               val->getType()->getPointerTo());
@@ -393,7 +392,7 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
   if (found) {
     if (match[1] != "") {
       std::string bitWidthStr = match[1].str();
-      int bitWidth;
+      int bitWidth=0;
       if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
         //@todo refactor into raising runtime error
         assert(false && "cannot parse bitwidth");

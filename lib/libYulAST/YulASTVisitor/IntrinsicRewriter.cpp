@@ -1,3 +1,4 @@
+#include "CallGenHelpers.h"
 #include <libYulAST/YulASTVisitor/CodegenVisitor.h>
 #include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
 #include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
@@ -23,19 +24,6 @@ collectCalls(llvm::Function *enclosingFunction) {
   }
   return oldInstructions;
 }
-
-llvm::Value *getAddress(llvm::Value *);
-std::string getSelector(llvm::Value *);
-llvm::SmallVector<llvm::Value *> decodeArgsAndCleanup(llvm::Value *);
-llvm::Value *getExtCallCtx(llvm::StringRef selector, llvm::Value *gas,
-                           llvm::Value *address, llvm::Value *value,
-                           llvm::Value *retBuffer, llvm::Value *retLen,
-                           LLVMCodegenVisitor &v, llvm::IRBuilder<> &);
-void adjustCallReturns(llvm::CallInst *, llvm::Value *returnedVals,
-                       llvm::StructType *, LLVMCodegenVisitor &v);
-llvm::Type *getExtCallReturnType(llvm::CallInst *callInst,
-                                 LLVMCodegenVisitor &v, std::string name);
-void removeOldCallArgs(llvm::CallInst *callInst);
 /**
  * @brief The let _7 := call(gas(), expr_14_address,  0,  _5, sub(_6, _5), _5,
  * 32) yul statement is going to be rewritten into call fun_<selector>(self,
@@ -76,7 +64,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
   if (retType->isPointerTy() &&
       retType->getPointerElementType()->isStructTy()) {
     llvm::StructType *retStructType =
-        llvm::dyn_cast<llvm::StructType>(retType->getPointerElementType());
+        llvm::cast<llvm::StructType>(retType->getPointerElementType());
     llvm::CallInst *newCall =
         llvm::CallInst::Create(callF, args, "ret_struct", callInst);
     adjustCallReturns(callInst, newCall, retStructType, visitor);
@@ -221,7 +209,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
 
   // R"(^read_from_storage(_split)?_offset_([0-9]+)_(.*)$)"
   std::string offsetStr = match[2];
-  int offset;
+  int offset=0;
   assert(offsetStr != "" && "offset not found in read_from_storage");
   std::string yulTypeStr = match[3];
   // Extract offset and load data type.
@@ -320,7 +308,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
   std::string srcTypeName = match[2].str();
   std::string destTypeName = match[3].str();
   std::string offsetStr = match[1].str();
-  int offset;
+  int offset=0;
   if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
     //@todo raise runtime error
     assert(false && "could not parse offset in update");
