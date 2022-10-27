@@ -12,4 +12,4 @@ contract NegativeLiteralTest {
 }
 
 //CHECK: define {{.*fun_decrement_[0-9]+\(i256\* \%.*\)}}
-//CHECK: i256 -10
+//CHECK: -10

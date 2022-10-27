@@ -11,21 +11,22 @@ FunctionDeclaratorVisitor::getReturnType(YulFunctionDefinitionNode &node) {
   LLVMCodegenVisitor &visitor = intrinsicHelper.getVisitor();
   if (!node.hasRets())
     retType = llvm::Type::getVoidTy(TheContext);
-  else{
+  else {
     int numRets = node.getRets().size();
-    if(numRets > 1){
+    if (numRets > 1) {
 
-      llvm::SmallVector<llvm::Type*> typeMembers(numRets, 
-                                      llvm::Type::getIntNTy(visitor.getContext(), 256));
-      llvm::StructType *newType = llvm::StructType::create(visitor.getContext(), typeMembers, node.getName()+"_type");
+      llvm::SmallVector<llvm::Type *> typeMembers(
+          numRets, llvm::Type::getIntNTy(visitor.getContext(), 256));
+      llvm::StructType *newType = llvm::StructType::create(
+          visitor.getContext(), typeMembers, node.getName() + "_type");
       visitor.getReturnTypesMap()[node.getName()] = newType;
       retType = newType->getPointerTo();
-      llvm::Value *structVar = new llvm::GlobalVariable(visitor.getModule(), newType, false,
-                                                          llvm::GlobalValue::LinkageTypes::ExternalLinkage,
-                                                          nullptr,
-                                                          node.getName()+"_ret");
+      llvm::Value *structVar = new llvm::GlobalVariable(
+          visitor.getModule(), newType, false,
+          llvm::GlobalValue::LinkageTypes::ExternalLinkage, nullptr,
+          node.getName() + "_ret");
       visitor.getReturnStructs()[node.getName()] = structVar;
-    } else 
+    } else
       retType = llvm::Type::getIntNTy(TheContext, 256);
   }
   return retType;
