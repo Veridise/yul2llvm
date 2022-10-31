@@ -358,8 +358,8 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
  */
 llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
                                                   llvm::Value *v2) {
-  assert(v1->getType()->isPointerTy() ||
-         v2->getType()->isPointerTy() && "Both values are not pointers");
+  assert((v1->getType()->isPointerTy() ||
+         v2->getType()->isPointerTy()) && "Both values are not pointers");
   llvm::Value *ptr, *primitive;
   // if only one is prmitive
   if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {
