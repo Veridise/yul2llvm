@@ -116,7 +116,7 @@
 
             echo
             echo "Executing lit tests"
-            PATH="$out"/bin:"$PATH" lit ./tests -v
+            PATH="$out"/bin:"$PATH" ASAN_OPTIONS="detect_leaks=0 \$\{ASAN_OPTIONS}" lit ./tests -v
           '';
         });
       };

@@ -12,13 +12,21 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
+  llvm::SmallVector<std::string> supportedIntrinsics({"__pyul_map_index", 
+                                      "update_storage_value", 
+                                      "read_from_storage", 
+                                      "call",
+                                      "storage_array_index_access_t_array"});
   llvm::SmallVector<llvm::CallInst *> oldInstructions;
   for (auto b = enclosingFunction->begin(); b != enclosingFunction->end();
        b++) {
     for (auto i = b->begin(); i != b->end(); i++) {
       auto inst = llvm::dyn_cast<llvm::CallInst>(&(*i));
       if (inst) {
-        oldInstructions.push_back(inst);
+        for(std::string candidate: supportedIntrinsics){
+          if(inst->getCalledFunction()->getName().startswith(candidate))
+            oldInstructions.push_back(inst);
+        }
       }
     }
   }
@@ -67,12 +75,13 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
         llvm::cast<llvm::StructType>(retType->getPointerElementType());
     llvm::CallInst *newCall =
         llvm::CallInst::Create(callF, args, "ret_struct", callInst);
+    removeOldCallArgs(callInst);
     adjustCallReturns(callInst, newCall, retStructType, visitor);
   } else {
     llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");
+    removeOldCallArgs(callInst);
     llvm::ReplaceInstWithInst(callInst, newCall);
   }
-  removeOldCallArgs(callInst);
 }
 
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
@@ -405,10 +414,11 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   llvm::ReplaceInstWithValue(instList, callInstIt, structPtr);
 }
 
+
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
       collectCalls(enclosingFunction);
-  for (llvm::CallInst *c : allCalls) {
+  for (llvm::CallInst *c : allCalls) {    
     if (c->getCalledFunction()->getName() == "__pyul_map_index") {
       rewriteMapIndexCalls(c);
     } else if (c->getCalledFunction()->getName().startswith(
