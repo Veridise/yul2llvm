@@ -27,6 +27,7 @@
 #include <libYulAST/YulTypedIdentifierListNode.h>
 #include <libYulAST/YulVariableDeclarationNode.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Support/WithColor.h>
 
 using namespace yulast;
 class YulASTVisitorBase {

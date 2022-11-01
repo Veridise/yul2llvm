@@ -1,5 +1,5 @@
 #include <iostream>
-#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
+#include <libyul2llvm/YulASTVisitor/FunctionDefinitionHelper.h>
 
 YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v,
                                                          YulIntrinsicHelper &ih)

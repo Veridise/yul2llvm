@@ -1,4 +1,4 @@
-#include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
+#include <libyul2llvm/YulASTVisitor/YulLLVMHelpers.h>
 
 void removeInstChains(llvm::Instruction *i) {
   std::deque<llvm::Instruction *> toVisit;

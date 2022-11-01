@@ -1,6 +1,6 @@
 #include "CallGenHelpers.h"
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/YulLLVMHelpers.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
@@ -180,7 +180,6 @@ llvm::Type *getExtCallReturnType(llvm::CallInst *callInst,
   return nullptr;
 }
 
-
 void adjustCallReturns(llvm::CallInst *callInst, llvm::Value *returnedVals,
                        llvm::StructType *retStructType, LLVMCodegenVisitor &v) {
   llvm::Instruction *decodeInstruction = findDecodeCall(callInst);
@@ -214,8 +213,6 @@ void adjustCallReturns(llvm::CallInst *callInst, llvm::Value *returnedVals,
 
   llvm::ReplaceInstWithValue(callInstParentList, it, status);
 }
-
-
 
 void removeOldCallArgs(llvm::CallInst *callInst) {
   if (auto inst =

@@ -34,14 +34,17 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-TypeInfo parseType(llvm::StringRef type, const json &metadata) {
+TypeInfo parseType(std::string_view type, const json &metadata) {
   assert(metadata.contains("types") && "Metadata does not contain types");
   auto &types = metadata["types"];
   assert(types.contains(type) && "Types does not contain the requested type");
 
-  std::string typeStr = type.str();
+  std::string typeStr = type.data();
   assert(types[typeStr].contains("kind") && "mapping kind not found in types");
-  if (type.startswith("t_array")) {
+  // starts with not available until c++20
+  std::string arrayTypeLit("t_array");
+  std::string mappingTypeLit("t_mapping");
+  if (type.substr(0, arrayTypeLit.size()) == arrayTypeLit) {
     std::regex arrayTypeRegex("t_array\\((.*)\\)([0-9]+)_(storage|memory)?");
     std::smatch match;
     bool found = std::regex_search(typeStr, match, arrayTypeRegex);
@@ -51,12 +54,12 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata) {
     }
     assert(types.contains(match[1].str()) &&
            "Array child type not found in types");
-    return TypeInfo(types[type.str()]["kind"].get<std::string>(), // kind
-                    "",                                           // keytype
-                    match[1].str(),                               // valueType
-                    types[typeStr]["size"].get<int>());           // size
+    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
+                    "",                                            // keytype
+                    match[1].str(),                                // valueType
+                    types[typeStr]["size"].get<int>());            // size
 
-  } else if (type.startswith("t_mapping")) {
+  } else if (type.substr(0, mappingTypeLit.size()) == mappingTypeLit) {
     assert(types[typeStr].contains("key") && "mapping kind not found in types");
     assert(types[typeStr].contains("value") &&
            "mapping kind not found in types");
@@ -66,14 +69,14 @@ TypeInfo parseType(llvm::StringRef type, const json &metadata) {
            "keyType not found in metadata for mapping type");
     assert(types.contains(valueType) &&
            "valueType not found in metadata for mapping type");
-    return TypeInfo(types[type.str()]["kind"].get<std::string>(), // kind
+    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
                     keyType, valueType, -1);
   } else {
     // assume primitive type
     //@todo another branch will be added when we implement solidity structs
     assert(types[typeStr].contains("size") &&
            "Primitive type does not conatiain size");
-    return TypeInfo(types[type.str()]["kind"].get<std::string>(), // kind
+    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
                     "", "", types[typeStr]["size"].get<int>());
   }
 }
@@ -89,13 +92,11 @@ void YulContractNode::buildVarTypeMap(const json &metadata) {
   // for each storage location i.e. var
   for (auto &var : metadata["state_vars"]) {
     std::string varName = var["name"].get<std::string>();
-    llvm::StringRef label(varName);
     std::string varType = var["type"].get<std::string>();
-    llvm::StringRef typeStr(varType);
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
-    varTypeMap[label] = {std::move(varType), slot, offset};
-    structFieldOrder.push_back(label.str());
+    varTypeMap[varName] = {std::move(varType), slot, offset};
+    structFieldOrder.push_back(varName);
   }
 }
 
@@ -113,11 +114,11 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-llvm::StringMap<StorageVarInfo> &YulContractNode::getVarTypeMap() {
+std::map<std::string, StorageVarInfo> &YulContractNode::getVarTypeMap() {
   return varTypeMap;
 }
 
-llvm::StringMap<TypeInfo> &YulContractNode::getTypeInfoMap() {
+std::map<std::string, TypeInfo> &YulContractNode::getTypeInfoMap() {
   return typeInfoMap;
 }
 
@@ -133,6 +134,6 @@ std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
   return "";
 }
 
-llvm::SmallVector<std::string> &YulContractNode::getStructFieldOrder() {
+std::vector<std::string> &YulContractNode::getStructFieldOrder() {
   return structFieldOrder;
 }

@@ -1,7 +1,7 @@
 #pragma once
 class LLVMCodegenVisitor;
-#include <libYulAST/YulASTVisitor/CodegenConstants.h>
 #include <libYulAST/YulFunctionCallNode.h>
+#include <libyul2llvm/YulASTVisitor/CodegenConstants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Value.h>

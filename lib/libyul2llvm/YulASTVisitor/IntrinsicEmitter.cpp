@@ -1,5 +1,5 @@
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
 
 bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
 
@@ -392,7 +392,7 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
   if (found) {
     if (match[1] != "") {
       std::string bitWidthStr = match[1].str();
-      int bitWidth=0;
+      int bitWidth = 0;
       if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
         //@todo refactor into raising runtime error
         assert(false && "cannot parse bitwidth");

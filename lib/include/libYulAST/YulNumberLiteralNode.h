@@ -2,7 +2,6 @@
 #include <libYulAST/YulLiteralNode.h>
 #include <llvm/ADT/APInt.h>
 #include <llvm/ADT/SmallString.h>
-#include <llvm/Support/WithColor.h>
 #include <nlohmann/json.hpp>
 
 namespace yulast {

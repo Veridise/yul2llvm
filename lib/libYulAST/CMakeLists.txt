@@ -27,7 +27,6 @@ add_library(libYulAST
   YulContractNode.cpp
   )
 
-add_subdirectory(YulASTVisitor)
 
 target_include_directories(libYulAST PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>

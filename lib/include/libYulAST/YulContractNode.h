@@ -2,9 +2,8 @@
 
 #include <libYulAST/YulASTBase.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
-#include <llvm/ADT/SmallVector.h>
-#include <llvm/ADT/StringMap.h>
 #include <regex>
+#include <vector>
 
 namespace yulast {
 struct TypeInfo {
@@ -38,20 +37,20 @@ class YulContractNode : public YulASTBase {
   void buildTypeInfoMap(const json &);
   void allocateSelfStruct();
   virtual void parseRawAST(const json *) override;
-  llvm::StringMap<StorageVarInfo> varTypeMap;
-  llvm::StringMap<TypeInfo> typeInfoMap;
+  std::map<std::string, StorageVarInfo> varTypeMap;
+  std::map<std::string, TypeInfo> typeInfoMap;
 
 public:
   YulContractNode(const json *);
   std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &getFunctions();
 
-  llvm::StringMap<StorageVarInfo> &getVarTypeMap();
+  std::map<std::string, StorageVarInfo> &getVarTypeMap();
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
-  llvm::SmallVector<std::string> structFieldOrder;
-  llvm::SmallVector<std::string> &getStructFieldOrder();
+  std::vector<std::string> structFieldOrder;
+  std::vector<std::string> &getStructFieldOrder();
   std::string getStateVarNameBySlotOffset(int slot, int offset);
-  llvm::StringMap<TypeInfo> &getTypeInfoMap();
+  std::map<std::string, TypeInfo> &getTypeInfoMap();
 };
 
 }; // namespace yulast

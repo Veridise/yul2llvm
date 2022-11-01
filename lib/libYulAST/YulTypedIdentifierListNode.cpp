@@ -20,11 +20,6 @@ YulTypedIdentifierListNode::YulTypedIdentifierListNode(const json *rawAST)
 
 std::string YulTypedIdentifierListNode::to_string() {
   if (!str.compare("")) {
-    /**
-     * @todo see if llvm::interleave() helps
-     *
-     *
-     */
     for (std::vector<std::unique_ptr<YulIdentifierNode>>::iterator it =
              identifierList.begin();
          it != identifierList.end(); it++) {

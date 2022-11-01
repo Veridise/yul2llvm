@@ -34,14 +34,14 @@ void YulNumberLiteralNode::parseRawAST(const json *rawAST) {
     bool literalParseError =
         llvm::StringRef(valString).getAsInteger(10, literalValue);
     if (literalParseError) {
-      llvm::WithColor::error() << "Could not parse dec literal";
+      assert(false && "Could not parse dec literal");
     }
     literalValue = literalValue.zextOrTrunc(256);
   } else if (child["type"] == YUL_HEX_NUMBER_LITERAL_KEY) {
     bool literalParseError =
         llvm::StringRef(valString).getAsInteger(0, literalValue);
     if (literalParseError) {
-      llvm::WithColor::error() << "Could not parse hex literal";
+      assert(false && "Could not parse hex literal");
     }
     literalValue = literalValue.zextOrTrunc(256);
   } else {

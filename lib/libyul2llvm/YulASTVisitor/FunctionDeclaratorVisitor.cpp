@@ -1,5 +1,5 @@
-#include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
-#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
+#include <libyul2llvm/YulASTVisitor/FunctionDeclaratorVisitor.h>
+#include <libyul2llvm/YulASTVisitor/FunctionDefinitionHelper.h>
 FunctionDeclaratorVisitor::FunctionDeclaratorVisitor(llvm::LLVMContext &c,
                                                      llvm::Module &m,
                                                      YulIntrinsicHelper &ih)
