@@ -34,4 +34,5 @@ target_include_directories(libYulAST PUBLIC
 )
 target_link_libraries(libYulAST PUBLIC
   nlohmann_json::nlohmann_json
+  GMP
 )

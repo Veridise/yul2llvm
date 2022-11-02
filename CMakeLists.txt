@@ -18,7 +18,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 ### Dependency setup
-
+find_package(GMP REQUIRED)
 find_package(nlohmann_json 3 REQUIRED)
 find_package(LLVM 13 REQUIRED CONFIG)
 
