@@ -91,7 +91,7 @@ public:
 
   // LLVM datastructures
   llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                           const std::string &VarName,
+                                           const std::string_view VarName,
                                            llvm::Type *type = nullptr);
   llvm::GlobalVariable *CreateGlobalStringLiteral(std::string literalValue,
                                                   std::string literalName);

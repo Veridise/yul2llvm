@@ -39,7 +39,7 @@ public:
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);
   llvm::SmallVector<llvm::Type *>
-  getFunctionArgTypes(std::string calleeName,
+  getFunctionArgTypes(std::string_view calleeName,
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);

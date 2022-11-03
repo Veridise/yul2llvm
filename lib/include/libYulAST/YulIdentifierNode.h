@@ -12,7 +12,7 @@ public:
   std::string str = "";
   virtual std::string to_string() override;
   YulIdentifierNode(const json *rawAST);
-  std::string getIdentfierValue();
+  std::string_view getIdentfierValue();
   void setIdentifierValue(std::string_view);
 };
 }; // namespace yulast

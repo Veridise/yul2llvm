@@ -107,7 +107,7 @@ llvm::Type *YulIntrinsicHelper::getReturnType(llvm::StringRef calleeName) {
 }
 
 llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
-    std::string calleeName, llvm::SmallVector<llvm::Value *> &argsV) {
+    std::string_view calleeName, llvm::SmallVector<llvm::Value *> &argsV) {
   llvm::SmallVector<llvm::Type *> funcArgTypes;
   if (calleeName == "__pyul_storage_var_load") {
     funcArgTypes.push_back(llvm::Type::getIntNPtrTy(visitor.getContext(), 256));

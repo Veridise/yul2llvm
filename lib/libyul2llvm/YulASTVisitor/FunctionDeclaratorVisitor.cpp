@@ -14,17 +14,17 @@ FunctionDeclaratorVisitor::getReturnType(YulFunctionDefinitionNode &node) {
   else {
     int numRets = node.getRets().size();
     if (numRets > 1) {
-
+      std::string funName = node.getName().data();
       llvm::SmallVector<llvm::Type *> typeMembers(
           numRets, llvm::Type::getIntNTy(visitor.getContext(), 256));
       llvm::StructType *newType = llvm::StructType::create(
-          visitor.getContext(), typeMembers, node.getName() + "_type");
+          visitor.getContext(), typeMembers, funName + "_type");
       visitor.getReturnTypesMap()[node.getName()] = newType;
       retType = newType->getPointerTo();
       llvm::Value *structVar = new llvm::GlobalVariable(
           visitor.getModule(), newType, false,
           llvm::GlobalValue::LinkageTypes::ExternalLinkage, nullptr,
-          node.getName() + "_ret");
+          funName + "_ret");
       visitor.getReturnStructs()[node.getName()] = structVar;
     } else
       retType = llvm::Type::getIntNTy(TheContext, 256);

@@ -42,7 +42,7 @@ void YulFunctionCallNode::setCalleeName(std::string_view name) {
   callee->setIdentifierValue(name);
 }
 
-std::string YulFunctionCallNode::getCalleeName() {
+std::string_view YulFunctionCallNode::getCalleeName() {
   return callee->getIdentfierValue();
 }
 
