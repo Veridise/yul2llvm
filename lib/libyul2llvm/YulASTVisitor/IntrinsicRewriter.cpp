@@ -9,21 +9,21 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
   assert(ptrSelfVarType && "map field type is not a pointer");
   return ptrSelfVarType->getElementType();
 }
-
-llvm::SmallVector<llvm::CallInst *>
-collectCalls(llvm::Function *enclosingFunction) {
-  llvm::SmallVector<std::string> supportedIntrinsics({"__pyul_map_index", 
+const static llvm::SmallVector<std::string> supportedIntrinsics({"__pyul_map_index", 
                                       "update_storage_value", 
                                       "read_from_storage", 
                                       "call",
                                       "storage_array_index_access_t_array"});
+
+llvm::SmallVector<llvm::CallInst *>
+collectCalls(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> oldInstructions;
   for (auto b = enclosingFunction->begin(); b != enclosingFunction->end();
        b++) {
     for (auto i = b->begin(); i != b->end(); i++) {
       auto inst = llvm::dyn_cast<llvm::CallInst>(&(*i));
       if (inst) {
-        for(std::string candidate: supportedIntrinsics){
+        for(const std::string &candidate: supportedIntrinsics){
           if(inst->getCalledFunction()->getName().startswith(candidate))
             oldInstructions.push_back(inst);
         }
@@ -418,7 +418,7 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
       collectCalls(enclosingFunction);
-  for (llvm::CallInst *c : allCalls) {    
+  for (llvm::CallInst *c : allCalls) {
     if (c->getCalledFunction()->getName() == "__pyul_map_index") {
       rewriteMapIndexCalls(c);
     } else if (c->getCalledFunction()->getName().startswith(

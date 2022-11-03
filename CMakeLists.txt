@@ -8,8 +8,6 @@ project(Yul2LLVM
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE STRING "")
 # Use same policy as LLVM to suppress warnings
