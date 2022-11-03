@@ -29,9 +29,6 @@
         # Fix the version of LLVM being used.
         yul2llvm_libllvm = final.llvmPackages_13.tools.libllvm;
 
-        #Use GMP for abitrary precision integers
-        yul2llvm_gmp = final.gmp;
-
         # Yul2LLVM C++ component
         yul2llvm_cpp = prev.stdenv.mkDerivation {
           name = "yul2llvm-cpp";
@@ -136,7 +133,7 @@
 
         packages = flake-utils.lib.flattenTree {
           # Copy the packages from the overlay.
-          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_libllvm solc_0_8_15 yul2llvm_gmp;
+          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_libllvm solc_0_8_15;
         };
 
         devShells = flake-utils.lib.flattenTree {
