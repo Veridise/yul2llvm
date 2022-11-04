@@ -314,7 +314,7 @@ void LLVMCodegenVisitor::visitYulVariableDeclarationNode(
     if (node.hasValue()) {
       // CASE: Declaring one variable with initilizer value
       llvm::Value *initValue = visit(node.getValue());
-      codeGenForOneVarAllocation(*id, initValue->getType());
+      codeGenForOneVarAllocation(*id, nullptr);
       llvm::AllocaInst *lval = NamedValues[id->getIdentfierValue()];
       Builder->CreateStore(initValue, lval);
     } else {

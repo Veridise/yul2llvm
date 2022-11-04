@@ -58,6 +58,9 @@ public:
   llvm::Value *handleAnd(YulFunctionCallNode &node);
   llvm::Value *handleByte(YulFunctionCallNode &node);
   llvm::Value *handleIsZero(YulFunctionCallNode &node);
+  llvm::Value *handleCompare(YulFunctionCallNode &node,
+                              llvm::ICmpInst::Predicate op);
+
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);

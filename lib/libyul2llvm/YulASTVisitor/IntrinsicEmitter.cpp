@@ -31,6 +31,16 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "checked_add_t_int256") {
     return true;
+  } else if (calleeName == "eq") {
+    return true;
+  } else if (calleeName == "lt") {
+    return true;
+  } else if (calleeName == "slt") {
+    return true;
+  } else if (calleeName == "gt") {
+    return true;
+  } else if (calleeName == "sgt") {
+    return true;
   }
   return false;
 }
@@ -66,6 +76,16 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleIsZero(node);
   } else if (calleeName == "checked_add_t_int256") {
     return handleAddFunctionCall(node);
+  } else if (calleeName == "eq") {
+    return handleCompare(node, llvm::ICmpInst::ICMP_EQ);
+  } else if (calleeName == "lt") {
+    return handleCompare(node, llvm::ICmpInst::ICMP_ULT);
+  } else if (calleeName == "slt") {
+    return handleCompare(node, llvm::ICmpInst::ICMP_SLT);
+  } else if (calleeName == "gt") {
+    return handleCompare(node, llvm::ICmpInst::ICMP_UGT);
+  } else if (calleeName == "sgt") {
+    return handleCompare(node, llvm::ICmpInst::ICMP_SGT);
   }
   return nullptr;
 }
@@ -107,16 +127,36 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("read_from_storage")) {
     return true;
+  } else if (calleeName == "eq") {
+    return true;
+  } else if (calleeName == "lt") {
+    return true;
+  } else if (calleeName == "slt") {
+    return true;
+  } else if (calleeName == "gt") {
+    return true;
+  } else if (calleeName == "sgt") {
+    return true;
   } else
     return false;
+}
+
+llvm::Value *YulIntrinsicHelper::handleCompare(YulFunctionCallNode &node, llvm::ICmpInst::Predicate op){
+  assert(node.getArgs().size() == 2 && "Wrong number of args in compare");
+  llvm::Value *lhs, *rhs;
+  lhs = visitor.visit(*node.getArgs()[0]);
+  rhs = visitor.visit(*node.getArgs()[1]);
+  llvm::Value *result = visitor.getBuilder().CreateICmp(op, lhs, rhs);
+  return visitor.getBuilder().CreateIntCast(result, visitor.getDefaultType(), false);
 }
 
 llvm::Value *YulIntrinsicHelper::handleIsZero(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 1 && "Wrong number of args in isZero");
   llvm::Value *arg = visitor.visit(*node.getArgs()[0]);
   llvm::Constant *zero = llvm::ConstantInt::get(arg->getType(), 0, false);
-  return visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg,
+  llvm::Value *result = visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg,
                                         zero);
+  return visitor.getBuilder().CreateIntCast(result,  visitor.getDefaultType(), false);
 }
 
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
@@ -266,6 +306,7 @@ YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
   llvm::Value *addr = visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
       llvm::Type::getIntNTy(visitor.getContext(), 256));
+  addr = visitor.getBuilder().CreatePtrToInt(addr, visitor.getDefaultType(), addr->getName()+"_casted");
   return addr;
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
@@ -317,8 +358,8 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
  */
 llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
                                                   llvm::Value *v2) {
-  assert(v1->getType()->isPointerTy() ||
-         v2->getType()->isPointerTy() && "Both values are not pointers");
+  assert((v1->getType()->isPointerTy() ||
+         v2->getType()->isPointerTy()) && "Both values are not pointers");
   llvm::Value *ptr, *primitive;
   // if only one is prmitive
   if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {

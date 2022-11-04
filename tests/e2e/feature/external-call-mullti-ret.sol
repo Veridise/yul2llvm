@@ -15,10 +15,16 @@ contract ExternalCallTest {
     }
 }
 
-contract CalleeContract{
-    function add1(uint256 x, uint256 y) external payable returns (uint256, uint256){
-        return (x+y+1, x);
-    }
+
+
+// contract CalleeContract{
+//     function add1(uint256 x, uint256 y) external payable returns (uint256, uint256){
+//         return (x+y+1, x);
+//     }
+// }
+
+interface CalleeContract{
+    function add1(uint256 x, uint256 y) external payable returns (uint256, uint256);
 }
 
 //CHECK: define i256 @fun_add_{{.*}}(i256* %__self, {{.*}})

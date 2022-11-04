@@ -9,6 +9,11 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
   assert(ptrSelfVarType && "map field type is not a pointer");
   return ptrSelfVarType->getElementType();
 }
+const static llvm::SmallVector<std::string> supportedIntrinsics({"__pyul_map_index", 
+                                      "update_storage_value", 
+                                      "read_from_storage", 
+                                      "call",
+                                      "storage_array_index_access_t_array"});
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -18,7 +23,10 @@ collectCalls(llvm::Function *enclosingFunction) {
     for (auto i = b->begin(); i != b->end(); i++) {
       auto inst = llvm::dyn_cast<llvm::CallInst>(&(*i));
       if (inst) {
-        oldInstructions.push_back(inst);
+        for(const std::string &candidate: supportedIntrinsics){
+          if(inst->getCalledFunction()->getName().startswith(candidate))
+            oldInstructions.push_back(inst);
+        }
       }
     }
   }
@@ -67,12 +75,13 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
         llvm::cast<llvm::StructType>(retType->getPointerElementType());
     llvm::CallInst *newCall =
         llvm::CallInst::Create(callF, args, "ret_struct", callInst);
+    removeOldCallArgs(callInst);
     adjustCallReturns(callInst, newCall, retStructType, visitor);
   } else {
     llvm::CallInst *newCall = llvm::CallInst::Create(callF, args, "call_rv");
+    removeOldCallArgs(callInst);
     llvm::ReplaceInstWithInst(callInst, newCall);
   }
-  removeOldCallArgs(callInst);
 }
 
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
@@ -404,6 +413,7 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
   llvm::ReplaceInstWithValue(instList, callInstIt, structPtr);
 }
+
 
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
