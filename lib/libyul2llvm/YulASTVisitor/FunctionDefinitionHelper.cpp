@@ -5,6 +5,34 @@ YulFunctionDefinitionHelper::YulFunctionDefinitionHelper(LLVMCodegenVisitor &v,
                                                          YulIntrinsicHelper &ih)
     : visitor(v), intrinsicEmitter(ih) {}
 
+llvm::Function *YulFunctionDefinitionHelper::createStorageAllocatorFunction(){
+  llvm::SmallVector<llvm::Type*> args({llvm::Type::getIntNTy(visitor.getContext(), 32)});
+  llvm::FunctionType *storageAllocFuncitonType = llvm::FunctionType::get(
+                                                llvm::Type::getInt8PtrTy(visitor.getContext(),STORAGE_ADDR_SPACE),
+                                                args,
+                                                false
+                                              );
+  llvm::Function *allocStorage = llvm::Function::Create(storageAllocFuncitonType,
+                                                      llvm::GlobalValue::LinkageTypes::ExternalLinkage,
+                                                      "alloc_storage",
+                                                      visitor.getModule());
+  return allocStorage;
+}
+
+llvm::Function *YulFunctionDefinitionHelper::createMemoryAllocatorFunction(){
+  llvm::SmallVector<llvm::Type*> args({llvm::Type::getIntNTy(visitor.getContext(), 32)});
+  llvm::FunctionType *storageAllocFuncitonType = llvm::FunctionType::get(
+                                                llvm::Type::getInt8PtrTy(visitor.getContext(),MEMORY_ADDR_SPACE),
+                                                args,
+                                                false
+                                              );
+  llvm::Function *allocMem = llvm::Function::Create(storageAllocFuncitonType,
+                                                      llvm::GlobalValue::LinkageTypes::ExternalLinkage,
+                                                      "alloc_mem",
+                                                      visitor.getModule());
+  return allocMem;
+}
+
 void YulFunctionDefinitionHelper::createVarsForArgsAndRets(
     YulFunctionDefinitionNode &node, llvm::Function *F) {
   llvm::BasicBlock *BB =
@@ -64,6 +92,16 @@ void YulFunctionDefinitionHelper::addReturnNode(
   }
 }
 
+void YulFunctionDefinitionHelper::allocateSelf(){
+  auto &b = visitor.getBuilder();
+  llvm::Value *self = b.CreateCall(visitor.getAllocateStorageFunction(),
+                                    visitor.getLLVMValueVector({(int)visitor.getModule().getDataLayout()
+                                                                .getTypeSizeInBits(visitor.getSelfType())})
+                                                                ); 
+  self = b.CreatePointerCast(self, visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE), "alloc_self");
+  b.CreateStore(self, visitor.getSelfPointer());
+}
+
 void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
     YulFunctionDefinitionNode &node) {
   llvm::Function *F;
@@ -79,6 +117,10 @@ void YulFunctionDefinitionHelper::visitYulFunctionDefinitionNode(
   }
   visitor.getNamedValuesMap().clear();
   createVarsForArgsAndRets(node, F);
+  std::string ctorPrefix = "constructor_";
+  if(node.getName().substr(0, ctorPrefix.length()) == ctorPrefix){
+    allocateSelf();
+  }
   visitor.visit(node.getBody());
   if (!node.hasRets()) {
     visitor.getBuilder().CreateRetVoid();

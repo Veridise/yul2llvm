@@ -142,8 +142,20 @@ void LLVMCodegenVisitor::visitYulContinueNode(YulContinueNode &node) {
   Builder->CreateBr(contBB);
 }
 void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
+  allocateMemoryFunction = funDefHelper->createMemoryAllocatorFunction();
+  allocateStorageFunction = funDefHelper->createStorageAllocatorFunction();
   runFunctionDeclaratorVisitor(node);
   constructSelfStructType(node);
+  getModule().setSourceFileName(node.getName());
+  ptrSelfPointer = new llvm::GlobalVariable(getModule(), 
+                                        selfType->getPointerTo(STORAGE_ADDR_SPACE),
+                                        false, 
+                                        llvm::GlobalValue::ExternalLinkage, 
+                                        llvm::Constant::getNullValue(selfType->getPointerTo(STORAGE_ADDR_SPACE)),
+                                        std::string(node.getName().data())+"_self_ptr", 
+                                        nullptr,
+                                        llvm::GlobalValue::NotThreadLocal, 
+                                        0);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
     visit(*f);
@@ -367,8 +379,6 @@ void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
 }
 
 void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
-  if (node.getStructFieldOrder().size() == 0)
-    return;
   std::vector<llvm::Type *> memberTypes;
   auto &typeInfoMap = node.getTypeInfoMap();
   for (auto &field : node.getStructFieldOrder()) {
@@ -376,7 +386,10 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
     llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap);
     memberTypes.push_back(type);
   }
+
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
+
+
 }
 
 llvm::Type *LLVMCodegenVisitor::getTypeByInfo(
@@ -475,3 +488,16 @@ YulIntrinsicHelper &LLVMCodegenVisitor::getYulIntrisicHelper() {
 }
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }
+
+llvm::Function *LLVMCodegenVisitor::getAllocateStorageFunction(){
+  return allocateStorageFunction;
+}
+llvm::Function *LLVMCodegenVisitor::getAllocateMemoryFunction(){
+  return allocateMemoryFunction;
+}
+void LLVMCodegenVisitor::setSelfPointer(llvm::Value *selfPtr){
+  ptrSelfPointer = selfPtr;
+}
+llvm::Value *LLVMCodegenVisitor::getSelfPointer(){
+  return ptrSelfPointer;
+}

@@ -137,3 +137,7 @@ std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
 std::vector<std::string> &YulContractNode::getStructFieldOrder() {
   return structFieldOrder;
 }
+
+std::string_view YulContractNode::getName(){
+  return contractName;
+}
