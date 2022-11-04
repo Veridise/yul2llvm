@@ -57,6 +57,11 @@
             name = "yul2llvm-source";
           };
 
+          # can't use cmakeFlags because the value has a space
+          preConfigure = ''
+            cmakeFlagsArray+=(-DLLVM_LIT_ARGS='-v --no-progress')
+          '';
+
           nativeBuildInputs = with final; [ cmake ninja ];
           buildInputs = with final; [
             yul2llvm_libllvm
@@ -162,6 +167,9 @@
             ]);
 
             # Use Debug by default so assertions are enabled by default.
+            cmakeFlags = old.cmakeFlags or [] ++ [
+              "-DLLVM_LIT_ARGS=-sv"
+            ];
             cmakeBuildType = "Debug";
 
             shellHook = ''

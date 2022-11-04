@@ -12,7 +12,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.10,<4.0"
 antlr4-python3-runtime = "4.8"
 
 # TODO: these belong to Eurus' python scripts, do we need them?
@@ -32,7 +32,7 @@ pyul = "pyul.cli:main"
 
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 exclude = [
   "src/pyul/utils/YulAntlr",
 ]
