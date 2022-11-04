@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-
 namespace yulast {
 class YulASTBase {
 protected:

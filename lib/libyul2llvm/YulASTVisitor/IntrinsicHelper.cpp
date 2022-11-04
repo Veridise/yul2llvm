@@ -1,5 +1,5 @@
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
 
 YulIntrinsicHelper::YulIntrinsicHelper(LLVMCodegenVisitor &v) : visitor(v) {}
 
@@ -75,9 +75,10 @@ llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type) {
 
 llvm::StringRef
 YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
-  llvm::StringRef type(visitor.currentContract->getVarTypeMap()[name].type);
+  llvm::StringRef type(
+      visitor.currentContract->getVarTypeMap()[name.str()].type);
   auto &typeMap = visitor.currentContract->getTypeInfoMap();
-  auto typeInfo = typeMap.find(type);
+  auto typeInfo = typeMap.find(type.str());
   if (typeInfo != typeMap.end())
     assert(false && "Unreconized type of a variable");
   return type;
@@ -106,7 +107,7 @@ llvm::Type *YulIntrinsicHelper::getReturnType(llvm::StringRef calleeName) {
 }
 
 llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
-    std::string calleeName, llvm::SmallVector<llvm::Value *> &argsV) {
+    std::string_view calleeName, llvm::SmallVector<llvm::Value *> &argsV) {
   llvm::SmallVector<llvm::Type *> funcArgTypes;
   if (calleeName == "__pyul_storage_var_load") {
     funcArgTypes.push_back(llvm::Type::getIntNPtrTy(visitor.getContext(), 256));

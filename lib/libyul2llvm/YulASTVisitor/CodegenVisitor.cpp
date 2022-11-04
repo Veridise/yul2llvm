@@ -1,4 +1,4 @@
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
 // helpers
@@ -61,7 +61,7 @@ void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
 }
 
 llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(
-    llvm::Function *TheFunction, const std::string &VarName, llvm::Type *type) {
+    llvm::Function *TheFunction, const std::string_view VarName, llvm::Type *type) {
 
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
@@ -379,16 +379,15 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
 }
 
-llvm::Type *
-LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr,
-                                  llvm::StringMap<TypeInfo> &typeInfoMap) {
+llvm::Type *LLVMCodegenVisitor::getTypeByInfo(
+    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap) {
   llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256);
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {
     return memPtrType;
   } else {
-    int bitwidth = typeInfoMap[typeStr].size * 8;
+    int bitwidth = typeInfoMap[typeStr.str()].size * 8;
     return llvm::Type::getIntNTy(*TheContext, bitwidth);
   }
 }
@@ -454,7 +453,7 @@ llvm::SmallVector<llvm::Value *> LLVMCodegenVisitor::unpackFunctionCallReturns(
     YulExpressionNode &rhsExpression) {
   YulFunctionCallNode &callNode =
       static_cast<YulFunctionCallNode &>(rhsExpression);
-  std::string functionName = callNode.getCalleeName();
+  std::string_view functionName = callNode.getCalleeName();
   auto typeIt = returnTypes.find(functionName);
   assert(typeIt != returnTypes.end() && "could not find return type to unpack");
   llvm::StructType *retType = typeIt->getValue();

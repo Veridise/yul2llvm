@@ -9,3 +9,5 @@ target_link_libraries(libyul2llvm PUBLIC
   LLVMCore
   LLVMPasses
 )
+
+add_subdirectory(YulASTVisitor)

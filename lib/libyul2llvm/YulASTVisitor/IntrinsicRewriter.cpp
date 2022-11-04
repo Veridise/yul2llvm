@@ -1,7 +1,7 @@
 #include "CallGenHelpers.h"
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
-#include <libYulAST/YulASTVisitor/YulLLVMHelpers.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/YulLLVMHelpers.h>
 
 llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
   llvm::PointerType *ptrSelfVarType =
@@ -209,7 +209,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
 
   // R"(^read_from_storage(_split)?_offset_([0-9]+)_(.*)$)"
   std::string offsetStr = match[2];
-  int offset=0;
+  int offset = 0;
   assert(offsetStr != "" && "offset not found in read_from_storage");
   std::string yulTypeStr = match[3];
   // Extract offset and load data type.
@@ -308,7 +308,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
   std::string srcTypeName = match[2].str();
   std::string destTypeName = match[3].str();
   std::string offsetStr = match[1].str();
-  int offset=0;
+  int offset = 0;
   if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
     //@todo raise runtime error
     assert(false && "could not parse offset in update");

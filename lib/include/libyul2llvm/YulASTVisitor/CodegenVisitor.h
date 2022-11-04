@@ -1,11 +1,11 @@
 #pragma once
 class YulFunctionCallHelper;
 class YulFunctionDefinitionHelper;
-#include <libYulAST/YulASTVisitor/FunctionCallHelper.h>
-#include <libYulAST/YulASTVisitor/FunctionDeclaratorVisitor.h>
-#include <libYulAST/YulASTVisitor/FunctionDefinitionHelper.h>
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
-#include <libYulAST/YulASTVisitor/VisitorBase.h>
+#include <libyul2llvm/YulASTVisitor/FunctionCallHelper.h>
+#include <libyul2llvm/YulASTVisitor/FunctionDeclaratorVisitor.h>
+#include <libyul2llvm/YulASTVisitor/FunctionDefinitionHelper.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
@@ -34,7 +34,7 @@ protected:
   // data structures for self
   llvm::StructType *selfType;
   llvm::Type *getTypeByInfo(llvm::StringRef typeStr,
-                            llvm::StringMap<TypeInfo> &typeInfoMap);
+                            std::map<std::string, TypeInfo> &typeInfoMap);
   void constructSelfStructType(YulContractNode &node);
 
   // external call context
@@ -91,7 +91,7 @@ public:
 
   // LLVM datastructures
   llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction,
-                                           const std::string &VarName,
+                                           const std::string_view VarName,
                                            llvm::Type *type = nullptr);
   llvm::GlobalVariable *CreateGlobalStringLiteral(std::string literalValue,
                                                   std::string literalName);

@@ -1,5 +1,5 @@
-#include <libYulAST/YulASTVisitor/CodegenVisitor.h>
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
 
 bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
 
@@ -37,8 +37,7 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
 
 llvm::Value *
 YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
-  std::string calleeNameStr = node.getCalleeName();
-  llvm::StringRef calleeName(calleeNameStr);
+  llvm::StringRef calleeName(node.getCalleeName());
   if (!calleeName.compare("checked_add_t_uint256")) {
     return handleAddFunctionCall(node);
   } else if (calleeName.startswith("mstore")) {
@@ -144,7 +143,7 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
   std::regex convertCallRegex(
       R"(^convert_t_rational(_minus)?_([0-9]+)_by(_minus)?_([0-9]+)_to_(.*)$)");
   std::smatch match;
-  std::string calleeName = node.getCalleeName();
+  std::string calleeName = node.getCalleeName().data();
   bool found = std::regex_match(calleeName, match, convertCallRegex);
   assert(found && "convert_t_rational did not match");
   if (found && match.size() == 6) {
@@ -180,7 +179,7 @@ YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
          "Wrong number of arguments read_from_memory_t_x call");
   std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
   std::smatch match;
-  std::string calleeName = node.getCalleeName();
+  std::string calleeName = node.getCalleeName().data();
   if (std::regex_match(calleeName, match, readCallNameRegex)) {
     std::string type = match[1].str();
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
@@ -199,7 +198,7 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
          "Wrong number of arguments write_to_memory_t_x call");
   std::regex writeCallNameRegex(R"(^write_to_memory_(t_[a-z]+\d+))");
   std::smatch match;
-  std::string calleeName = node.getCalleeName();
+  std::string calleeName = node.getCalleeName().data();
   if (std::regex_match(calleeName, match, writeCallNameRegex)) {
     auto &builder = visitor.getBuilder();
     std::string type = match[1].str();
@@ -230,7 +229,7 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 2 &&
          "Wrong number of arguments in memory_array_index_access");
   auto &builder = visitor.getBuilder();
-  std::string calleeName = node.getCalleeName();
+  std::string calleeName = node.getCalleeName().data();
   std::regex bytesArrayIndexRegex(
       R"(memory_array_index_access_t_bytes_memory_ptr)");
   std::regex memoryArrayIndexRegex(
@@ -381,7 +380,7 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
          "Incorrect number of arguments to mstore");
   std::regex mstoreFunNameRegex(R"(mstore([0-9]*))");
   std::smatch match;
-  std::string functionName = node.getCalleeName();
+  std::string functionName = node.getCalleeName().data();
   llvm::Value *val, *ptr;
   ptr = visitor.visit(*(node.getArgs()[0]));
   val = visitor.visit(*(node.getArgs()[1]));
@@ -392,7 +391,7 @@ YulIntrinsicHelper::handleMStoreFunctionCall(YulFunctionCallNode &node) {
   if (found) {
     if (match[1] != "") {
       std::string bitWidthStr = match[1].str();
-      int bitWidth=0;
+      int bitWidth = 0;
       if (llvm::StringRef(bitWidthStr).getAsInteger(10, bitWidth)) {
         //@todo refactor into raising runtime error
         assert(false && "cannot parse bitwidth");

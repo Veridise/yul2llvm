@@ -21,7 +21,7 @@ protected:
 public:
   virtual std::string to_string() override;
   YulFunctionDefinitionNode(const json *rawAST);
-  std::string getName();
+  std::string_view getName();
   std::vector<std::unique_ptr<YulIdentifierNode>> &getRets();
   std::vector<std::unique_ptr<YulIdentifierNode>> &getArgs();
   YulBlockNode &getBody() const;

@@ -1,7 +1,7 @@
 #pragma once
 class LLVMCodegenVisitor;
-#include <libYulAST/YulASTVisitor/CodegenConstants.h>
 #include <libYulAST/YulFunctionCallNode.h>
+#include <libyul2llvm/YulASTVisitor/CodegenConstants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Value.h>
@@ -39,7 +39,7 @@ public:
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);
   llvm::SmallVector<llvm::Type *>
-  getFunctionArgTypes(std::string calleeName,
+  getFunctionArgTypes(std::string_view calleeName,
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);

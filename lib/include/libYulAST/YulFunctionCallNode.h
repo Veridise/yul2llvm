@@ -17,8 +17,8 @@ public:
   virtual void parseRawAST(const json *rawAST) override;
   virtual std::string to_string() override;
   YulFunctionCallNode(const json *rawAST);
-  std::string getCalleeName();
-  void setCalleeName(llvm::StringRef);
+  std::string_view getCalleeName();
+  void setCalleeName(std::string_view);
   std::vector<std::unique_ptr<YulExpressionNode>> &getArgs();
 };
 }; // namespace yulast

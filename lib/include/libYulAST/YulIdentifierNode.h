@@ -1,6 +1,5 @@
 #pragma once
 #include <libYulAST/YulExpressionNode.h>
-#include <llvm/ADT/StringRef.h>
 #include <nlohmann/json.hpp>
 
 namespace yulast {
@@ -13,7 +12,7 @@ public:
   std::string str = "";
   virtual std::string to_string() override;
   YulIdentifierNode(const json *rawAST);
-  std::string getIdentfierValue();
-  void setIdentifierValue(llvm::StringRef);
+  std::string_view getIdentfierValue();
+  void setIdentifierValue(std::string_view);
 };
 }; // namespace yulast

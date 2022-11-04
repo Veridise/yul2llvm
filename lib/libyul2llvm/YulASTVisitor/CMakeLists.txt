@@ -1,4 +1,4 @@
-target_sources(libYulAST PRIVATE
+target_sources(libyul2llvm PRIVATE
 VisitorBase.cpp
 CodegenVisitor.cpp
 FunctionCallHelper.cpp

@@ -48,7 +48,7 @@ std::string YulFunctionDefinitionNode::to_string() {
 
 void YulFunctionDefinitionNode::createPrototype() {}
 
-std::string YulFunctionDefinitionNode::getName() {
+std::string_view YulFunctionDefinitionNode::getName() {
   return functionName->getIdentfierValue();
 }
 

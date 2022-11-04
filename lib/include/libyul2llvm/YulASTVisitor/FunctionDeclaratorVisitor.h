@@ -1,6 +1,6 @@
 #pragma once
-#include <libYulAST/YulASTVisitor/IntrinsicHelper.h>
-#include <libYulAST/YulASTVisitor/VisitorBase.h>
+#include <libyul2llvm/YulASTVisitor/IntrinsicHelper.h>
+#include <libyul2llvm/YulASTVisitor/VisitorBase.h>
 #include <llvm/IR/Attributes.h>
 using namespace yulast;
 class FunctionDeclaratorVisitor : public YulASTVisitorBase {
