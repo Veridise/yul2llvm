@@ -20,11 +20,11 @@ contract BytesMemoryTestcase {
     }
 }
 
-//CHECK: define {{.*}} @fun_readBytes{{.*}}(i256* %{{.*}}, {{.*}}, {{.*}}) {
+//CHECK: define {{.*}} @fun_readBytes{{.*}}(i256 addrspace(1)* %{{.*}}, {{.*}}, {{.*}}) {
 //CHECK: getelementptr [0 x i8], [0 x i8]* %{{.*}}, i32 0, i256 %{{.*}}
 //CHECK: load i8, i8* %{{.*}}
 
-//CHECK: define void @fun_writeBytes_{{.*}}(i256* %{{.*}}, i256 %{{.*}}, i256 %{{.*}}, i256 %{{.*}}) {
+//CHECK: define void @fun_writeBytes_{{.*}}(i256 addrspace(1)* %{{.*}}, i256 %{{.*}}, i256 %{{.*}}, i256 %{{.*}}) {
 //CHECK: getelementptr [0 x i8], [0 x i8]* %{{.*}}, i32 0, i256 %{{.*}}
 //CHECK: trunc i256 %var_value_21 to i8
 //CHECK: store i8 %{{.*}}, i8* %{{.*}}

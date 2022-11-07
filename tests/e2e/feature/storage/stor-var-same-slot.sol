@@ -23,7 +23,7 @@ contract SameSlotStorageVariableTestcase {
     }
 }
 
-// CHECK: define i256 @fun_readStorageVariable_15(i256* %__self)
+// CHECK: define i256 @fun_readStorageVariable_15(i256 addrspace(1)* %__self)
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 0
 // CHECK:  %{{pyul_storage_var_load.*}} = load i32, i32* %ptr_self_x, align 4
 // CHECK:  %i256_pyul_storage_var_load = zext i32 %{{pyul_storage_var_load.*}} to i256

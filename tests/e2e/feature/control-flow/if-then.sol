@@ -15,6 +15,6 @@ contract IfThenTestContract {
     
 }
 
-//CHECK: define {{.* @fun_max_.*\(i256\* \%.*\)}}
+//CHECK: define {{.* @fun_max_.*\(i256 addrspace\(1\)\* \%.*\)}}
 //CHECK: taken-body
 //CHECK: not-taken-body

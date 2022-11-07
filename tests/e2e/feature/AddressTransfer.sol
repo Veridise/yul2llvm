@@ -22,7 +22,7 @@ contract AddressTransfer {
 //CHECK: store i256* %{{.*}}, i256** %{{bufferPtr.*}}, align 8
 //CHECK: %{{retLenPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 4
 //CHECK: store i256 {{.*}}, i256* %{{retLenPtr.*}}, align 4
-//CHECK: %call_rv = call i256 @pyul_call_0x0(i256* %__self, %ExtCallContextType* %{{.*}})
+//CHECK: %call_rv = call i256 @pyul_call_0x0(i256 addrspace(1)* %__self, %ExtCallContextType* %{{.*}})
 
 //CHECK: %{{gasPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 0
 //CHECK: store i256 %{{.*}}, i256* %{{gasPtr.*}}, align 4
@@ -34,5 +34,5 @@ contract AddressTransfer {
 //CHECK: store i256* %{{.*}}, i256** %{{bufferPtr.*}}, align 8
 //CHECK: %{{retLenPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 4
 //CHECK: store i256 {{.*}}, i256* %{{retLenPtr.*}}, align 4
-//CHECK: %{{call_rv.*}} = call i256 @pyul_call_0x0(i256* %__self, %ExtCallContextType* %{{.*}})
+//CHECK: %{{call_rv.*}} = call i256 @pyul_call_0x0(i256 addrspace(1)* %__self, %ExtCallContextType* %{{.*}})
 
