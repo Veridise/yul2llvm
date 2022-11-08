@@ -124,6 +124,24 @@
             PATH="$out"/bin:"$PATH" lit ./tests -v
           '';
         });
+        yul2llvm_cpp_dbg = final.yul2llvm_cpp.overrideAttrs (finalAttr: prevAttr: {
+          name = "yul2llvm_cpp_dbg";
+          cmakeBuildType = "Debug";
+        });
+
+        yul2llvm_dbg = final.yul2llvm.overridePythonAttrs (prevAttr: {
+          name="yul2llvm_dbg";
+          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp_dbg ];
+          checkInputs = (builtins.filter (x: x != final.yul2llvm_cpp) prevAttr.checkInputs) ++ [final.yul2llvm_cpp_dbg] ;
+          checkPhase = ''
+            echo "Executing pytest"
+            PATH="$out"/bin:"$PATH" pytest
+
+            echo
+            echo "Executing lit tests"
+            ASAN_OPTIONS=detect_leaks=0 PATH="$out"/bin:"$PATH" lit ./tests -v
+          '';
+        });
       };
     } //
     (flake-utils.lib.eachSystem ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"] (system:
@@ -138,7 +156,7 @@
 
         packages = flake-utils.lib.flattenTree {
           # Copy the packages from the overlay.
-          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_libllvm solc_0_8_15;
+          inherit (pkgs) yul2llvm yul2llvm_cpp yul2llvm_dbg yul2llvm_cpp_dbg yul2llvm_libllvm solc_0_8_15;
         };
 
         devShells = flake-utils.lib.flattenTree {

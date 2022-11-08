@@ -29,11 +29,11 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          nix build --print-build-logs .#yul2llvm_cpp
+          nix build --print-build-logs .#yul2llvm_cpp_dbg
           echo "Done."
       - name: Build Python component and run tests
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
-          nix build --print-build-logs .#yul2llvm
+          nix build --print-build-logs .#yul2llvm_dbg
           echo "Done."
