@@ -24,15 +24,15 @@ contract StorageBytes2testCase {
 
 //CHECK: define i256 @fun_readStorageVariable
 //CHECK:   %ptr_self_{{.*}} = getelementptr %{{.*}}, %{{.*}}* %0, i32 0, i32 0
-//CHECK:   load i16, i16* %ptr_self_{{.*}}
+//CHECK:   load i16, i16 addrspace(1)* %ptr_self_{{.*}}
 //CHECK:   zext i16 %{{.*}} to i256
 //CHECK:   %ptr_self_y = getelementptr %{{.*}}, %{{.*}}* %1, i32 0, i32 1
-//CHECK:   load i16, i16* %ptr_self_y
+//CHECK:   load i16, i16 addrspace(1)* %ptr_self_y
 //CHECK:   zext i16 %{{.*}} to i256
 
 
 //CHECK: define void @fun_writeStorageVariable
 //CHECK: %ptr_self_{{.*}} = getelementptr %{{.*}}, %{{.*}}* %0, i32 {{.*}}, i32 {{.*}}
 //CHECK: %{{.*}} = trunc i256 %{{.*}} to i16
-//CHECK: store i16 %{{.*}}, i16* %ptr_self_{{.*}}
+//CHECK: store i16 %{{.*}}, i16 addrspace(1)* %ptr_self_{{.*}}
 

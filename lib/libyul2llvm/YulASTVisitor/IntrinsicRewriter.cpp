@@ -5,7 +5,7 @@
 
 llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
   llvm::PointerType *ptrSelfVarType =
-      llvm::dyn_cast<llvm::PointerType>(ptr->getType(), ptr);
+      llvm::dyn_cast<llvm::PointerType>(ptr->getType());
   assert(ptrSelfVarType && "map field type is not a pointer");
   return ptrSelfVarType->getElementType();
 }

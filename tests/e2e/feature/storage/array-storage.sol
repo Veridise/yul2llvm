@@ -28,7 +28,7 @@ contract ArrayTest {
 //CHECK: define i256 @fun_readArray_25(i256 addrspace(1)* %__self, i256 %var_index_13)
 //CHECK: %{{.*}} = trunc i256 %{{.*}} to i32
 //CHECK: %{{.*}} = getelementptr %{{.*}}, %{{.*}}, i32 {{.*}}
-//CHECK: %{{.*}} = load i256*, i256** %{{.*}}, align 8
+//CHECK: %{{.*}} = load i256*, i256* addrspace(1)* %{{.*}}, align 8
 //CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*]*
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}*]* %{{.*}}, i32 0, i32 %{{.*}}
 //CHECK: {{(bitcast)|(inttoptr)}} {{.*}} %{{.*}} to i256* 
@@ -40,7 +40,7 @@ contract ArrayTest {
 //CHECK: define void @fun_writeArray_{{.*}}(i256 addrspace(1)* %{{.*}}, {{.*}} %{{.*}}, {{.*}} %{{.*}}) 
 //CHECK: %{{.*}} = trunc i256 %{{.*}} to i32
 //CHECK: %{{.*}} = getelementptr %{{.*}}, %{{.*}}* %0, i32 {{.*}}
-//CHECK: %{{.*}} = load i256*, i256** %{{.*}}, align 8
+//CHECK: %{{.*}} = load i256*, i256* addrspace(1)* %{{.*}}, align 8
 //CHECK: %1 = bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*]*
 //CHECK: %"{{.*}}[{{.*}}]" = getelementptr [0 x {{.*}}*], [0 x {{.*}}*]* %{{.*}}, i32 0, i32 %{{.*}}
 //CHECK: %{{.*}} = load i256*, i256* %{{.*}}, align 8
