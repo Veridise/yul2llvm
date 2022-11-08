@@ -16,11 +16,11 @@ contract MappingTestCase {
     }
 }
 
-//CHECK: {{define i256 @fun_mappingRead_[0-9]+\(i256\* \%.+\)}}
+//CHECK: {{define i256 @fun_mappingRead_[0-9]+\(i256 addrspace\(1\)\* \%__self.*\)}}
 //CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
 //CHECK: {{load i256, i256\*}}
 
 
-//CHECK: {{define void @fun_mappingWrite_[0-9]+\(i256\* \%.+, .+, .+\)}}
+//CHECK: {{define void @fun_mappingWrite_[0-9]+\(i256 addrspace\(1\)\* \%__self.*, .+, .+\)}}
 //CHECK: {{call i256\* @pyul_map_index\(i256\* \%.+, .+\)}}
 //CHECK: {{store i256 .+, i256\*.*}}

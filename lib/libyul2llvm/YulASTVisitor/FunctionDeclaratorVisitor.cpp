@@ -37,7 +37,7 @@ llvm::SmallVector<llvm::Type *> FunctionDeclaratorVisitor::getFunctionArgTypes(
   int numargs = node.getNumArgs();
   // make first arg as self arg
   llvm::SmallVector<llvm::Type *> funcArgTypes = {
-      llvm::Type::getIntNPtrTy(TheContext, 256)};
+      llvm::Type::getIntNPtrTy(TheContext, 256, STORAGE_ADDR_SPACE)};
   llvm::SmallVector<llvm::Type *> origArgs(
       numargs, llvm::Type::getIntNTy(TheContext, 256));
   funcArgTypes.append(origArgs);

@@ -9,4 +9,4 @@ library ExampleLibrary {
     }
 }
 
-// CHECK: define i256 @fun_myAdd_{{[0-9]+}}({{[^)]+}}) {
+// CHECK: define i256 @fun_myAdd_{{[0-9]+}}({{i256 addrspace\(1\)\* %__self.*}}) {

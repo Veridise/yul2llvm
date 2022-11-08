@@ -51,6 +51,7 @@ public:
   std::vector<std::string> &getStructFieldOrder();
   std::string getStateVarNameBySlotOffset(int slot, int offset);
   std::map<std::string, TypeInfo> &getTypeInfoMap();
+  std::string_view getName();
 };
 
 }; // namespace yulast

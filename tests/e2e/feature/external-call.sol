@@ -17,7 +17,7 @@ contract CalleeContract{
     }
 }
 
-//CHECK: define i256 @fun_add_{{.*}}(i256* %__self, {{.*}})
+//CHECK: define i256 @fun_add_{{.*}}(i256 addrspace(1)* %__self, {{.*}})
 //CHECK: %{{gasPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 0
 //CHECK: store i256 %{{.*}}, i256* %{{gasPtr.*}}, align 4
 //CHECK: %{{addrPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 1
@@ -28,7 +28,7 @@ contract CalleeContract{
 //CHECK: store i256* %{{.*}}, i256** %{{bufferPtr.*}}, align 8
 //CHECK: %{{retLenPtr.*}} = getelementptr %ExtCallContextType, %ExtCallContextType* %{{.*}}, i32 0, i32 4
 //CHECK: store i256 {{.*}}, i256* %{{retLenPtr.*}}, align 4
-//CHECK: %ret_struct = call %"0x{{.*}}_statusRetType"* @pyul_call_0x{{.*}}(i256* %{{.*}}, %ExtCallContextType* %"0x{{.*}}ctx", i256 {{.*}}, i256 %{{.*}})
+//CHECK: %ret_struct = call %"0x{{.*}}_statusRetType"* @pyul_call_0x{{.*}}(i256 addrspace(1)* %{{.*}}, %ExtCallContextType* %"0x{{.*}}ctx", i256 {{.*}}, i256 %{{.*}})
 //CHECK: %ptr_status = getelementptr %"0x{{.*}}_statusRetType", %"0x{{.*}}_statusRetType"* %ret_struct, i32 0, i32 0
 //CHECK: %status = load i256, i256* %ptr_status, align 4
 //CHECK: %ptr_returns = getelementptr %"{{.*}}_statusRetType", %"{{.*}}_statusRetType"* %ret_struct, i32 0, i32 1

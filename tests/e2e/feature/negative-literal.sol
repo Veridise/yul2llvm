@@ -11,5 +11,5 @@ contract NegativeLiteralTest {
     }
 }
 
-//CHECK: define {{.*fun_decrement_[0-9]+\(i256\* \%.*\)}}
+//CHECK: define {{.*fun_decrement_[0-9]+\(i256 addrspace\(1\)\* \%__self.*\)}}
 //CHECK: -10

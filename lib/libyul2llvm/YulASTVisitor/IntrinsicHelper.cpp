@@ -34,7 +34,7 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   int structIndex = fieldIt - structFieldOrder.begin();
   llvm::SmallVector<llvm::Value *> indices;
   llvm::Value *self = tempBuilder.CreatePointerCast(
-      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo());
+      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
   indices.push_back(
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
   indices.push_back(llvm::ConstantInt::get(

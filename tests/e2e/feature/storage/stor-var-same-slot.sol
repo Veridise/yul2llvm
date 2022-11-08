@@ -23,17 +23,17 @@ contract SameSlotStorageVariableTestcase {
     }
 }
 
-// CHECK: define i256 @fun_readStorageVariable_15(i256* %__self)
+// CHECK: define i256 @fun_readStorageVariable_15(i256 addrspace(1)* %__self)
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 0
-// CHECK:  %{{pyul_storage_var_load.*}} = load i32, i32* %ptr_self_x, align 4
+// CHECK:  %{{pyul_storage_var_load.*}} = load i32, i32 addrspace(1)* %ptr_self_x, align 4
 // CHECK:  %i256_pyul_storage_var_load = zext i32 %{{pyul_storage_var_load.*}} to i256
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 1
-// CHECK:  %{{pyul_storage_var_load.*}} = load i32, i32* %ptr_self_y, align 4
+// CHECK:  %{{pyul_storage_var_load.*}} = load i32, i32 addrspace(1)* %ptr_self_y, align 4
 // CHECK:  %{{i256_pyul_storage_var_load.*}} = zext i32 %{{pyul_storage_var_load.*}} to i256
 
 
 // CHECK: define void @fun_writeStorageVariable_{{.*}}
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 0
-// CHECK: store i32 {{.*}}, i32* %{{.*}}, align 4
+// CHECK: store i32 {{.*}}, i32 addrspace(1)* %{{.*}}, align 4
 // CHECK: getelementptr %{{.*}}, %{{.*}}* %{{.*}}, i32 0, i32 1
-// CHECK: store i32 {{.*}}, i32* %{{.*}}, align 4
+// CHECK: store i32 {{.*}}, i32 addrspace(1)* %{{.*}}, align 4

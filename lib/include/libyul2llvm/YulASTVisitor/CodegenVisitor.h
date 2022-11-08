@@ -33,6 +33,8 @@ protected:
 
   // data structures for self
   llvm::StructType *selfType;
+  llvm::Value *ptrSelfPointer;
+
   llvm::Type *getTypeByInfo(llvm::StringRef typeStr,
                             std::map<std::string, TypeInfo> &typeInfoMap);
   void constructSelfStructType(YulContractNode &node);
@@ -56,6 +58,10 @@ protected:
   void runFunctionDeclaratorVisitor(YulContractNode &node);
   std::unique_ptr<llvm::legacy::FunctionPassManager> FPM;
   void connectToBasicBlock(llvm::BasicBlock *nextBlock);
+  llvm::Function *allocateStorageFunction;
+  llvm::Function *allocateMemoryFunction;
+
+
 
   // helpers
 
@@ -124,4 +130,11 @@ public:
   llvm::SmallVector<llvm::Value *>
   unpackFunctionCallReturns(YulExpressionNode &rhsExpression);
   YulIntrinsicHelper &getYulIntrisicHelper();
+
+  llvm::Function *getAllocateStorageFunction();
+  llvm::Function *getAllocateMemoryFunction();
+  void setSelfPointer(llvm::Value *);
+  llvm::Value *getSelfPointer();
+
+
 };

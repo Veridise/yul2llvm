@@ -10,4 +10,4 @@ contract AdditionContract {
     }
 }
 
-//CHECK: define {{.*fun_add_[0-9]+\(i256\* \%.*\)}}
+//CHECK: define {{.*fun_add_[0-9]+\(i256 addrspace\(1\)\* \%__self\)}}
