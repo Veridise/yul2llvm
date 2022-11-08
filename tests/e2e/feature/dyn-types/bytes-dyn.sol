@@ -20,7 +20,7 @@ contract BytesMemoryTestcase {
     }
 }
 
-//CHECK: define {{.*}} @fun_readBytes{{.*}}(i256 addrspace(1)* %{{.*}}, {{.*}}, {{.*}}) {
+//CHECK: define {{.*}} @fun_readBytes{{.*}}(i256 addrspace(1)* %__self, {{.*}}, {{.*}}) {
 //CHECK: getelementptr [0 x i8], [0 x i8]* %{{.*}}, i32 0, i256 %{{.*}}
 //CHECK: load i8, i8* %{{.*}}
 

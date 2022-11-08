@@ -18,7 +18,7 @@ contract DoWhileTestContract {
     
     
 }
-//CHECK: define {{.* @fun_loop_.*\(i256 addrspace\(1\)\*\ %.*\)}}
+//CHECK: define {{.* @fun_loop_.*\(i256 addrspace\(1\)\*\ %__self\)}}
 //CHECK: for-cond
 //CHECK: for-body
 //CHECK: for-incr
