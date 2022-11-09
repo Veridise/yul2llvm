@@ -5,10 +5,10 @@ project(Yul2LLVM
   VERSION 0.1.0
   HOMEPAGE_URL https://github.com/Veridise/yul2llvm
 )
-
+option(Y2L_ENABLE_ASAN "Enable address sanitizer" OFF)
 include(GNUInstallDirs)
 
-if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if(${Y2L_ENABLE_ASAN})
   add_compile_options(-fsanitize=address)
   add_link_options(-fsanitize=address)
 endif()

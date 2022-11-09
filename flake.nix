@@ -126,21 +126,16 @@
         });
         yul2llvm_cpp_dbg = final.yul2llvm_cpp.overrideAttrs (finalAttr: prevAttr: {
           name = "yul2llvm_cpp_dbg";
-          cmakeBuildType = "Debug";
+          cmakeFlags = ["-DY2L_ENABLE_ASAN=ON"];
         });
 
         yul2llvm_dbg = final.yul2llvm.overridePythonAttrs (prevAttr: {
           name="yul2llvm_dbg";
-          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp_dbg ];
+          propagatedBuildInputs = (builtins.filter (x: x != final.yul2llvm_cpp) prevAttr.propagatedBuildInputs) ++ [final.yul2llvm_cpp_dbg] ;
           checkInputs = (builtins.filter (x: x != final.yul2llvm_cpp) prevAttr.checkInputs) ++ [final.yul2llvm_cpp_dbg] ;
           checkPhase = ''
-            echo "Executing pytest"
-            PATH="$out"/bin:"$PATH" pytest
-
-            echo
-            echo "Executing lit tests"
-            ASAN_OPTIONS=detect_leaks=0 PATH="$out"/bin:"$PATH" lit ./tests -v
-          '';
+            ASAN_OPTIONS=detect_leaks=0 
+          '' + prevAttr.checkPhase;
         });
       };
     } //
