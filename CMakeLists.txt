@@ -41,7 +41,6 @@ endif()
 
 ### Project files
 
-set(Y2L_EXPORT_TARGETS ${PROJECT_NAME}Targets)
 set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc")
 
 # include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/KSIRMacros.cmake)
@@ -93,11 +92,11 @@ add_custom_target(check
 
 ### Install
 
-export(EXPORT ${Y2L_EXPORT_TARGETS}
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/${Y2L_EXPORT_TARGETS}.cmake
+export(EXPORT Yul2LLVMTargets
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/Yul2LLVMTargets.cmake
   NAMESPACE Yul2LLVM::
 )
-install(EXPORT ${Y2L_EXPORT_TARGETS}
+install(EXPORT Yul2LLVMTargets
   NAMESPACE Yul2LLVM::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
