@@ -8,7 +8,10 @@ project(Yul2LLVM
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_FLAGS_DEBUG -fsanitize=address)
+if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+  add_compile_options(-fsanitize=address)
+  add_link_options(-fsanitize=address)
+endif()
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE STRING "")
