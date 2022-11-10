@@ -35,3 +35,8 @@ target_include_directories(libYulAST PUBLIC
 target_link_libraries(libYulAST PUBLIC
   nlohmann_json::nlohmann_json
 )
+
+install(TARGETS libYulAST
+  EXPORT Yul2LLVMTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
