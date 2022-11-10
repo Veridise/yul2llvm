@@ -1,4 +1,4 @@
-target_sources(libyul2llvm PRIVATE
+target_sources(libyul2llvm PUBLIC
 VisitorBase.cpp
 CodegenVisitor.cpp
 FunctionCallHelper.cpp
