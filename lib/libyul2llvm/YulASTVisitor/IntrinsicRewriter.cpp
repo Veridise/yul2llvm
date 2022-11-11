@@ -332,7 +332,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
     llvm::Type *destType = getTypeByTypeName(destTypeName);
     llvm::Constant *offsetConst = llvm::ConstantInt::get(
         llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
-    rewriteUpdateStorageByLocation(callInst, callInst->getArgOperand(0),
+    rewriteUpdateStorageByLocation(callInst, callInst->getArgOperand(1),
                                    offsetConst, destType, storeValue);
   }
 }
