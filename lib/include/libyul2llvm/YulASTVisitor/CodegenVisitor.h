@@ -36,7 +36,8 @@ protected:
   llvm::Value *ptrSelfPointer;
 
   llvm::Type *getTypeByInfo(llvm::StringRef typeStr,
-                            std::map<std::string, TypeInfo> &typeInfoMap);
+                            std::map<std::string, TypeInfo> &typeInfoMap, 
+                            int addrSpaceId);
   void constructSelfStructType(YulContractNode &node);
 
   // external call context

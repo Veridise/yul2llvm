@@ -87,7 +87,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   llvm::SmallVector<llvm::Type *> argTypes;
   auto tmpBuilder = llvm::IRBuilder<>(callInst);
-  llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
+  llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256, STORAGE_ADDR_SPACE);
   argTypes.push_back(retType);
   argTypes.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
   llvm::FunctionType *FT = llvm::FunctionType::get(retType, argTypes, false);
