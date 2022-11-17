@@ -357,7 +357,7 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
     //@todo raise runtime error
     assert(false && "could not parse array size");
   }
-  llvm::Type *elementType = getTypeByTypeName(elementTypeName);
+  llvm::Type *elementType = getTypeByTypeName(elementTypeName, STORAGE_ADDR_SPACE);
   llvm::Value *slot = callInst->getArgOperand(1);
   llvm::Value *index = callInst->getArgOperand(2);
   assert(index->getType()->isIntegerTy() && "index is not int type");
@@ -381,20 +381,20 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   } else {
     if (slot->getType()->isPointerTy())
       arrayPtr = builder.CreatePointerCast(
-          slot, visitor.getDefaultType()->getPointerTo(),
+          slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
           slot->getName() + "_casted");
     else
       arrayPtr =
-          builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(),
+          builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
                                  slot->getName() + "_casted");
   }
   llvm::Value *zero = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
-  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(),
+  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
                                 arrayPtr, arrayPtr->getName().drop_front(4));
   llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
   auto castedArrayPtr =
-      builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo());
+      builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo(STORAGE_ADDR_SPACE));
   llvm::Value *elementPtr =
       builder.CreateGEP(arrayType, castedArrayPtr, {zero, truncIndex},
                         "ptr_" + arrayPtr->getName() + "[" + indexString + "]");
