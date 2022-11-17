@@ -29,20 +29,20 @@ contract ArrayTest {
 //CHECK: %{{.*}} = trunc i256 %{{.*}} to i32
 //CHECK: %{{.*}} = getelementptr %{{.*}}, %{{.*}}, i32 {{.*}}
 //CHECK: %{{.*}} = load i256 addrspace(1)*, i256 addrspace(1)* addrspace(1)* %{{.*}}, align 8
-//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*]*
-//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}*]* %{{.*}}, i32 0, i32 %{{.*}}
-//CHECK: {{(bitcast)|(inttoptr)}} {{.*}} %{{.*}} to i256* 
-//CHECK: %{{.*}} = load i256 addrspace(1)*, i256* %{{.*}}, align 8
-//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}]*
-//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]* %{{.*}}, i32 0, i32 {{.*}}
+//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*] addrspace(1)*
+//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}*] addrspace(1)* %{{.*}}, i32 0, i32 %{{.*}}
+//CHECK: {{(bitcast)|(inttoptr)}} {{.*}} %{{.*}} to i256 addrspace(1)* 
+//CHECK: %{{.*}} = load i256 addrspace(1)*, i256 addrspace(1)* %{{.*}}, align 8
+//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}] addrspace(1)*
+//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}] addrspace(1)* %{{.*}}, i32 0, i32 {{.*}}
 //CHECK: ret i256 %read_from_storage_split_dynamic_t_uint32 
 
 //CHECK: define void @fun_writeArray_{{.*}}(i256 addrspace(1)* %{{.*}}, {{.*}} %{{.*}}, {{.*}} %{{.*}}) 
 //CHECK: %{{.*}} = trunc i256 %{{.*}} to i32
 //CHECK: %{{.*}} = getelementptr %{{.*}}, %{{.*}}* %0, i32 {{.*}}
 //CHECK: %{{.*}} = load i256 addrspace(1)*, i256 addrspace(1)* addrspace(1)* %{{.*}}, align 8
-//CHECK: %1 = bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*]*
-//CHECK: %"{{.*}}[{{.*}}]" = getelementptr [0 x {{.*}}*], [0 x {{.*}}*]* %{{.*}}, i32 0, i32 %{{.*}}
-//CHECK: %{{.*}} = load i256 addrspace(1)*, i256* %{{.*}}, align 8
-//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}]*
-//CHECK: %"{{.*}}[{{.*}}]" = getelementptr [0 x {{.*}}], [0 x {{.*}}]* %{{.*}}, i32 0, i32 {{.*}}
+//CHECK: %1 = bitcast {{.*}}* %{{.*}} to [0 x {{.*}}*] addrspace(1)*
+//CHECK: %"{{.*}}[{{.*}}]" = getelementptr [0 x {{.*}} addrspace(1)*], [0 x {{.*}} addrspace(1)*] addrspace(1)* %{{.*}}, i32 0, i32 %{{.*}}
+//CHECK: %{{.*}} = load i256 addrspace(1)*, i256 addrspace(1)* %{{.*}}, align 8
+//CHECK: bitcast {{.*}}* %{{.*}} to [0 x {{.*}}] addrspace(1)*
+//CHECK: %"{{.*}}[{{.*}}]" = getelementptr [0 x {{.*}}], [0 x {{.*}}] addrspace(1)* %{{.*}}, i32 0, i32 {{.*}}
