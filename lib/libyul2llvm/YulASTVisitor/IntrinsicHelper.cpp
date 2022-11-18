@@ -44,7 +44,7 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   return ptr;
 }
 
-llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type, int addrSpaceId) {
+llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type, const int addrSpaceId = 0) {
   auto &typeInfoMap = visitor.currentContract->getTypeInfoMap();
   std::regex uintTypeRegex(R"(^t_uint(\d+)$)");
   std::regex bytesTypeRegex(R"(^t_bytes(\d+)$)");

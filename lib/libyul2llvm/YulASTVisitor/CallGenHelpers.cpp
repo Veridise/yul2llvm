@@ -145,7 +145,7 @@ llvm::Type *getExtCallReturnType(llvm::CallInst *callInst,
     while (std::regex_search(typesStr, typeMatch, typesRegex)) {
       if (typeMatch[2].matched) {
         std::string type = typeMatch[2].str();
-        retType = v.getYulIntrisicHelper().getTypeByTypeName(type);
+        retType = v.getYulIntrisicHelper().getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
       } else if (typeMatch[3].matched || typeMatch[4].matched) {
         //@todo raise runtime error
         assert(false && "unhandled return types from external calls");

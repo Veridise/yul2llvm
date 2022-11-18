@@ -34,7 +34,7 @@ public:
   llvm::Value *getPointerToStorageVarByName(std::string,
                                             llvm::Instruction *insertPoint);
   llvm::StringRef getStorageVarYulTypeByName(llvm::StringRef name);
-  llvm::Type *getTypeByTypeName(llvm::StringRef type, int addrSpaceId=0);
+  llvm::Type *getTypeByTypeName(llvm::StringRef type, const int addrSpaceId);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
   llvm::Type *getReturnType(llvm::StringRef);

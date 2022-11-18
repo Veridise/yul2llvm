@@ -209,7 +209,7 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
   } else {
     rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
                                  callInst->getArgOperand(1),
-                                 getTypeByTypeName(yulTypeStr));
+                                 getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE));
   }
 }
 
@@ -235,7 +235,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
         visitor.currentContract->getStateVarNameBySlotOffset(slot, offset);
     rewriteLoadStorageVarByName(callInst, varname);
   } else {
-    llvm::Type *loadType = getTypeByTypeName(yulTypeStr);
+    llvm::Type *loadType = getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE);
     llvm::Constant *offsetConst =
         llvm::ConstantInt::get(visitor.getDefaultType(), offset, 10);
     rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
@@ -296,7 +296,7 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
         slotConst->getZExtValue(), offsetConst->getZExtValue());
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
-    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Type *destType = getTypeByTypeName(destTypeName, DEFAULT_ADDR_SPACE);
     llvm::Value *offsetIndex = tempBuilder.CreateIntCast(
         offsetArg, llvm::Type::getInt32Ty(visitor.getContext()), false,
         "array_offset");
@@ -329,7 +329,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
         slot->getZExtValue(), offset);
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
-    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Type *destType = getTypeByTypeName(destTypeName, DEFAULT_ADDR_SPACE);
     llvm::Constant *offsetConst = llvm::ConstantInt::get(
         llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
     rewriteUpdateStorageByLocation(callInst, callInst->getArgOperand(1),

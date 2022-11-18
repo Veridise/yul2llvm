@@ -224,7 +224,7 @@ YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
     std::string type = match[1].str();
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
     auto &builder = visitor.getBuilder();
-    llvm::Type *loadType = getTypeByTypeName(type);
+    llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
     llvm::Value *loadedWord = builder.CreateLoad(loadType, pointer, "arr_load");
     return builder.CreateIntCast(loadedWord, visitor.getDefaultType(), false,
                                  "word_" + loadedWord->getName());
@@ -244,7 +244,7 @@ YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
     std::string type = match[1].str();
     llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
     llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
-    llvm::Type *elementType = getTypeByTypeName(type);
+    llvm::Type *elementType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
     if (valueToStore->getType()->isPointerTy()) {
       valueToStore = builder.CreatePtrToInt(valueToStore, elementType);
     } else {
@@ -284,7 +284,7 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
     //@todo raise runtime error
     assert(false && "memory_array_index did not match regex");
   }
-  llvm::Type *elementType = getTypeByTypeName(elementTypeName);
+  llvm::Type *elementType = getTypeByTypeName(elementTypeName, DEFAULT_ADDR_SPACE);
   llvm::ArrayType *arrayType = llvm::ArrayType::get(elementType, 0);
   llvm::Value *array = visitor.visit(*node.getArgs()[0]);
   llvm::Value *idx = visitor.visit(*node.getArgs()[1]);
