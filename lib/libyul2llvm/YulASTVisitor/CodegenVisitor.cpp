@@ -383,7 +383,7 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   auto &typeInfoMap = node.getTypeInfoMap();
   for (auto &field : node.getStructFieldOrder()) {
     std::string typeStr = node.getVarTypeMap()[field].type;
-    llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap);
+    llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap, STORAGE_ADDR_SPACE);
     memberTypes.push_back(type);
   }
 
@@ -393,8 +393,8 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
 }
 
 llvm::Type *LLVMCodegenVisitor::getTypeByInfo(
-    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap) {
-  llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256);
+    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap, int addrSpaceId) {
+  llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {

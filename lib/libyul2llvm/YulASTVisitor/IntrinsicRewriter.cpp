@@ -87,7 +87,7 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   llvm::SmallVector<llvm::Type *> argTypes;
   auto tmpBuilder = llvm::IRBuilder<>(callInst);
-  llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256);
+  llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256, STORAGE_ADDR_SPACE);
   argTypes.push_back(retType);
   argTypes.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
   llvm::FunctionType *FT = llvm::FunctionType::get(retType, argTypes, false);
@@ -209,7 +209,7 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
   } else {
     rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
                                  callInst->getArgOperand(1),
-                                 getTypeByTypeName(yulTypeStr));
+                                 getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE));
   }
 }
 
@@ -235,7 +235,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
         visitor.currentContract->getStateVarNameBySlotOffset(slot, offset);
     rewriteLoadStorageVarByName(callInst, varname);
   } else {
-    llvm::Type *loadType = getTypeByTypeName(yulTypeStr);
+    llvm::Type *loadType = getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE);
     llvm::Constant *offsetConst =
         llvm::ConstantInt::get(visitor.getDefaultType(), offset, 10);
     rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
@@ -296,7 +296,7 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
         slotConst->getZExtValue(), offsetConst->getZExtValue());
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
-    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Type *destType = getTypeByTypeName(destTypeName, DEFAULT_ADDR_SPACE);
     llvm::Value *offsetIndex = tempBuilder.CreateIntCast(
         offsetArg, llvm::Type::getInt32Ty(visitor.getContext()), false,
         "array_offset");
@@ -329,7 +329,7 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
         slot->getZExtValue(), offset);
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
-    llvm::Type *destType = getTypeByTypeName(destTypeName);
+    llvm::Type *destType = getTypeByTypeName(destTypeName, DEFAULT_ADDR_SPACE);
     llvm::Constant *offsetConst = llvm::ConstantInt::get(
         llvm::Type::getInt32Ty(visitor.getContext()), offset, 10);
     rewriteUpdateStorageByLocation(callInst, callInst->getArgOperand(1),
@@ -357,7 +357,7 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
     //@todo raise runtime error
     assert(false && "could not parse array size");
   }
-  llvm::Type *elementType = getTypeByTypeName(elementTypeName);
+  llvm::Type *elementType = getTypeByTypeName(elementTypeName, STORAGE_ADDR_SPACE);
   llvm::Value *slot = callInst->getArgOperand(1);
   llvm::Value *index = callInst->getArgOperand(2);
   assert(index->getType()->isIntegerTy() && "index is not int type");
@@ -381,20 +381,20 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   } else {
     if (slot->getType()->isPointerTy())
       arrayPtr = builder.CreatePointerCast(
-          slot, visitor.getDefaultType()->getPointerTo(),
+          slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
           slot->getName() + "_casted");
     else
       arrayPtr =
-          builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(),
+          builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
                                  slot->getName() + "_casted");
   }
   llvm::Value *zero = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
-  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(),
+  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
                                 arrayPtr, arrayPtr->getName().drop_front(4));
   llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
   auto castedArrayPtr =
-      builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo());
+      builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo(STORAGE_ADDR_SPACE));
   llvm::Value *elementPtr =
       builder.CreateGEP(arrayType, castedArrayPtr, {zero, truncIndex},
                         "ptr_" + arrayPtr->getName() + "[" + indexString + "]");
