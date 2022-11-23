@@ -1,18 +1,23 @@
 import unittest
-from pyul.utils.yul_parser import YulPrintListener
-from pyul.utils.YulAntlr.YulLexer import YulLexer
-from pyul.utils.YulAntlr.YulParser import YulParser
-from pyul.utils.YulAntlr.YulListener import YulListener
+
 import antlr4
 import pytest
 
+from pyul.utils.yul_parser import YulPrintListener
+from pyul.utils.YulAntlr.YulLexer import YulLexer
+from pyul.utils.YulAntlr.YulListener import YulListener
+from pyul.utils.YulAntlr.YulParser import YulParser
+
 YUL_JSON_KV = '{{"type":"{}","children":[{}]}}'
 
-YUL_FUNCTION_IDENT = "revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb"
+YUL_FUNCTION_IDENT = (
+    "revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb"
+)
 
-YUL_FUNCTION_DEF = '''function revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() {
+YUL_FUNCTION_DEF = """function revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() {
     revert(0, 0)
-}'''
+}"""
+
 
 def setup_parser(program_input):
     input_stream = antlr4.InputStream(program_input)
@@ -21,6 +26,7 @@ def setup_parser(program_input):
     parser = YulParser(stream)
     return parser
 
+
 @pytest.fixture
 def yul_printer():
     printer = YulPrintListener()
@@ -28,18 +34,21 @@ def yul_printer():
     yield printer
     printer.clear_built_string()
 
+
 def test_string_literal(yul_printer):
     parser = setup_parser('"ERC20: decreased allowance below"')
     tree = parser.yul_string_literal()
-
 
     walker = antlr4.ParseTreeWalker()
     walker.walk(yul_printer, tree)
 
     yul_printer.strip_all_trailing()
 
-    correct = YUL_JSON_KV.format("yul_string_literal", '"ERC20: decreased allowance below"')
+    correct = YUL_JSON_KV.format(
+        "yul_string_literal", '"ERC20: decreased allowance below"'
+    )
     assert correct == yul_printer.built_string
+
 
 def test_dec_literal(yul_printer):
     parser = setup_parser("64")
@@ -53,6 +62,7 @@ def test_dec_literal(yul_printer):
     correct = YUL_JSON_KV.format("yul_dec_number", '"64"')
     assert correct == yul_printer.built_string
 
+
 def test_hex_literal(yul_printer):
     parser = setup_parser("0x41")
     tree = parser.yul_hex_number()
@@ -63,6 +73,7 @@ def test_hex_literal(yul_printer):
     yul_printer.strip_all_trailing()
     correct = YUL_JSON_KV.format("yul_hex_number", '"0x41"')
     assert correct == yul_printer.built_string
+
 
 def test_yul_number_literal(yul_printer):
     parser = setup_parser("64")
@@ -78,6 +89,7 @@ def test_yul_number_literal(yul_printer):
 
     assert yul_number_lit == yul_printer.built_string
 
+
 def test_identifier(yul_printer):
     parser = setup_parser("revert()")
     tree = parser.yul_identifier()
@@ -90,6 +102,7 @@ def test_identifier(yul_printer):
     correct = YUL_JSON_KV.format("yul_identifier", '"revert"')
 
     assert correct == yul_printer.built_string
+
 
 def test_yul_literal(yul_printer):
     parser = setup_parser("64")
@@ -122,9 +135,12 @@ def test_function_call(yul_printer):
     _yul_literal_2 = _yul_literal_1
     _yul_ident = YUL_JSON_KV.format("yul_identifier", '"revert"')
 
-    correct = YUL_JSON_KV.format("yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}")
+    correct = YUL_JSON_KV.format(
+        "yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}"
+    )
 
     assert correct == yul_printer.built_string
+
 
 def test_yul_block(yul_printer):
     parser = setup_parser("{ revert(0,0) }")
@@ -140,11 +156,14 @@ def test_yul_block(yul_printer):
     _yul_literal_1 = YUL_JSON_KV.format("yul_literal", _yul_number_lit)
     _yul_literal_2 = _yul_literal_1
     _yul_ident = YUL_JSON_KV.format("yul_identifier", '"revert"')
-    _yul_function_call = YUL_JSON_KV.format("yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}")
+    _yul_function_call = YUL_JSON_KV.format(
+        "yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}"
+    )
 
     correct = YUL_JSON_KV.format("yul_block", _yul_function_call)
 
     assert correct == yul_printer.built_string
+
 
 def test_yul_function_def(yul_printer):
     parser = setup_parser(YUL_FUNCTION_DEF)
@@ -160,10 +179,16 @@ def test_yul_function_def(yul_printer):
     _yul_literal_1 = YUL_JSON_KV.format("yul_literal", _yul_number_lit)
     _yul_literal_2 = _yul_literal_1
     _yul_ident = YUL_JSON_KV.format("yul_identifier", '"revert"')
-    _yul_function_call = YUL_JSON_KV.format("yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}")
+    _yul_function_call = YUL_JSON_KV.format(
+        "yul_function_call", f"{_yul_ident},{_yul_literal_1},{_yul_literal_2}"
+    )
     _yul_block = YUL_JSON_KV.format("yul_block", _yul_function_call)
-    _yul_function_ident = YUL_JSON_KV.format("yul_identifier", f'"{YUL_FUNCTION_IDENT}"')
-    
-    correct = YUL_JSON_KV.format("yul_function_definition", f"{_yul_function_ident},{_yul_block}")
+    _yul_function_ident = YUL_JSON_KV.format(
+        "yul_identifier", f'"{YUL_FUNCTION_IDENT}"'
+    )
+
+    correct = YUL_JSON_KV.format(
+        "yul_function_definition", f"{_yul_function_ident},{_yul_block}"
+    )
 
     assert correct == yul_printer.built_string

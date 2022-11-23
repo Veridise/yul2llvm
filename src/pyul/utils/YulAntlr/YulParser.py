@@ -1,12 +1,14 @@
 # Generated from Yul.g4 by ANTLR 4.8
 # encoding: utf-8
-from antlr4 import *
-from io import StringIO
 import sys
+from io import StringIO
+
+from antlr4 import *
+
 if sys.version_info[1] > 5:
-	from typing import TextIO
+    from typing import TextIO
 else:
-	from typing.io import TextIO
+    from typing.io import TextIO
 
 
 def serializedATN():
@@ -35,11 +37,11 @@ def serializedATN():
         buf.write("\30\3\30\5\30\u00d8\n\30\3\31\3\31\5\31\u00dc\n\31\3\32")
         buf.write("\3\32\3\33\3\33\3\34\3\34\3\35\3\35\3\36\3\36\3\37\3\37")
         buf.write("\3 \3 \3 \2\2!\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36")
-        buf.write(" \"$&(*,.\60\62\64\668:<>\2\2\2\u00ec\2@\3\2\2\2\4B\3")
+        buf.write(' "$&(*,.\60\62\64\668:<>\2\2\2\u00ec\2@\3\2\2\2\4B\3')
         buf.write("\2\2\2\6K\3\2\2\2\bN\3\2\2\2\nR\3\2\2\2\f_\3\2\2\2\16")
         buf.write("c\3\2\2\2\20f\3\2\2\2\22l\3\2\2\2\24n\3\2\2\2\26p\3\2")
         buf.write("\2\2\30r\3\2\2\2\32\177\3\2\2\2\34\u0085\3\2\2\2\36\u0087")
-        buf.write("\3\2\2\2 \u0089\3\2\2\2\"\u0099\3\2\2\2$\u00a1\3\2\2\2")
+        buf.write('\3\2\2\2 \u0089\3\2\2\2"\u0099\3\2\2\2$\u00a1\3\2\2\2')
         buf.write("&\u00b6\3\2\2\2(\u00b8\3\2\2\2*\u00bf\3\2\2\2,\u00c1\3")
         buf.write("\2\2\2.\u00d3\3\2\2\2\60\u00db\3\2\2\2\62\u00dd\3\2\2")
         buf.write("\2\64\u00df\3\2\2\2\66\u00e1\3\2\2\28\u00e3\3\2\2\2:\u00e5")
@@ -83,8 +85,8 @@ def serializedATN():
         buf.write("\2\u00b6\u00ac\3\2\2\2\u00b6\u00ad\3\2\2\2\u00b6\u00ae")
         buf.write("\3\2\2\2\u00b6\u00af\3\2\2\2\u00b6\u00b0\3\2\2\2\u00b6")
         buf.write("\u00b1\3\2\2\2\u00b6\u00b2\3\2\2\2\u00b6\u00b3\3\2\2\2")
-        buf.write("\u00b6\u00b4\3\2\2\2\u00b6\u00b5\3\2\2\2\u00b7\'\3\2\2")
-        buf.write("\2\u00b8\u00b9\5\"\22\2\u00b9\u00ba\7\b\2\2\u00ba\u00bb")
+        buf.write("\u00b6\u00b4\3\2\2\2\u00b6\u00b5\3\2\2\2\u00b7'\3\2\2")
+        buf.write('\2\u00b8\u00b9\5"\22\2\u00b9\u00ba\7\b\2\2\u00ba\u00bb')
         buf.write("\5*\26\2\u00bb)\3\2\2\2\u00bc\u00c0\5,\27\2\u00bd\u00c0")
         buf.write("\5<\37\2\u00be\u00c0\5.\30\2\u00bf\u00bc\3\2\2\2\u00bf")
         buf.write("\u00bd\3\2\2\2\u00bf\u00be\3\2\2\2\u00c0+\3\2\2\2\u00c1")
@@ -110,30 +112,78 @@ def serializedATN():
         return buf.getvalue()
 
 
-class YulParser ( Parser ):
+class YulParser(Parser):
 
     grammarFileName = "Yul.g4"
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
+    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'{'", "'}'", "'('", "')'", "'->'", "':='", 
-                     "':'", "','", "'object'", "'code'", "'if'", "'switch'", 
-                     "'case'", "'default'", "'for'", "'break'", "'continue'", 
-                     "'leave'", "'function'", "'let'", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "'true'", "'false'" ]
+    literalNames = [
+        "<INVALID>",
+        "'{'",
+        "'}'",
+        "'('",
+        "')'",
+        "'->'",
+        "':='",
+        "':'",
+        "','",
+        "'object'",
+        "'code'",
+        "'if'",
+        "'switch'",
+        "'case'",
+        "'default'",
+        "'for'",
+        "'break'",
+        "'continue'",
+        "'leave'",
+        "'function'",
+        "'let'",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "'true'",
+        "'false'",
+    ]
 
-    symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "KW_OBJECT", "KW_CODE", "KW_IF", "KW_SWITCH", 
-                      "KW_CASE", "KW_DEFAULT", "KW_FOR", "KW_BREAK", "KW_CONTINUE", 
-                      "KW_LEAVE", "KW_FUNCTION", "KW_LET", "STRING_LITERAL", 
-                      "StringLiteralFragment", "ID_LITERAL", "TRUE_LITERAL", 
-                      "FALSE_LITERAL", "DEC_NUMBER", "HEX_NUMBER", "COMMENT", 
-                      "LINE_COMMENT", "WS" ]
+    symbolicNames = [
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "<INVALID>",
+        "KW_OBJECT",
+        "KW_CODE",
+        "KW_IF",
+        "KW_SWITCH",
+        "KW_CASE",
+        "KW_DEFAULT",
+        "KW_FOR",
+        "KW_BREAK",
+        "KW_CONTINUE",
+        "KW_LEAVE",
+        "KW_FUNCTION",
+        "KW_LET",
+        "STRING_LITERAL",
+        "StringLiteralFragment",
+        "ID_LITERAL",
+        "TRUE_LITERAL",
+        "FALSE_LITERAL",
+        "DEC_NUMBER",
+        "HEX_NUMBER",
+        "COMMENT",
+        "LINE_COMMENT",
+        "WS",
+    ]
 
     RULE_start = 0
     RULE_yul_object = 1
@@ -167,81 +217,100 @@ class YulParser ( Parser ):
     RULE_yul_identifier = 29
     RULE_yul_string_literal = 30
 
-    ruleNames =  [ "start", "yul_object", "yul_code", "yul_if", "yul_switch", 
-                   "yul_case", "yul_default", "yul_for_loop", "yul_break", 
-                   "yul_continue", "yul_leave", "yul_function_definition", 
-                   "yul_variable_declaration", "yul_function_arg_list", 
-                   "yul_function_ret_list", "yul_typed_identifier_list", 
-                   "yul_identifier_list", "yul_block", "yul_statement", 
-                   "yul_assignment", "yul_expression", "yul_function_call", 
-                   "yul_literal", "yul_number_literal", "yul_true_literal", 
-                   "yul_false_literal", "yul_hex_number", "yul_dec_number", 
-                   "yul_type_name", "yul_identifier", "yul_string_literal" ]
+    ruleNames = [
+        "start",
+        "yul_object",
+        "yul_code",
+        "yul_if",
+        "yul_switch",
+        "yul_case",
+        "yul_default",
+        "yul_for_loop",
+        "yul_break",
+        "yul_continue",
+        "yul_leave",
+        "yul_function_definition",
+        "yul_variable_declaration",
+        "yul_function_arg_list",
+        "yul_function_ret_list",
+        "yul_typed_identifier_list",
+        "yul_identifier_list",
+        "yul_block",
+        "yul_statement",
+        "yul_assignment",
+        "yul_expression",
+        "yul_function_call",
+        "yul_literal",
+        "yul_number_literal",
+        "yul_true_literal",
+        "yul_false_literal",
+        "yul_hex_number",
+        "yul_dec_number",
+        "yul_type_name",
+        "yul_identifier",
+        "yul_string_literal",
+    ]
 
     EOF = Token.EOF
-    T__0=1
-    T__1=2
-    T__2=3
-    T__3=4
-    T__4=5
-    T__5=6
-    T__6=7
-    T__7=8
-    KW_OBJECT=9
-    KW_CODE=10
-    KW_IF=11
-    KW_SWITCH=12
-    KW_CASE=13
-    KW_DEFAULT=14
-    KW_FOR=15
-    KW_BREAK=16
-    KW_CONTINUE=17
-    KW_LEAVE=18
-    KW_FUNCTION=19
-    KW_LET=20
-    STRING_LITERAL=21
-    StringLiteralFragment=22
-    ID_LITERAL=23
-    TRUE_LITERAL=24
-    FALSE_LITERAL=25
-    DEC_NUMBER=26
-    HEX_NUMBER=27
-    COMMENT=28
-    LINE_COMMENT=29
-    WS=30
+    T__0 = 1
+    T__1 = 2
+    T__2 = 3
+    T__3 = 4
+    T__4 = 5
+    T__5 = 6
+    T__6 = 7
+    T__7 = 8
+    KW_OBJECT = 9
+    KW_CODE = 10
+    KW_IF = 11
+    KW_SWITCH = 12
+    KW_CASE = 13
+    KW_DEFAULT = 14
+    KW_FOR = 15
+    KW_BREAK = 16
+    KW_CONTINUE = 17
+    KW_LEAVE = 18
+    KW_FUNCTION = 19
+    KW_LET = 20
+    STRING_LITERAL = 21
+    StringLiteralFragment = 22
+    ID_LITERAL = 23
+    TRUE_LITERAL = 24
+    FALSE_LITERAL = 25
+    DEC_NUMBER = 26
+    HEX_NUMBER = 27
+    COMMENT = 28
+    LINE_COMMENT = 29
+    WS = 30
 
-    def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
+    def __init__(self, input: TokenStream, output: TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.8")
-        self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
+        self._interp = ParserATNSimulator(
+            self, self.atn, self.decisionsToDFA, self.sharedContextCache
+        )
         self._predicates = None
 
-
-
-
     class StartContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_object(self):
-            return self.getTypedRuleContext(YulParser.Yul_objectContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_objectContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_start
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStart" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterStart"):
                 listener.enterStart(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStart" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitStart"):
                 listener.exitStart(self)
-
-
-
 
     def start(self):
 
@@ -259,10 +328,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_objectContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -270,36 +339,30 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_OBJECT, 0)
 
         def yul_string_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_string_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_string_literalContext, 0)
 
         def yul_code(self):
-            return self.getTypedRuleContext(YulParser.Yul_codeContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_codeContext, 0)
 
         def yul_object(self):
-            return self.getTypedRuleContext(YulParser.Yul_objectContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_objectContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_object
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_object" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_object"):
                 listener.enterYul_object(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_object" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_object"):
                 listener.exitYul_object(self)
-
-
-
 
     def yul_object(self):
 
         localctx = YulParser.Yul_objectContext(self, self._ctx, self.state)
         self.enterRule(localctx, 2, self.RULE_yul_object)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 64
@@ -314,10 +377,9 @@ class YulParser ( Parser ):
             self.state = 69
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.KW_OBJECT:
+            if _la == YulParser.KW_OBJECT:
                 self.state = 68
                 self.yul_object()
-
 
             self.state = 71
             self.match(YulParser.T__1)
@@ -329,10 +391,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_codeContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -340,22 +402,18 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_CODE, 0)
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_code
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_code" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_code"):
                 listener.enterYul_code(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_code" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_code"):
                 listener.exitYul_code(self)
-
-
-
 
     def yul_code(self):
 
@@ -375,10 +433,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_ifContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -386,26 +444,21 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_IF, 0)
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_if
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_if" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_if"):
                 listener.enterYul_if(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_if" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_if"):
                 listener.exitYul_if(self)
-
-
-
 
     def yul_if(self):
 
@@ -427,10 +480,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_switchContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -438,39 +491,33 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_SWITCH, 0)
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def yul_default(self):
-            return self.getTypedRuleContext(YulParser.Yul_defaultContext,0)
+            return self.getTypedRuleContext(YulParser.Yul_defaultContext, 0)
 
-
-        def yul_case(self, i:int=None):
+        def yul_case(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_caseContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_caseContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_caseContext, i)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_switch
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_switch" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_switch"):
                 listener.enterYul_switch(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_switch" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_switch"):
                 listener.exitYul_switch(self)
-
-
-
 
     def yul_switch(self):
 
         localctx = YulParser.Yul_switchContext(self, self._ctx, self.state)
         self.enterRule(localctx, 8, self.RULE_yul_switch)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 80
@@ -481,25 +528,24 @@ class YulParser ( Parser ):
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [YulParser.KW_CASE]:
-                self.state = 83 
+                self.state = 83
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 while True:
                     self.state = 82
                     self.yul_case()
-                    self.state = 85 
+                    self.state = 85
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-                    if not (_la==YulParser.KW_CASE):
+                    if not (_la == YulParser.KW_CASE):
                         break
 
                 self.state = 88
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==YulParser.KW_DEFAULT:
+                if _la == YulParser.KW_DEFAULT:
                     self.state = 87
                     self.yul_default()
-
 
                 pass
             elif token in [YulParser.KW_DEFAULT]:
@@ -517,10 +563,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_caseContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -528,26 +574,21 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_CASE, 0)
 
         def yul_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_literalContext, 0)
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_case
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_case" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_case"):
                 listener.enterYul_case(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_case" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_case"):
                 listener.exitYul_case(self)
-
-
-
 
     def yul_case(self):
 
@@ -569,10 +610,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_defaultContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -580,22 +621,18 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_DEFAULT, 0)
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_default
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_default" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_default"):
                 listener.enterYul_default(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_default" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_default"):
                 listener.exitYul_default(self)
-
-
-
 
     def yul_default(self):
 
@@ -615,40 +652,35 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_for_loopContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def KW_FOR(self):
             return self.getToken(YulParser.KW_FOR, 0)
 
-        def yul_block(self, i:int=None):
+        def yul_block(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_blockContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_blockContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_blockContext, i)
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_for_loop
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_for_loop" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_for_loop"):
                 listener.enterYul_for_loop(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_for_loop" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_for_loop"):
                 listener.exitYul_for_loop(self)
-
-
-
 
     def yul_for_loop(self):
 
@@ -674,10 +706,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_breakContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -687,16 +719,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_break
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_break" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_break"):
                 listener.enterYul_break(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_break" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_break"):
                 listener.exitYul_break(self)
-
-
-
 
     def yul_break(self):
 
@@ -714,10 +743,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_continueContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -727,16 +756,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_continue
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_continue" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_continue"):
                 listener.enterYul_continue(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_continue" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_continue"):
                 listener.exitYul_continue(self)
-
-
-
 
     def yul_continue(self):
 
@@ -754,10 +780,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_leaveContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -767,16 +793,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_leave
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_leave" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_leave"):
                 listener.enterYul_leave(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_leave" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_leave"):
                 listener.exitYul_leave(self)
-
-
-
 
     def yul_leave(self):
 
@@ -794,10 +817,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_function_definitionContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -805,40 +828,33 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_FUNCTION, 0)
 
         def yul_identifier(self):
-            return self.getTypedRuleContext(YulParser.Yul_identifierContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_identifierContext, 0)
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def yul_function_arg_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_function_arg_listContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_function_arg_listContext, 0)
 
         def yul_function_ret_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_function_ret_listContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_function_ret_listContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_function_definition
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_function_definition" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_function_definition"):
                 listener.enterYul_function_definition(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_function_definition" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_function_definition"):
                 listener.exitYul_function_definition(self)
-
-
-
 
     def yul_function_definition(self):
 
         localctx = YulParser.Yul_function_definitionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 22, self.RULE_yul_function_definition)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 112
@@ -850,22 +866,20 @@ class YulParser ( Parser ):
             self.state = 116
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.ID_LITERAL:
+            if _la == YulParser.ID_LITERAL:
                 self.state = 115
                 self.yul_function_arg_list()
-
 
             self.state = 118
             self.match(YulParser.T__3)
             self.state = 121
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.T__4:
+            if _la == YulParser.T__4:
                 self.state = 119
                 self.match(YulParser.T__4)
                 self.state = 120
                 self.yul_function_ret_list()
-
 
             self.state = 123
             self.yul_block()
@@ -877,10 +891,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_variable_declarationContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -888,32 +902,31 @@ class YulParser ( Parser ):
             return self.getToken(YulParser.KW_LET, 0)
 
         def yul_typed_identifier_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_typed_identifier_listContext,0)
-
+            return self.getTypedRuleContext(
+                YulParser.Yul_typed_identifier_listContext, 0
+            )
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_variable_declaration
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_variable_declaration" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_variable_declaration"):
                 listener.enterYul_variable_declaration(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_variable_declaration" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_variable_declaration"):
                 listener.exitYul_variable_declaration(self)
-
-
-
 
     def yul_variable_declaration(self):
 
-        localctx = YulParser.Yul_variable_declarationContext(self, self._ctx, self.state)
+        localctx = YulParser.Yul_variable_declarationContext(
+            self, self._ctx, self.state
+        )
         self.enterRule(localctx, 24, self.RULE_yul_variable_declaration)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 125
@@ -923,12 +936,11 @@ class YulParser ( Parser ):
             self.state = 129
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.T__5:
+            if _la == YulParser.T__5:
                 self.state = 127
                 self.match(YulParser.T__5)
                 self.state = 128
                 self.yul_expression()
-
 
         except RecognitionException as re:
             localctx.exception = re
@@ -938,30 +950,28 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_function_arg_listContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_typed_identifier_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_typed_identifier_listContext,0)
-
+            return self.getTypedRuleContext(
+                YulParser.Yul_typed_identifier_listContext, 0
+            )
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_function_arg_list
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_function_arg_list" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_function_arg_list"):
                 listener.enterYul_function_arg_list(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_function_arg_list" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_function_arg_list"):
                 listener.exitYul_function_arg_list(self)
-
-
-
 
     def yul_function_arg_list(self):
 
@@ -979,30 +989,28 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_function_ret_listContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_typed_identifier_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_typed_identifier_listContext,0)
-
+            return self.getTypedRuleContext(
+                YulParser.Yul_typed_identifier_listContext, 0
+            )
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_function_ret_list
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_function_ret_list" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_function_ret_list"):
                 listener.enterYul_function_ret_list(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_function_ret_list" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_function_ret_list"):
                 listener.exitYul_function_ret_list(self)
-
-
-
 
     def yul_function_ret_list(self):
 
@@ -1020,46 +1028,43 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_typed_identifier_listContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def yul_identifier(self, i:int=None):
+        def yul_identifier(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_identifierContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_identifierContext,i)
+                return self.getTypedRuleContext(YulParser.Yul_identifierContext, i)
 
-
-        def yul_type_name(self, i:int=None):
+        def yul_type_name(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_type_nameContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_type_nameContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_type_nameContext, i)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_typed_identifier_list
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_typed_identifier_list" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_typed_identifier_list"):
                 listener.enterYul_typed_identifier_list(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_typed_identifier_list" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_typed_identifier_list"):
                 listener.exitYul_typed_identifier_list(self)
-
-
-
 
     def yul_typed_identifier_list(self):
 
-        localctx = YulParser.Yul_typed_identifier_listContext(self, self._ctx, self.state)
+        localctx = YulParser.Yul_typed_identifier_listContext(
+            self, self._ctx, self.state
+        )
         self.enterRule(localctx, 30, self.RULE_yul_typed_identifier_list)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 135
@@ -1067,17 +1072,16 @@ class YulParser ( Parser ):
             self.state = 138
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.T__6:
+            if _la == YulParser.T__6:
                 self.state = 136
                 self.match(YulParser.T__6)
                 self.state = 137
                 self.yul_type_name()
 
-
             self.state = 148
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==YulParser.T__7:
+            while _la == YulParser.T__7:
                 self.state = 140
                 self.match(YulParser.T__7)
                 self.state = 141
@@ -1085,12 +1089,11 @@ class YulParser ( Parser ):
                 self.state = 144
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==YulParser.T__6:
+                if _la == YulParser.T__6:
                     self.state = 142
                     self.match(YulParser.T__6)
                     self.state = 143
                     self.yul_type_name()
-
 
                 self.state = 150
                 self._errHandler.sync(self)
@@ -1104,39 +1107,35 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_identifier_listContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def yul_identifier(self, i:int=None):
+        def yul_identifier(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_identifierContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_identifierContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_identifierContext, i)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_identifier_list
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_identifier_list" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_identifier_list"):
                 listener.enterYul_identifier_list(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_identifier_list" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_identifier_list"):
                 listener.exitYul_identifier_list(self)
-
-
-
 
     def yul_identifier_list(self):
 
         localctx = YulParser.Yul_identifier_listContext(self, self._ctx, self.state)
         self.enterRule(localctx, 32, self.RULE_yul_identifier_list)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 151
@@ -1144,7 +1143,7 @@ class YulParser ( Parser ):
             self.state = 156
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==YulParser.T__7:
+            while _la == YulParser.T__7:
                 self.state = 152
                 self.match(YulParser.T__7)
                 self.state = 153
@@ -1161,39 +1160,35 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_blockContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def yul_statement(self, i:int=None):
+        def yul_statement(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_statementContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_statementContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_statementContext, i)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_block
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_block" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_block"):
                 listener.enterYul_block(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_block" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_block"):
                 listener.exitYul_block(self)
-
-
-
 
     def yul_block(self):
 
         localctx = YulParser.Yul_blockContext(self, self._ctx, self.state)
         self.enterRule(localctx, 34, self.RULE_yul_block)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 159
@@ -1201,7 +1196,26 @@ class YulParser ( Parser ):
             self.state = 163
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << YulParser.T__0) | (1 << YulParser.KW_IF) | (1 << YulParser.KW_SWITCH) | (1 << YulParser.KW_FOR) | (1 << YulParser.KW_BREAK) | (1 << YulParser.KW_CONTINUE) | (1 << YulParser.KW_LEAVE) | (1 << YulParser.KW_FUNCTION) | (1 << YulParser.KW_LET) | (1 << YulParser.STRING_LITERAL) | (1 << YulParser.ID_LITERAL) | (1 << YulParser.TRUE_LITERAL) | (1 << YulParser.FALSE_LITERAL) | (1 << YulParser.DEC_NUMBER) | (1 << YulParser.HEX_NUMBER))) != 0):
+            while ((_la) & ~0x3F) == 0 and (
+                (1 << _la)
+                & (
+                    (1 << YulParser.T__0)
+                    | (1 << YulParser.KW_IF)
+                    | (1 << YulParser.KW_SWITCH)
+                    | (1 << YulParser.KW_FOR)
+                    | (1 << YulParser.KW_BREAK)
+                    | (1 << YulParser.KW_CONTINUE)
+                    | (1 << YulParser.KW_LEAVE)
+                    | (1 << YulParser.KW_FUNCTION)
+                    | (1 << YulParser.KW_LET)
+                    | (1 << YulParser.STRING_LITERAL)
+                    | (1 << YulParser.ID_LITERAL)
+                    | (1 << YulParser.TRUE_LITERAL)
+                    | (1 << YulParser.FALSE_LITERAL)
+                    | (1 << YulParser.DEC_NUMBER)
+                    | (1 << YulParser.HEX_NUMBER)
+                )
+            ) != 0:
                 self.state = 160
                 self.yul_statement()
                 self.state = 165
@@ -1218,70 +1232,58 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_statementContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_block(self):
-            return self.getTypedRuleContext(YulParser.Yul_blockContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_blockContext, 0)
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def yul_function_definition(self):
-            return self.getTypedRuleContext(YulParser.Yul_function_definitionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_function_definitionContext, 0)
 
         def yul_variable_declaration(self):
-            return self.getTypedRuleContext(YulParser.Yul_variable_declarationContext,0)
-
+            return self.getTypedRuleContext(
+                YulParser.Yul_variable_declarationContext, 0
+            )
 
         def yul_assignment(self):
-            return self.getTypedRuleContext(YulParser.Yul_assignmentContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_assignmentContext, 0)
 
         def yul_if(self):
-            return self.getTypedRuleContext(YulParser.Yul_ifContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_ifContext, 0)
 
         def yul_switch(self):
-            return self.getTypedRuleContext(YulParser.Yul_switchContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_switchContext, 0)
 
         def yul_for_loop(self):
-            return self.getTypedRuleContext(YulParser.Yul_for_loopContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_for_loopContext, 0)
 
         def yul_break(self):
-            return self.getTypedRuleContext(YulParser.Yul_breakContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_breakContext, 0)
 
         def yul_continue(self):
-            return self.getTypedRuleContext(YulParser.Yul_continueContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_continueContext, 0)
 
         def yul_leave(self):
-            return self.getTypedRuleContext(YulParser.Yul_leaveContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_leaveContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_statement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_statement" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_statement"):
                 listener.enterYul_statement(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_statement" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_statement"):
                 listener.exitYul_statement(self)
-
-
-
 
     def yul_statement(self):
 
@@ -1290,7 +1292,7 @@ class YulParser ( Parser ):
         try:
             self.state = 180
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,12,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input, 12, self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 168
@@ -1363,7 +1365,6 @@ class YulParser ( Parser ):
                 self.yul_leave()
                 pass
 
-
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -1372,34 +1373,29 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_assignmentContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_identifier_list(self):
-            return self.getTypedRuleContext(YulParser.Yul_identifier_listContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_identifier_listContext, 0)
 
         def yul_expression(self):
-            return self.getTypedRuleContext(YulParser.Yul_expressionContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_expressionContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_assignment
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_assignment" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_assignment"):
                 listener.enterYul_assignment(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_assignment" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_assignment"):
                 listener.exitYul_assignment(self)
-
-
-
 
     def yul_assignment(self):
 
@@ -1421,38 +1417,32 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_expressionContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_function_call(self):
-            return self.getTypedRuleContext(YulParser.Yul_function_callContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_function_callContext, 0)
 
         def yul_identifier(self):
-            return self.getTypedRuleContext(YulParser.Yul_identifierContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_identifierContext, 0)
 
         def yul_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_literalContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_expression
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_expression" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_expression"):
                 listener.enterYul_expression(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_expression" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_expression"):
                 listener.exitYul_expression(self)
-
-
-
 
     def yul_expression(self):
 
@@ -1461,7 +1451,7 @@ class YulParser ( Parser ):
         try:
             self.state = 189
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,13,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input, 13, self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 186
@@ -1480,7 +1470,6 @@ class YulParser ( Parser ):
                 self.yul_literal()
                 pass
 
-
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -1489,43 +1478,38 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_function_callContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_identifier(self):
-            return self.getTypedRuleContext(YulParser.Yul_identifierContext,0)
+            return self.getTypedRuleContext(YulParser.Yul_identifierContext, 0)
 
-
-        def yul_expression(self, i:int=None):
+        def yul_expression(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(YulParser.Yul_expressionContext)
             else:
-                return self.getTypedRuleContext(YulParser.Yul_expressionContext,i)
-
+                return self.getTypedRuleContext(YulParser.Yul_expressionContext, i)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_function_call
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_function_call" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_function_call"):
                 listener.enterYul_function_call(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_function_call" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_function_call"):
                 listener.exitYul_function_call(self)
-
-
-
 
     def yul_function_call(self):
 
         localctx = YulParser.Yul_function_callContext(self, self._ctx, self.state)
         self.enterRule(localctx, 42, self.RULE_yul_function_call)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 191
@@ -1535,13 +1519,23 @@ class YulParser ( Parser ):
             self.state = 201
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << YulParser.STRING_LITERAL) | (1 << YulParser.ID_LITERAL) | (1 << YulParser.TRUE_LITERAL) | (1 << YulParser.FALSE_LITERAL) | (1 << YulParser.DEC_NUMBER) | (1 << YulParser.HEX_NUMBER))) != 0):
+            if ((_la) & ~0x3F) == 0 and (
+                (1 << _la)
+                & (
+                    (1 << YulParser.STRING_LITERAL)
+                    | (1 << YulParser.ID_LITERAL)
+                    | (1 << YulParser.TRUE_LITERAL)
+                    | (1 << YulParser.FALSE_LITERAL)
+                    | (1 << YulParser.DEC_NUMBER)
+                    | (1 << YulParser.HEX_NUMBER)
+                )
+            ) != 0:
                 self.state = 193
                 self.yul_expression()
                 self.state = 198
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while _la==YulParser.T__7:
+                while _la == YulParser.T__7:
                     self.state = 194
                     self.match(YulParser.T__7)
                     self.state = 195
@@ -1549,8 +1543,6 @@ class YulParser ( Parser ):
                     self.state = 200
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-
-
 
             self.state = 203
             self.match(YulParser.T__3)
@@ -1562,52 +1554,44 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_literalContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_number_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_number_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_number_literalContext, 0)
 
         def yul_string_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_string_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_string_literalContext, 0)
 
         def yul_true_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_true_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_true_literalContext, 0)
 
         def yul_false_literal(self):
-            return self.getTypedRuleContext(YulParser.Yul_false_literalContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_false_literalContext, 0)
 
         def yul_type_name(self):
-            return self.getTypedRuleContext(YulParser.Yul_type_nameContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_type_nameContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_literal
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_literal" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_literal"):
                 listener.enterYul_literal(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_literal" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_literal"):
                 listener.exitYul_literal(self)
-
-
-
 
     def yul_literal(self):
 
         localctx = YulParser.Yul_literalContext(self, self._ctx, self.state)
         self.enterRule(localctx, 44, self.RULE_yul_literal)
-        self._la = 0 # Token type
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 209
@@ -1635,12 +1619,11 @@ class YulParser ( Parser ):
             self.state = 213
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==YulParser.T__6:
+            if _la == YulParser.T__6:
                 self.state = 211
                 self.match(YulParser.T__6)
                 self.state = 212
                 self.yul_type_name()
-
 
         except RecognitionException as re:
             localctx.exception = re
@@ -1650,34 +1633,29 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_number_literalContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def yul_hex_number(self):
-            return self.getTypedRuleContext(YulParser.Yul_hex_numberContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_hex_numberContext, 0)
 
         def yul_dec_number(self):
-            return self.getTypedRuleContext(YulParser.Yul_dec_numberContext,0)
-
+            return self.getTypedRuleContext(YulParser.Yul_dec_numberContext, 0)
 
         def getRuleIndex(self):
             return YulParser.RULE_yul_number_literal
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_number_literal" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_number_literal"):
                 listener.enterYul_number_literal(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_number_literal" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_number_literal"):
                 listener.exitYul_number_literal(self)
-
-
-
 
     def yul_number_literal(self):
 
@@ -1708,10 +1686,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_true_literalContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1721,16 +1699,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_true_literal
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_true_literal" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_true_literal"):
                 listener.enterYul_true_literal(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_true_literal" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_true_literal"):
                 listener.exitYul_true_literal(self)
-
-
-
 
     def yul_true_literal(self):
 
@@ -1748,10 +1723,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_false_literalContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1761,16 +1736,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_false_literal
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_false_literal" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_false_literal"):
                 listener.enterYul_false_literal(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_false_literal" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_false_literal"):
                 listener.exitYul_false_literal(self)
-
-
-
 
     def yul_false_literal(self):
 
@@ -1788,10 +1760,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_hex_numberContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1801,16 +1773,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_hex_number
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_hex_number" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_hex_number"):
                 listener.enterYul_hex_number(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_hex_number" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_hex_number"):
                 listener.exitYul_hex_number(self)
-
-
-
 
     def yul_hex_number(self):
 
@@ -1828,10 +1797,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_dec_numberContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1841,16 +1810,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_dec_number
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_dec_number" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_dec_number"):
                 listener.enterYul_dec_number(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_dec_number" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_dec_number"):
                 listener.exitYul_dec_number(self)
-
-
-
 
     def yul_dec_number(self):
 
@@ -1868,10 +1834,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_type_nameContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1881,16 +1847,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_type_name
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_type_name" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_type_name"):
                 listener.enterYul_type_name(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_type_name" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_type_name"):
                 listener.exitYul_type_name(self)
-
-
-
 
     def yul_type_name(self):
 
@@ -1908,10 +1871,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_identifierContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1921,16 +1884,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_identifier
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_identifier" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_identifier"):
                 listener.enterYul_identifier(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_identifier" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_identifier"):
                 listener.exitYul_identifier(self)
-
-
-
 
     def yul_identifier(self):
 
@@ -1948,10 +1908,10 @@ class YulParser ( Parser ):
             self.exitRule()
         return localctx
 
-
     class Yul_string_literalContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+        def __init__(
+            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
+        ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -1961,16 +1921,13 @@ class YulParser ( Parser ):
         def getRuleIndex(self):
             return YulParser.RULE_yul_string_literal
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterYul_string_literal" ):
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterYul_string_literal"):
                 listener.enterYul_string_literal(self)
 
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitYul_string_literal" ):
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitYul_string_literal"):
                 listener.exitYul_string_literal(self)
-
-
-
 
     def yul_string_literal(self):
 
@@ -1987,8 +1944,3 @@ class YulParser ( Parser ):
         finally:
             self.exitRule()
         return localctx
-
-
-
-
-

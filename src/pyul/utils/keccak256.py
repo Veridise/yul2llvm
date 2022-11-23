@@ -1,4 +1,5 @@
 import sys
+
 import sha3
 
 # note: for efficiency, this functionality separates the input in a natural way,
@@ -8,10 +9,10 @@ import sha3
 #       as string
 
 if __name__ == "__main__":
-	results = []
-	for p in sys.argv[1:]:
-		k = sha3.keccak_256()
-		k.update(str.encode(p))
-		results.append(k.hexdigest())
-	for q in results:
-		print(q)
+    results = []
+    for p in sys.argv[1:]:
+        k = sha3.keccak_256()
+        k.update(str.encode(p))
+        results.append(k.hexdigest())
+    for q in results:
+        print(q)

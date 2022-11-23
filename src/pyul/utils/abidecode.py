@@ -1,4 +1,5 @@
 import sys
+
 import eth_abi
 
 # note: for efficiency, this functionality separates the input in a natural way,
