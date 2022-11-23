@@ -1,8 +1,12 @@
 @PACKAGE_INIT@
 
+set(Y2L_ENABLE_LLVM @Y2L_ENABLE_LLVM@)
+
 include(CMakeFindDependencyMacro)
-find_dependency(LLVM)
 find_dependency(nlohmann_json)
+if(Y2L_ENABLE_LLVM)
+  find_dependency(LLVM)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/Yul2LLVMTargets.cmake")
 check_required_components(Yul2LLVMTargets)

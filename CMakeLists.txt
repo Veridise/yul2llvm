@@ -24,14 +24,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 ### Dependency setup
 find_package(nlohmann_json 3 REQUIRED)
-find_package(LLVM 13 REQUIRED CONFIG)
 
-message(STATUS "Using LLVM in: ${LLVM_DIR}")
+option(Y2L_ENABLE_LLVM "Enable LLVM target support" ON)
+if(Y2L_ENABLE_LLVM)
+  find_package(LLVM 13 REQUIRED CONFIG)
 
-list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
-include(TableGen)
-include(AddLLVM)
-include(HandleLLVMOptions)
+  message(STATUS "Using LLVM in: ${LLVM_DIR}")
+
+  list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+  include(TableGen)
+  include(AddLLVM)
+  include(HandleLLVMOptions)
+else()
+  message(STATUS "LLVM target support disabled")
+endif()
 
 # include_directories(${LLVM_INCLUDE_DIRS})
 # separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
