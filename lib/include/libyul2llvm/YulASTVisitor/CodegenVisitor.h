@@ -136,6 +136,18 @@ public:
   llvm::Function *getAllocateMemoryFunction();
   void setSelfPointer(llvm::Value *);
   llvm::Value *getSelfPointer();
-
-
 };
+
+namespace yul2llvm {
+
+/// Convert the provided GMP integer into an llvm::APInt.
+///
+/// Note that because GMP integers have arbitrary size but llvm::APInt has a
+/// fixed size. Integers will be clamped to fit the given bitwidth.
+///
+/// \param bitwidth The width of the llvm::APInt.
+/// \param isTruncated An out parameter used to determine whether the integer
+/// is truncated.
+llvm::APInt gmpToAPInt(mpz_class &gmpInt, uint bitwidth,
+                       bool *isTruncated = nullptr);
+} // namespace yul2llvm

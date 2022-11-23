@@ -1,13 +1,12 @@
 #pragma once
+#include <gmpxx.h>
 #include <libYulAST/YulLiteralNode.h>
-#include <llvm/ADT/APInt.h>
-#include <llvm/ADT/SmallString.h>
 #include <nlohmann/json.hpp>
 
 namespace yulast {
 class YulNumberLiteralNode : public YulLiteralNode {
 protected:
-  llvm::APInt literalValue;
+  mpz_class literalValue;
   void parseRawAST(const json *rawAst) override;
 
 public:
@@ -17,6 +16,6 @@ public:
   /** @todo Currently literals only a data type of 256 bits is assumed
    * Needs to account for other datatypes (more subclasses maybe)
    */
-  llvm::APInt &getLiteralValue();
+  mpz_class &getLiteralValue();
 };
 }; // namespace yulast

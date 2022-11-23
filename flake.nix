@@ -67,6 +67,7 @@
             yul2llvm_libllvm
             nlohmann_json
           ];
+          propagatedBuildInputs = [ final.gmp ];
 
           doCheck = true;
           checkTarget = "check";

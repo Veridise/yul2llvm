@@ -1,7 +1,11 @@
+#include <gmp.h>
+#include <gmpxx.h>
 #include <libyul2llvm/YulASTVisitor/CodegenVisitor.h>
 using namespace yulast;
 
 // helpers
+
+namespace {
 
 llvm::StructType *constructExtCallCtxType(llvm::LLVMContext &TheContext) {
   llvm::Type *int256Type = llvm::Type::getIntNTy(TheContext, 256);
@@ -29,6 +33,8 @@ bool isUnconditionalTerminator(llvm::Instruction *i) {
     return true;
   }
 }
+
+} // namespace
 
 void LLVMCodegenVisitor::connectToBasicBlock(llvm::BasicBlock *nextBlock) {
   llvm::BasicBlock *lastBlock = Builder->GetInsertBlock();
@@ -264,7 +270,8 @@ void LLVMCodegenVisitor::visitYulIfNode(YulIfNode &node) {
 void LLVMCodegenVisitor::visitYulLeaveNode(YulLeaveNode &node) {}
 llvm::Value *
 LLVMCodegenVisitor::visitYulNumberLiteralNode(YulNumberLiteralNode &node) {
-  return llvm::ConstantInt::get(*TheContext, node.getLiteralValue());
+  return llvm::ConstantInt::get(
+      *TheContext, yul2llvm::gmpToAPInt(node.getLiteralValue(), 256));
 }
 llvm::Value *
 LLVMCodegenVisitor::visitYulStringLiteralNode(YulStringLiteralNode &node) {
@@ -297,7 +304,8 @@ void LLVMCodegenVisitor::visitYulSwitchNode(YulSwitchNode &node) {
   for (auto &c : node.getCases()) {
     llvm::BasicBlock *caseBB = llvm::BasicBlock::Create(
         *TheContext, "case-" + c->getCondition()->to_string(), currentFunction);
-    llvm::APInt &literal = c->getCondition()->getLiteralValue();
+    llvm::APInt literal =
+        yul2llvm::gmpToAPInt(c->getCondition()->getLiteralValue(), 256);
     sw->addCase(llvm::ConstantInt::get(*TheContext, literal), caseBB);
     Builder->SetInsertPoint(caseBB);
     visit(*c);
@@ -498,6 +506,25 @@ llvm::Function *LLVMCodegenVisitor::getAllocateMemoryFunction(){
 void LLVMCodegenVisitor::setSelfPointer(llvm::Value *selfPtr){
   ptrSelfPointer = selfPtr;
 }
-llvm::Value *LLVMCodegenVisitor::getSelfPointer(){
-  return ptrSelfPointer;
+llvm::Value *LLVMCodegenVisitor::getSelfPointer() { return ptrSelfPointer; }
+
+llvm::APInt yul2llvm::gmpToAPInt(mpz_class &gmpInt, const uint bitwidth,
+                                 bool *isTruncated) {
+  assert(mpz_sgn(gmpInt.get_mpz_t()) != -1 &&
+         "Yul should not have negative literals");
+
+  const size_t gmpSize = mpz_sizeinbase(gmpInt.get_mpz_t(), 2);
+
+  // Note that the APInt constructor will drop extra bits.
+  size_t len;
+  uint64_t *data = static_cast<uint64_t *>(mpz_export(
+      nullptr, &len, -1, sizeof(uint64_t), 0, 0, gmpInt.get_mpz_t()));
+  llvm::APInt i(bitwidth, llvm::ArrayRef(data, len));
+  free(data);
+
+  if (isTruncated) {
+    *isTruncated = gmpSize > bitwidth;
+  }
+
+  return i;
 }

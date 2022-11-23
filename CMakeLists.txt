@@ -25,6 +25,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 ### Dependency setup
 find_package(nlohmann_json 3 REQUIRED)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+find_package(GMP REQUIRED MODULE)
+
 option(Y2L_ENABLE_LLVM "Enable LLVM target support" ON)
 if(Y2L_ENABLE_LLVM)
   find_package(LLVM 13 REQUIRED CONFIG)
@@ -125,5 +128,6 @@ configure_package_config_file(
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindGMP.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
