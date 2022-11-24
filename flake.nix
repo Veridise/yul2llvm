@@ -65,9 +65,11 @@
           nativeBuildInputs = with final; [ cmake ninja ];
           buildInputs = with final; [
             yul2llvm_libllvm
-            nlohmann_json
           ];
-          propagatedBuildInputs = [ final.gmp ];
+          propagatedBuildInputs = [
+            final.gmp
+            final.nlohmann_json
+          ];
 
           doCheck = true;
           checkTarget = "check";
