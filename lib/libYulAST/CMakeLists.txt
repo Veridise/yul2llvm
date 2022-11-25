@@ -25,6 +25,7 @@ add_library(libYulAST
   YulForNode.cpp
   YulStringLiteralNode.cpp
   YulContractNode.cpp
+  IntrinsicPatterns.cpp
   )
 
 

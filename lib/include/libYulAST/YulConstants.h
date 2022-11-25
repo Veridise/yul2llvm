@@ -62,4 +62,18 @@ enum class YUL_AST_LITERAL_NODE_TYPE {
   YUL_AST_LITERAL_NUMBER,
   YUL_AST_LITERAL_STRING
 };
+
+enum class YUL_INTRINSIC_ID{
+  READ_FROM_STORAGE_OFFSET,
+  READ_FROM_STORAGE_DYNAMIC,
+  UPDATE_STORAGE_OFFSET, 
+  UPDATE_STORAGE_DYNAMIC, 
+  INVALID_INTRINSIC_ID
+};
+
+#define READ_FROM_STORAGE_OFFSET_REGEX_LIT R"(^read_from_storage(_split)?_offset_([0-9]+)_(.*)$)"
+#define READ_FROM_STORAGE_DYNAMIC_REGEX_LIT R"(^read_from_storage_split_dynamic_(.*))"
+#define UPDATE_STORAGE_OFFSET_REGEX_LIT R"(^update_storage_value_offset_([0-9]+)(.*)_to_(.*)$)"
+#define UPDATE_STORAGE_DYNAMIC_REGEX_LIT R"(^update_storage_value_(.*)_to_(.*)$)"
+
 }; // namespace yulast

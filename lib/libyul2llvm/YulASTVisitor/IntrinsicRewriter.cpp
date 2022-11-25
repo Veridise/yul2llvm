@@ -196,12 +196,11 @@ llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
 }
 
 void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
-    llvm::CallInst *callInst, std::smatch &match) {
+    llvm::CallInst *callInst, std::string yulTypeStr) {
   // R"(^read_from_storage_split_dynamic_(.*))"
   auto tempBuilder = llvm::IRBuilder<>(callInst);
   auto slot = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
   auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1));
-  std::string yulTypeStr = match[1].str();
   if (offset && slot) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(
         slot->getZExtValue(), offset->getZExtValue());
@@ -214,19 +213,8 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
 }
 
 void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
-    llvm::CallInst *callInst, std::smatch &match) {
-
-  // R"(^read_from_storage(_split)?_offset_([0-9]+)_(.*)$)"
-  std::string offsetStr = match[2];
-  int offset = 0;
-  assert(offsetStr != "" && "offset not found in read_from_storage");
-  std::string yulTypeStr = match[3];
+    llvm::CallInst *callInst, int offset, std::string yulTypeStr) {
   // Extract offset and load data type.
-  if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
-    //@todo raise runtime error
-    assert(false && "Cannot parse offset in read_from_storage");
-  }
-  std::string typeStr = match[3].str();
   int slot;
   if (llvm::ConstantInt *slotConst =
           llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0))) {
@@ -245,16 +233,14 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
 
 void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
   std::string calleeName = callInst->getCalledFunction()->getName().str();
-  std::regex readFromStorageOffsetRegex(
-      R"(^read_from_storage(_split)?_offset_([0-9]+)_(.*)$)");
-  std::regex readFromStorageDynamicRegex(
-      R"(^read_from_storage_split_dynamic_(.*))");
-  std::smatch match;
-  std::string typeStr;
-  if (std::regex_match(calleeName, match, readFromStorageOffsetRegex)) {
-    rewriteStorageOffsetLoadIntrinsic(callInst, match);
-  } else if (std::regex_match(calleeName, match, readFromStorageDynamicRegex)) {
-    rewriteStorageDynamicLoadIntrinsic(callInst, match);
+  YUL_INTRINSIC_ID loadType = patternMatcher.getYulIntriniscType(calleeName);
+  if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_OFFSET) {
+    int offset = patternMatcher.readFromStorageOffsetGetOffset(calleeName);
+    std::string typeStr = patternMatcher.readFromStorageOffsetGetType(calleeName);
+    rewriteStorageOffsetLoadIntrinsic(callInst, offset, typeStr);
+  } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_DYNAMIC) {
+    std::string typeStr = patternMatcher.readFromStorageDynamicGetType(calleeName);
+    rewriteStorageDynamicLoadIntrinsic(callInst, typeStr);
   } else {
     //@todo raise runtime error
     assert(false && "unrecognized read from storage dynamic intrinsic");
@@ -263,22 +249,25 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
 
 void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
     llvm::CallInst *callInst) {
-  std::regex updateValueOffsetRegex(
-      R"(^update_storage_value_offset_([0-9]+)(.*)_to_(.*)$)");
-  std::regex updateValueDynamicRegex(R"(^update_storage_value_(.*)_to_(.*)$)");
-  std::smatch match;
   std::string calleeName = callInst->getCalledFunction()->getName().str();
-  if (std::regex_match(calleeName, match, updateValueOffsetRegex)) {
-    rewriteStorageOffsetUpdateIntrinsic(callInst, match);
-  } else if (std::regex_match(calleeName, match, updateValueDynamicRegex)) {
-    rewriteStorageDynamicUpdateIntrinsic(callInst, match);
+  YUL_INTRINSIC_ID updateType = patternMatcher.getYulIntriniscType(calleeName);
+  if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_OFFSET) {
+    int offset = patternMatcher.updateStorageOffsetGetOffset(calleeName);
+    std::string srcTypeStr = patternMatcher.updateStorageOffsetGetFromType(calleeName);
+    std::string destTypeStr = patternMatcher.updateStorageOffsetGetToType(calleeName);
+    rewriteStorageOffsetUpdateIntrinsic(callInst, offset, srcTypeStr, destTypeStr);
+  } else if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_DYNAMIC) {
+    std::string srcTypeStr = patternMatcher.updateStorageDynamicGetFromType(calleeName);
+    std::string destTypeStr = patternMatcher.updateStorageDynamicGetToType(calleeName);
+    rewriteStorageDynamicUpdateIntrinsic(callInst, srcTypeStr, destTypeStr);
   } else {
     // @todo raise runtime error
     assert(false && "update_storage_value did not match any regex");
   }
 }
+
 void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
-    llvm::CallInst *callInst, std::smatch &match) {
+    llvm::CallInst *callInst, std::string srcTypeName, std::string destTypeName) {
   llvm::IRBuilder<> tempBuilder(callInst);
   assert(callInst->getNumArgOperands() == 4 &&
          "Wrong number of arguments to dynamic storage store inst");
@@ -287,8 +276,6 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
   llvm::Value *slotArg = callInst->getArgOperand(1);
   llvm::Value *offsetArg = callInst->getArgOperand(2);
   llvm::Value *storeValue = callInst->getArgOperand(3);
-  std::string srcTypeName = match[1].str();
-  std::string destTypeName = match[2].str();
   auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slotArg);
   auto offsetConst = llvm::dyn_cast<llvm::ConstantInt>(offsetArg);
   if (slotConst && offsetConst) {
@@ -307,22 +294,13 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
 
 // truncate and write
 void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
-    llvm::CallInst *callInst, std::smatch &match) {
+    llvm::CallInst *callInst, int offset, std::string srcTypeName, std::string destTypeName) {
   llvm::IRBuilder<> tempBuilder(callInst);
   assert(callInst->getNumArgOperands() == 3 &&
          "Wrong number of arguments to storage store inst");
   callInst->setName("");
   std::string calleeName = callInst->getCalledFunction()->getName().str();
   llvm::Value *storeValue = callInst->getArgOperand(2);
-  std::string srcTypeName = match[2].str();
-  std::string destTypeName = match[3].str();
-  std::string offsetStr = match[1].str();
-  int offset = 0;
-  if (llvm::StringRef(offsetStr).getAsInteger(10, offset)) {
-    //@todo raise runtime error
-    assert(false && "could not parse offset in update");
-  }
-
   if (auto slot =
           llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1))) {
     std::string varname = visitor.currentContract->getStateVarNameBySlotOffset(

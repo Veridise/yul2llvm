@@ -8,6 +8,7 @@ class LLVMCodegenVisitor;
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <regex>
+#include <libYulAST/IntrinsicPatterns.h>
 
 using namespace yulast;
 class YulIntrinsicHelper {
@@ -23,6 +24,7 @@ class YulIntrinsicHelper {
   llvm::Value *getPointerInSlotByOffset(llvm::CallInst *callInst,
                                         llvm::Value *slot, llvm::Value *offset,
                                         llvm::Type *type);
+  IntrinsicPatternMatcher patternMatcher;
 
 public:
   // Helpers
@@ -65,15 +67,13 @@ public:
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
-  void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst,
-                                           std::smatch &match);
-  void rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst,
-                                            std::smatch &match);
+  void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst, 
+                    int offset, std::string srcTypeName, 
+                    std::string destTypeName);
+  void rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst, std::string srcTypeName, std::string destTypeName);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
-  void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst,
-                                         std::smatch &match);
-  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst,
-                                          std::smatch &match);
+  void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst, int offset, std::string yulTypeStr);
+  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst, std::string yulTypeStr);
   void rewriteStorageLoadIntrinsic(llvm::CallInst *callInst);
   void rewriteCallIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageArrayIndexAccess(llvm::CallInst *callInst);
