@@ -37,42 +37,32 @@ def exit_error(msg: str):
     sys.exit("error: " + msg)
 
 
-def main():
-    pipeline = ["compile", "preprocess", "translate"]
+def parse_args():
+    pipeline = ['compile', 'preprocess', 'translate']
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--version", action="version", version=f'{importlib.metadata.version("pyul")}'
-    )
-    parser.add_argument("--stop-after", choices=list(pipeline), default="translate")
-    parser.add_argument(
-        "--project-dir",
-        type=Path,
-        default=Path.cwd(),
-        help="Root directory containing all sources",
-    )
-    parser.add_argument(
-        "-o",
-        "--output-dir",
-        help="Location to place artifacts (default: do not save)",
-        type=Path,
-        default=None,
-    )
-    parser.add_argument("input_file", type=Path, help="Input .sol file")
-    parser.add_argument(
-        "-d",
-        "--disable-module-verification",
-        action="store_true",
-        default=False,
-        help="Disable verification of generated llvm module",
-    )
-    parser.add_argument(
-        "--log-level",
-        choices=["debug", "info", "warning", "error", "critical"],
-        default="info",
-        help="Log level to show in console output",
-    )
-
+    configGroup = parser.add_mutually_exclusive_group()
+    configGroup.add_argument('--config-file', type=Path)
+    cl = parser.add_mutually_exclusive_group()
+    cl.add_argument('--version', action='version',
+                        version=f'{importlib.metadata.version("pyul")}')
+    cl.add_argument('--stop-after', choices=list(pipeline), default='translate')
+    cl.add_argument('--project-dir', type=Path, default=Path.cwd(),
+                        help='Root directory containing all sources')
+    cl.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
+                        type=Path, default=None)
+    cl.add_argument('input_file', type=Path, help='Input .sol file')
+    cl.add_argument('-d', '--disable-module-verification',
+                        action='store_true', default=False, help='Disable verification of generated llvm module')
+    cl.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
+                        default='info', help='Log level to show in console output')
+    
     args = parser.parse_args()
+    return args
+
+# def parse_config_file(fileName: str):
+
+
+def run(args):
 
     # Validate arguments
     if not args.input_file.exists():
@@ -331,6 +321,9 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path, project_dir: Path =
 
     return output
 
+def main():
+    args = parse_args()
+    run(args)
 
 if __name__ == "__main__":
     main()
