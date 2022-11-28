@@ -114,4 +114,33 @@ namespace yulast
     return "";
   }
 
+  ReadFromStorageOffsetResult IntrinsicPatternMatcher::parseReadFromStorageOffset(std::string_view name){
+    ReadFromStorageOffsetResult res;
+    res.offset = readFromStorageOffsetGetOffset(name);
+    res.type = readFromStorageOffsetGetType(name);
+    return res;
+  }
+
+  ReadFromStorageDynamicResult IntrinsicPatternMatcher::parseReadFromStorageDynamic(std::string_view name){
+    ReadFromStorageDynamicResult res;
+    res.type = readFromStorageDynamicGetType(name);
+    return res;
+  }
+
+  UpdateStorageOffsetResult IntrinsicPatternMatcher::parseUpdateStorageOffset(std::string_view name){
+    UpdateStorageOffsetResult res;
+    res.offset = updateStorageOffsetGetOffset(name);
+    res.fromType = updateStorageOffsetGetFromType(name);
+    res.toType = updateStorageOffsetGetToType(name);
+    return res;
+  }
+
+  UpdateStorageDynamicResult IntrinsicPatternMatcher::parseUpdateStorageDynamic(std::string_view name){
+    UpdateStorageDynamicResult res;
+    res.fromType = updateStorageDynamicGetFromType(name);
+    res.toType = updateStorageDynamicGetToType(name);
+    return res;
+  }
+
+
 }; // namespace yulast

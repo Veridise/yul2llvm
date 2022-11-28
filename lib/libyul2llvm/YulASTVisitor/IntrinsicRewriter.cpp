@@ -235,12 +235,12 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
   std::string calleeName = callInst->getCalledFunction()->getName().str();
   YUL_INTRINSIC_ID loadType = patternMatcher.getYulIntriniscType(calleeName);
   if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_OFFSET) {
-    int offset = patternMatcher.readFromStorageOffsetGetOffset(calleeName);
+    auto res = patternMatcher.parseReadFromStorageOffset(calleeName);
     std::string typeStr = patternMatcher.readFromStorageOffsetGetType(calleeName);
-    rewriteStorageOffsetLoadIntrinsic(callInst, offset, typeStr);
+    rewriteStorageOffsetLoadIntrinsic(callInst, res.offset, res.type);
   } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_DYNAMIC) {
-    std::string typeStr = patternMatcher.readFromStorageDynamicGetType(calleeName);
-    rewriteStorageDynamicLoadIntrinsic(callInst, typeStr);
+    auto res = patternMatcher.parseReadFromStorageDynamic(calleeName);
+    rewriteStorageDynamicLoadIntrinsic(callInst, res.type);
   } else {
     //@todo raise runtime error
     assert(false && "unrecognized read from storage dynamic intrinsic");
@@ -252,14 +252,11 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
   std::string calleeName = callInst->getCalledFunction()->getName().str();
   YUL_INTRINSIC_ID updateType = patternMatcher.getYulIntriniscType(calleeName);
   if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_OFFSET) {
-    int offset = patternMatcher.updateStorageOffsetGetOffset(calleeName);
-    std::string srcTypeStr = patternMatcher.updateStorageOffsetGetFromType(calleeName);
-    std::string destTypeStr = patternMatcher.updateStorageOffsetGetToType(calleeName);
-    rewriteStorageOffsetUpdateIntrinsic(callInst, offset, srcTypeStr, destTypeStr);
+    auto res = patternMatcher.parseUpdateStorageOffset(calleeName);
+    rewriteStorageOffsetUpdateIntrinsic(callInst, res.offset, res.fromType, res.toType);
   } else if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_DYNAMIC) {
-    std::string srcTypeStr = patternMatcher.updateStorageDynamicGetFromType(calleeName);
-    std::string destTypeStr = patternMatcher.updateStorageDynamicGetToType(calleeName);
-    rewriteStorageDynamicUpdateIntrinsic(callInst, srcTypeStr, destTypeStr);
+    auto res = patternMatcher.parseUpdateStorageDynamic(calleeName);
+    rewriteStorageDynamicUpdateIntrinsic(callInst, res.fromType, res.toType);
   } else {
     // @todo raise runtime error
     assert(false && "update_storage_value did not match any regex");
