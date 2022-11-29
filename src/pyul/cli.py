@@ -263,7 +263,9 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path, project_dir: Path =
             }
         },
         "settings": {
-            "outputSelection": {"*": {"*": ["ir", "abi", "storageLayout"]}},
+            "outputSelection": {
+                "*": {"*": ["ir", "abi", "storageLayout"], "": ["ast"]}
+            },
             "viaIR": True,
         },
     }
