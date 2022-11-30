@@ -108,7 +108,7 @@
             });
           });
 
-          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp final.pyyaml];
+          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp final.python310Packages.pyyaml];
         }).overridePythonAttrs (old: {
           doCheck = true;
           checkInputs = [
