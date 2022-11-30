@@ -108,7 +108,7 @@
             });
           });
 
-          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp ];
+          propagatedBuildInputs = [ final.solc_0_8_15 final.yul2llvm_cpp final.pyyaml];
         }).overridePythonAttrs (old: {
           doCheck = true;
           checkInputs = [
@@ -171,6 +171,7 @@
               # Python component dependencies
               (python3.withPackages (p: [
                 p.venvShellHook
+                p.pyyaml
               ]))
               solc_0_8_15
               jq
