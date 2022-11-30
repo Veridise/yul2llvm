@@ -66,8 +66,10 @@ void LLVMCodegenVisitor::runFunctionDeclaratorVisitor(YulContractNode &node) {
   declVisitor.visit(node);
 }
 
-llvm::AllocaInst *LLVMCodegenVisitor::CreateEntryBlockAlloca(
-    llvm::Function *TheFunction, const std::string_view VarName, llvm::Type *type) {
+llvm::AllocaInst *
+LLVMCodegenVisitor::CreateEntryBlockAlloca(llvm::Function *TheFunction,
+                                           const std::string_view VarName,
+                                           llvm::Type *type) {
 
   llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                          TheFunction->getEntryBlock().begin());
@@ -153,15 +155,12 @@ void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   runFunctionDeclaratorVisitor(node);
   constructSelfStructType(node);
   getModule().setSourceFileName(node.getName());
-  ptrSelfPointer = new llvm::GlobalVariable(getModule(), 
-                                        selfType->getPointerTo(STORAGE_ADDR_SPACE),
-                                        false, 
-                                        llvm::GlobalValue::ExternalLinkage, 
-                                        llvm::Constant::getNullValue(selfType->getPointerTo(STORAGE_ADDR_SPACE)),
-                                        std::string(node.getName().data())+"_self_ptr", 
-                                        nullptr,
-                                        llvm::GlobalValue::NotThreadLocal, 
-                                        0);
+  ptrSelfPointer = new llvm::GlobalVariable(
+      getModule(), selfType->getPointerTo(STORAGE_ADDR_SPACE), false,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::Constant::getNullValue(selfType->getPointerTo(STORAGE_ADDR_SPACE)),
+      std::string(node.getName().data()) + "_self_ptr", nullptr,
+      llvm::GlobalValue::NotThreadLocal, 0);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
     visit(*f);
@@ -396,13 +395,14 @@ void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
   }
 
   selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
-
-
 }
 
-llvm::Type *LLVMCodegenVisitor::getTypeByInfo(
-    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap, int addrSpaceId) {
-  llvm::Type *memPtrType = llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
+llvm::Type *
+LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr,
+                                  std::map<std::string, TypeInfo> &typeInfoMap,
+                                  int addrSpaceId) {
+  llvm::Type *memPtrType =
+      llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {
@@ -497,13 +497,13 @@ YulIntrinsicHelper &LLVMCodegenVisitor::getYulIntrisicHelper() {
 
 llvm::legacy::FunctionPassManager &LLVMCodegenVisitor::getFPM() { return *FPM; }
 
-llvm::Function *LLVMCodegenVisitor::getAllocateStorageFunction(){
+llvm::Function *LLVMCodegenVisitor::getAllocateStorageFunction() {
   return allocateStorageFunction;
 }
-llvm::Function *LLVMCodegenVisitor::getAllocateMemoryFunction(){
+llvm::Function *LLVMCodegenVisitor::getAllocateMemoryFunction() {
   return allocateMemoryFunction;
 }
-void LLVMCodegenVisitor::setSelfPointer(llvm::Value *selfPtr){
+void LLVMCodegenVisitor::setSelfPointer(llvm::Value *selfPtr) {
   ptrSelfPointer = selfPtr;
 }
 llvm::Value *LLVMCodegenVisitor::getSelfPointer() { return ptrSelfPointer; }

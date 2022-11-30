@@ -9,11 +9,9 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
   assert(ptrSelfVarType && "map field type is not a pointer");
   return ptrSelfVarType->getElementType();
 }
-const static llvm::SmallVector<std::string> supportedIntrinsics({"__pyul_map_index", 
-                                      "update_storage_value", 
-                                      "read_from_storage", 
-                                      "call",
-                                      "storage_array_index_access_t_array"});
+const static llvm::SmallVector<std::string> supportedIntrinsics(
+    {"__pyul_map_index", "update_storage_value", "read_from_storage", "call",
+     "storage_array_index_access_t_array"});
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -23,8 +21,8 @@ collectCalls(llvm::Function *enclosingFunction) {
     for (auto i = b->begin(); i != b->end(); i++) {
       auto inst = llvm::dyn_cast<llvm::CallInst>(&(*i));
       if (inst) {
-        for(const std::string &candidate: supportedIntrinsics){
-          if(inst->getCalledFunction()->getName().startswith(candidate))
+        for (const std::string &candidate : supportedIntrinsics) {
+          if (inst->getCalledFunction()->getName().startswith(candidate))
             oldInstructions.push_back(inst);
         }
       }
@@ -87,7 +85,8 @@ void YulIntrinsicHelper::rewriteCallIntrinsic(llvm::CallInst *callInst) {
 void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
   llvm::SmallVector<llvm::Type *> argTypes;
   auto tmpBuilder = llvm::IRBuilder<>(callInst);
-  llvm::Type *retType = llvm::Type::getIntNPtrTy(visitor.getContext(), 256, STORAGE_ADDR_SPACE);
+  llvm::Type *retType =
+      llvm::Type::getIntNPtrTy(visitor.getContext(), 256, STORAGE_ADDR_SPACE);
   argTypes.push_back(retType);
   argTypes.push_back(llvm::Type::getIntNTy(visitor.getContext(), 256));
   llvm::FunctionType *FT = llvm::FunctionType::get(retType, argTypes, false);
@@ -206,9 +205,9 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
         slot->getZExtValue(), offset->getZExtValue());
     rewriteLoadStorageVarByName(callInst, varname);
   } else {
-    rewriteLoadStorageByLocation(callInst, callInst->getArgOperand(0),
-                                 callInst->getArgOperand(1),
-                                 getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE));
+    rewriteLoadStorageByLocation(
+        callInst, callInst->getArgOperand(0), callInst->getArgOperand(1),
+        getTypeByTypeName(yulTypeStr, DEFAULT_ADDR_SPACE));
   }
 }
 
@@ -236,7 +235,8 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
   YUL_INTRINSIC_ID loadType = patternMatcher.getYulIntriniscType(calleeName);
   if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_OFFSET) {
     auto res = patternMatcher.parseReadFromStorageOffset(calleeName);
-    std::string typeStr = patternMatcher.readFromStorageOffsetGetType(calleeName);
+    std::string typeStr =
+        patternMatcher.readFromStorageOffsetGetType(calleeName);
     rewriteStorageOffsetLoadIntrinsic(callInst, res.offset, res.type);
   } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_DYNAMIC) {
     auto res = patternMatcher.parseReadFromStorageDynamic(calleeName);
@@ -253,7 +253,8 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
   YUL_INTRINSIC_ID updateType = patternMatcher.getYulIntriniscType(calleeName);
   if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_OFFSET) {
     auto res = patternMatcher.parseUpdateStorageOffset(calleeName);
-    rewriteStorageOffsetUpdateIntrinsic(callInst, res.offset, res.fromType, res.toType);
+    rewriteStorageOffsetUpdateIntrinsic(callInst, res.offset, res.fromType,
+                                        res.toType);
   } else if (updateType == YUL_INTRINSIC_ID::UPDATE_STORAGE_DYNAMIC) {
     auto res = patternMatcher.parseUpdateStorageDynamic(calleeName);
     rewriteStorageDynamicUpdateIntrinsic(callInst, res.fromType, res.toType);
@@ -264,7 +265,8 @@ void YulIntrinsicHelper::rewriteStorageUpdateIntrinsic(
 }
 
 void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
-    llvm::CallInst *callInst, std::string srcTypeName, std::string destTypeName) {
+    llvm::CallInst *callInst, std::string srcTypeName,
+    std::string destTypeName) {
   llvm::IRBuilder<> tempBuilder(callInst);
   assert(callInst->getNumArgOperands() == 4 &&
          "Wrong number of arguments to dynamic storage store inst");
@@ -291,7 +293,8 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
 
 // truncate and write
 void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
-    llvm::CallInst *callInst, int offset, std::string srcTypeName, std::string destTypeName) {
+    llvm::CallInst *callInst, int offset, std::string srcTypeName,
+    std::string destTypeName) {
   llvm::IRBuilder<> tempBuilder(callInst);
   assert(callInst->getNumArgOperands() == 3 &&
          "Wrong number of arguments to storage store inst");
@@ -332,7 +335,8 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
     //@todo raise runtime error
     assert(false && "could not parse array size");
   }
-  llvm::Type *elementType = getTypeByTypeName(elementTypeName, STORAGE_ADDR_SPACE);
+  llvm::Type *elementType =
+      getTypeByTypeName(elementTypeName, STORAGE_ADDR_SPACE);
   llvm::Value *slot = callInst->getArgOperand(1);
   llvm::Value *index = callInst->getArgOperand(2);
   assert(index->getType()->isIntegerTy() && "index is not int type");
@@ -359,17 +363,18 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
           slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
           slot->getName() + "_casted");
     else
-      arrayPtr =
-          builder.CreateIntToPtr(slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
-                                 slot->getName() + "_casted");
+      arrayPtr = builder.CreateIntToPtr(
+          slot, visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
+          slot->getName() + "_casted");
   }
   llvm::Value *zero = llvm::ConstantInt::get(
       llvm::Type::getInt32Ty(visitor.getContext()), 0, 10);
-  arrayPtr = builder.CreateLoad(visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE),
-                                arrayPtr, arrayPtr->getName().drop_front(4));
+  arrayPtr = builder.CreateLoad(
+      visitor.getDefaultType()->getPointerTo(STORAGE_ADDR_SPACE), arrayPtr,
+      arrayPtr->getName().drop_front(4));
   llvm::Type *arrayType = llvm::ArrayType::get(elementType, 0);
-  auto castedArrayPtr =
-      builder.CreatePointerCast(arrayPtr, arrayType->getPointerTo(STORAGE_ADDR_SPACE));
+  auto castedArrayPtr = builder.CreatePointerCast(
+      arrayPtr, arrayType->getPointerTo(STORAGE_ADDR_SPACE));
   llvm::Value *elementPtr =
       builder.CreateGEP(arrayType, castedArrayPtr, {zero, truncIndex},
                         "ptr_" + arrayPtr->getName() + "[" + indexString + "]");
@@ -388,7 +393,6 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
   llvm::ReplaceInstWithValue(instList, callInstIt, structPtr);
 }
-
 
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =

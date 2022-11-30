@@ -141,22 +141,25 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return false;
 }
 
-llvm::Value *YulIntrinsicHelper::handleCompare(YulFunctionCallNode &node, llvm::ICmpInst::Predicate op){
+llvm::Value *YulIntrinsicHelper::handleCompare(YulFunctionCallNode &node,
+                                               llvm::ICmpInst::Predicate op) {
   assert(node.getArgs().size() == 2 && "Wrong number of args in compare");
   llvm::Value *lhs, *rhs;
   lhs = visitor.visit(*node.getArgs()[0]);
   rhs = visitor.visit(*node.getArgs()[1]);
   llvm::Value *result = visitor.getBuilder().CreateICmp(op, lhs, rhs);
-  return visitor.getBuilder().CreateIntCast(result, visitor.getDefaultType(), false);
+  return visitor.getBuilder().CreateIntCast(result, visitor.getDefaultType(),
+                                            false);
 }
 
 llvm::Value *YulIntrinsicHelper::handleIsZero(YulFunctionCallNode &node) {
   assert(node.getArgs().size() == 1 && "Wrong number of args in isZero");
   llvm::Value *arg = visitor.visit(*node.getArgs()[0]);
   llvm::Constant *zero = llvm::ConstantInt::get(arg->getType(), 0, false);
-  llvm::Value *result = visitor.getBuilder().CreateCmp(llvm::CmpInst::Predicate::ICMP_EQ, arg,
-                                        zero);
-  return visitor.getBuilder().CreateIntCast(result,  visitor.getDefaultType(), false);
+  llvm::Value *result = visitor.getBuilder().CreateCmp(
+      llvm::CmpInst::Predicate::ICMP_EQ, arg, zero);
+  return visitor.getBuilder().CreateIntCast(result, visitor.getDefaultType(),
+                                            false);
 }
 
 llvm::Value *YulIntrinsicHelper::handleByte(YulFunctionCallNode &node) {
@@ -284,7 +287,8 @@ YulIntrinsicHelper::handleMemoryArrayIndexAccess(YulFunctionCallNode &node) {
     //@todo raise runtime error
     assert(false && "memory_array_index did not match regex");
   }
-  llvm::Type *elementType = getTypeByTypeName(elementTypeName, DEFAULT_ADDR_SPACE);
+  llvm::Type *elementType =
+      getTypeByTypeName(elementTypeName, DEFAULT_ADDR_SPACE);
   llvm::ArrayType *arrayType = llvm::ArrayType::get(elementType, 0);
   llvm::Value *array = visitor.visit(*node.getArgs()[0]);
   llvm::Value *idx = visitor.visit(*node.getArgs()[1]);
@@ -306,7 +310,8 @@ YulIntrinsicHelper::handleAllocateUnbounded(YulFunctionCallNode &node) {
   llvm::Value *addr = visitor.CreateEntryBlockAlloca(
       visitor.currentFunction, "alloc_unbounded",
       llvm::Type::getIntNTy(visitor.getContext(), 256));
-  addr = visitor.getBuilder().CreatePtrToInt(addr, visitor.getDefaultType(), addr->getName()+"_casted");
+  addr = visitor.getBuilder().CreatePtrToInt(addr, visitor.getDefaultType(),
+                                             addr->getName() + "_casted");
   return addr;
 }
 llvm::Value *YulIntrinsicHelper::handleShl(YulFunctionCallNode &node) {
@@ -358,8 +363,8 @@ llvm::Value *YulIntrinsicHelper::handlePointerAdd(llvm::Value *v1,
  */
 llvm::Value *YulIntrinsicHelper::handlePointerSub(llvm::Value *v1,
                                                   llvm::Value *v2) {
-  assert((v1->getType()->isPointerTy() ||
-         v2->getType()->isPointerTy()) && "Both values are not pointers");
+  assert((v1->getType()->isPointerTy() || v2->getType()->isPointerTy()) &&
+         "Both values are not pointers");
   llvm::Value *ptr, *primitive;
   // if only one is prmitive
   if (v1->getType()->isPointerTy() ^ v2->getType()->isPointerTy()) {

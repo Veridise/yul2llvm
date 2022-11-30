@@ -24,6 +24,7 @@ from .core import inspect_json_ast
 from .utils.yul_parser import YulPrintListener
 from .utils.yul_translator import YulTranslator
 from .utils.YulAntlr import YulLexer, YulParser
+import yaml
 
 
 @dataclass
@@ -32,35 +33,58 @@ class SolcOutput(object):
         default_factory=dict
     )
 
+args_default = {
+    'stop_after': 'translate',
+    'target': 'llvm',
+    'project_dir': Path.cwd(),
+    'output_dir': None,
+    'disable_module_verification': False,
+    'log_level': 'info'
+}
 
 def exit_error(msg: str):
     sys.exit("error: " + msg)
 
-
 def parse_args():
     pipeline = ['compile', 'preprocess', 'translate']
+    targets = ['ksir', 'llvm']
     parser = argparse.ArgumentParser()
-    configGroup = parser.add_mutually_exclusive_group()
-    configGroup.add_argument('--config-file', type=Path)
-    cl = parser.add_mutually_exclusive_group()
-    cl.add_argument('--version', action='version',
+    parser.add_argument('input_file', type=Path, help='Input .sol file')
+    parser.add_argument('--config-file', type=Path, 
+                            help="Path to config file")
+    parser.add_argument('--version', action='version',
                         version=f'{importlib.metadata.version("pyul")}')
-    cl.add_argument('--stop-after', choices=list(pipeline), default='translate')
-    cl.add_argument('--project-dir', type=Path, default=Path.cwd(),
+    parser.add_argument('--stop-after', choices=list(pipeline), default=args_default['stop_after'])
+    parser.add_argument('-t', '--target', choices=list(targets), default=args_default['target'])
+    parser.add_argument('--project-dir', type=Path, default=args_default['project_dir'],
                         help='Root directory containing all sources')
-    cl.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
-                        type=Path, default=None)
-    cl.add_argument('input_file', type=Path, help='Input .sol file')
-    cl.add_argument('-d', '--disable-module-verification',
-                        action='store_true', default=False, help='Disable verification of generated llvm module')
-    cl.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
-                        default='info', help='Log level to show in console output')
+    parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
+                        type=Path, default=args_default['output_dir'])
+    parser.add_argument('-d', '--disable-module-verification',
+                        action='store_true', default=args_default['disable_module_verification'], help='Disable verification of generated llvm module')
+    parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
+                        default=args_default['log_level'], help='Log level to show in console output')
     
     args = parser.parse_args()
+    if(args.config_file):
+        with open(args.config_file) as configFile:
+            config = yaml.safe_load(configFile)
+        for key in args_default:
+            if(getattr(args, key) == args_default[key] and key in config):
+                setattr(args, key, config[key])
     return args
 
-# def parse_config_file(fileName: str):
-
+def get_config_from_file(configFileName: Path):
+    with open(configFileName) as configFile:
+        config = yaml.safe_load(configFile)
+    # setup default options when not provided in config file
+    args = object()
+    for key in args_default:
+        if key in config:
+            setattr(args, key, config[key])
+        else:
+            setattr(args, key, args_default[key])
+    return args
 
 def run(args):
 
@@ -122,9 +146,14 @@ def run(args):
 
             if the_contract.yul_ast != {}:
                 json_summary(the_contract, logger)
-                translate_yul_to_llvm(
-                    the_contract, args.disable_module_verification, logger
-                )
+                if(args.target == 'llvm'):
+                    translate_yul(
+                        the_contract, args.disable_module_verification, logger, args.translator_bin
+                    )
+                elif(args.target == 'ksir'):
+                    translate_yul(
+                        the_contract, args.disable_module_verification, logger, args.translator_bin
+                    )
 
 
 def json_summary(the_contract: ContractData, logger: logging.Logger):
@@ -148,21 +177,21 @@ def json_summary(the_contract: ContractData, logger: logging.Logger):
     for n in all_defs.difference(unknown).difference(named_fns):
         logger.debug("  " + n)
 
-
-def translate_yul_to_llvm(
-    contract: ContractData, disableVerify: bool, logger: logging.Logger
+def translate_yul(
+    contract: ContractData, disableVerify: bool, logger: logging.Logger, 
+    translator_bin: str
 ):
     # TODO: move this into a translate() function
-    yul2llvm_cpp_bin = shutil.which("yul2llvm_cpp")
-    if yul2llvm_cpp_bin is None:
-        logger.error("yul2llvm_cpp not found on PATH")
+    translator = shutil.which(translator_bin)
+    if translator is None:
+        logger.error(translator_bin, "not found on PATH")
         sys.exit(1)
 
-    yul2llvm_cpp_cmd = [yul2llvm_cpp_bin, str(contract.out_dir / "yul.json")]
+    translator_cmd = [translator, str(contract.out_dir / "yul.json")]
     if disableVerify:
-        yul2llvm_cpp_cmd.append("-d")
-    logger.info(f"Running: {shlex.join(yul2llvm_cpp_cmd)}")
-    proc = subprocess.run(yul2llvm_cpp_cmd, capture_output=True, text=True)
+        translator_cmd.append("-d")
+    logger.info(f"Running: {shlex.join(translator_cmd)}")
+    proc = subprocess.run(translator_cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         logger.error(f"Failed to run yul2llvm_cpp, exit code {proc.returncode}:")
         for line in proc.stderr.splitlines():

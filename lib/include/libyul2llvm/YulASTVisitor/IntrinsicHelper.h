@@ -1,5 +1,6 @@
 #pragma once
 class LLVMCodegenVisitor;
+#include <libYulAST/IntrinsicPatterns.h>
 #include <libYulAST/YulFunctionCallNode.h>
 #include <libyul2llvm/YulASTVisitor/CodegenConstants.h>
 #include <llvm/IR/Function.h>
@@ -8,7 +9,6 @@ class LLVMCodegenVisitor;
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <regex>
-#include <libYulAST/IntrinsicPatterns.h>
 
 using namespace yulast;
 class YulIntrinsicHelper {
@@ -61,19 +61,22 @@ public:
   llvm::Value *handleByte(YulFunctionCallNode &node);
   llvm::Value *handleIsZero(YulFunctionCallNode &node);
   llvm::Value *handleCompare(YulFunctionCallNode &node,
-                              llvm::ICmpInst::Predicate op);
-
+                             llvm::ICmpInst::Predicate op);
 
   // Rewrites
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
-  void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst, 
-                    int offset, std::string srcTypeName, 
-                    std::string destTypeName);
-  void rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst, std::string srcTypeName, std::string destTypeName);
+  void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst, int offset,
+                                           std::string srcTypeName,
+                                           std::string destTypeName);
+  void rewriteStorageDynamicUpdateIntrinsic(llvm::CallInst *callInst,
+                                            std::string srcTypeName,
+                                            std::string destTypeName);
   void rewriteStorageUpdateIntrinsic(llvm::CallInst *callInst);
-  void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst, int offset, std::string yulTypeStr);
-  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst, std::string yulTypeStr);
+  void rewriteStorageOffsetLoadIntrinsic(llvm::CallInst *callInst, int offset,
+                                         std::string yulTypeStr);
+  void rewriteStorageDynamicLoadIntrinsic(llvm::CallInst *callInst,
+                                          std::string yulTypeStr);
   void rewriteStorageLoadIntrinsic(llvm::CallInst *callInst);
   void rewriteCallIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageArrayIndexAccess(llvm::CallInst *callInst);

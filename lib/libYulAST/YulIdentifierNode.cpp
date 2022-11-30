@@ -4,7 +4,9 @@
 #include <string>
 using namespace yulast;
 
-std::string_view YulIdentifierNode::getIdentfierValue() { return identifierValue; }
+std::string_view YulIdentifierNode::getIdentfierValue() {
+  return identifierValue;
+}
 
 void YulIdentifierNode::parseRawAST(const json *rawAST) {
   assert(sanityCheckPassed(rawAST, YUL_IDENTIFIER_KEY));
