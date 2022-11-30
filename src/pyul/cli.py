@@ -70,6 +70,7 @@ def parse_args():
         with open(args.config_file) as configFile:
             config = yaml.safe_load(configFile)
         for key in args_default:
+            # override from config file if options is default value but config provides the option
             if(getattr(args, key) == args_default[key] and key in config):
                 setattr(args, key, config[key])
     return args
@@ -148,11 +149,11 @@ def run(args):
                 json_summary(the_contract, logger)
                 if(args.target == 'llvm'):
                     translate_yul(
-                        the_contract, args.disable_module_verification, logger, args.translator_bin
+                        the_contract, args.disable_module_verification, logger, 'yul2llvm_cpp'
                     )
                 elif(args.target == 'ksir'):
                     translate_yul(
-                        the_contract, args.disable_module_verification, logger, args.translator_bin
+                        the_contract, args.disable_module_verification, logger, 'yul2ksir'
                     )
 
 
