@@ -34,7 +34,7 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-TypeInfo parseType(std::string_view type, const json &metadata) {
+TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata) {
   assert(metadata.contains("types") && "Metadata does not contain types");
   auto &types = metadata["types"];
   assert(types.contains(type) && "Types does not contain the requested type");
@@ -44,6 +44,7 @@ TypeInfo parseType(std::string_view type, const json &metadata) {
   // starts with not available until c++20
   std::string arrayTypeLit("t_array");
   std::string mappingTypeLit("t_mapping");
+  std::string structTypeLit("t_struct");
   if (type.substr(0, arrayTypeLit.size()) == arrayTypeLit) {
     std::regex arrayTypeRegex("t_array\\((.*)\\)([0-9]+)_(storage|memory)?");
     std::smatch match;
@@ -71,9 +72,16 @@ TypeInfo parseType(std::string_view type, const json &metadata) {
            "valueType not found in metadata for mapping type");
     return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
                     keyType, valueType, -1);
+  } else if (type.substr(0, mappingTypeLit.size()) == structTypeLit){
+    assert(types[typeStr].contains("members") && "members not found in struct type");
+    StructTypeResult res = patternMatcher.parseStructType(type);
+    TypeInfo typeInfo("struct", "", "", res.size);
+    for(auto &field: types[typeStr]){
+      TypeInfo ti = parseType(field["type"].get<std::string>(), metadata);
+      typeInfo.members.push_back(StructField(field["label"].get<std::string>(), ti));
+    }
   } else {
     // assume primitive type
-    //@todo another branch will be added when we implement solidity structs
     assert(types[typeStr].contains("size") &&
            "Primitive type does not conatiain size");
     return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
@@ -96,7 +104,6 @@ void YulContractNode::buildVarTypeMap(const json &metadata) {
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
     varTypeMap[varName] = {std::move(varType), slot, offset};
-    structFieldOrder.push_back(varName);
   }
 }
 
@@ -122,20 +129,24 @@ std::map<std::string, TypeInfo> &YulContractNode::getTypeInfoMap() {
   return typeInfoMap;
 }
 
-std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
-  for (auto &f : structFieldOrder) {
-    auto varEntry = varTypeMap[f];
+std::vector<std::string> YulContractNode::getStateVarNameBySlotOffset(TypeInfo type, int slot, int offset) {
+  std::vector<std::string> namePath;
+  if(type.kind == "struct"){
+    for (auto &f : type.members) {
+      auto nameSubPath = getStateVarNameBySlotOffset(structTypes[f.name],slot, offset);
+      if(nameSubPath.size()>0){
+        namePath.insert(namePath.end(), nameSubPath.begin(), nameSubPath.end());
+      }
+    } 
+  }
+    auto varEntry = varTypeMap[f.name];
     int varSlot = varEntry.slot;
     int varOffset = varEntry.offset;
     if (varOffset == offset && varSlot == slot) {
-      return f;
+      return namePath.push_back("")
     }
-  }
   return "";
 }
 
-std::vector<std::string> &YulContractNode::getStructFieldOrder() {
-  return structFieldOrder;
-}
 
 std::string_view YulContractNode::getName() { return contractName; }

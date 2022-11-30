@@ -4,19 +4,30 @@
 #include <libYulAST/YulFunctionDefinitionNode.h>
 #include <regex>
 #include <vector>
+#include <libYulAST/IntrinsicPatterns.h>
+
 
 namespace yulast {
+
+struct StructField{
+   std::string name;
+   TypeInfo typeInfo;
+   StructField(std::string name, TypeInfo ti):name(name), typeInfo(ti){}
+};
+
 struct TypeInfo {
-public:
   std::string kind;
   std::string keyType;
   std::string valueType;
+  std::vector<StructField> members;
   int size;
   TypeInfo(std::string kind, std::string keyType, std::string valueType,
            int size)
       : kind(kind), keyType(keyType), valueType(valueType), size(size) {}
   TypeInfo() {}
 };
+
+
 
 struct StorageVarInfo {
 public:
@@ -39,6 +50,11 @@ class YulContractNode : public YulASTBase {
   virtual void parseRawAST(const json *) override;
   std::map<std::string, StorageVarInfo> varTypeMap;
   std::map<std::string, TypeInfo> typeInfoMap;
+  IntrinsicPatternMatcher patternMatcher;
+  TypeInfo parseType(std::string_view type, const json &metadata);
+  std::map<std::string, TypeInfo> structTypes;
+
+
 
 public:
   YulContractNode(const json *);
@@ -47,9 +63,7 @@ public:
   std::map<std::string, StorageVarInfo> &getVarTypeMap();
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
-  std::vector<std::string> structFieldOrder;
-  std::vector<std::string> &getStructFieldOrder();
-  std::string getStateVarNameBySlotOffset(int slot, int offset);
+  std::vector<std::string> getStateVarNameBySlotOffset(TypeInfo type, int slot, int offset);
   std::map<std::string, TypeInfo> &getTypeInfoMap();
   std::string_view getName();
 };
