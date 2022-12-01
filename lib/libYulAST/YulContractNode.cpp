@@ -143,7 +143,7 @@ int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
 }
 
 std::vector<int> YulContractNode::getIndexPathByName(std::vector<std::string> namePath){
-  std::vector<int> indices;
+  std::vector<int> indices = {0};
   TypeInfo currentStruct = structTypes["self"];
   int index;
   for(auto name: namePath){

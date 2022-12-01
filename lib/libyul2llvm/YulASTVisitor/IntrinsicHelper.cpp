@@ -114,9 +114,9 @@ llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
 LLVMCodegenVisitor &YulIntrinsicHelper::getVisitor() { return visitor; }
 
 std::string YulIntrinsicHelper::getNameFromNamePath(std::vector<std::string> namePath){
-  std::string name = "";
-  for(std::string nameComponent: namePath){
-    name= name+"_"+nameComponent;
+  std::string name = namePath[0];
+  for(auto it = namePath.begin()+1; it != namePath.end(); it++){
+    name= name+"_"+*it;
   }
   return name;
 }
