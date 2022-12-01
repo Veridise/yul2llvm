@@ -9,12 +9,16 @@ This testcase targets storage vaiable in same slot
 pragma solidity ^0.8.10;
 
 contract StructTest {
+    struct Sb {
+        uint256 a;
+    }
     struct St {
         uint256 a;
+        Sb b;
     }
     St st;
     function readStruct() external view returns (uint256){
-        return st.a;
+        return st.b.a;
     }
 
     function writeStruct(uint256 v) external {

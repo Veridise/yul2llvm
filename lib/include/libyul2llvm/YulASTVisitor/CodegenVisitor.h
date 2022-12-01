@@ -32,13 +32,13 @@ protected:
   llvm::StringMap<llvm::Value *> returnStructs;
 
   // data structures for self
-  llvm::StructType *selfType;
+  llvm::StringMap<llvm::StructType*> structTypes;
   llvm::Value *ptrSelfPointer;
 
-  llvm::Type *getTypeByInfo(llvm::StringRef typeStr,
+  llvm::Type *getLLVMTypeByInfo(llvm::StringRef typeStr,
                             std::map<std::string, TypeInfo> &typeInfoMap,
                             int addrSpaceId);
-  void constructSelfStructType(YulContractNode &node);
+  void constructStructs(YulContractNode &node);
 
   // external call context
   /**
@@ -106,7 +106,7 @@ public:
   llvm::LLVMContext &getContext();
   llvm::legacy::FunctionPassManager &getFPM();
   llvm::StringMap<llvm::AllocaInst *> &getNamedValuesMap();
-  llvm::StructType *getSelfType() const;
+  llvm::StructType *getSelfType();
   llvm::StructType *getExtCallCtxType();
   llvm::SmallVector<llvm::Value *>
   getLLVMValueVector(llvm::ArrayRef<int> rawIndices);

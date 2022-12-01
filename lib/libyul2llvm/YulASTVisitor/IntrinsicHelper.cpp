@@ -24,24 +24,18 @@ YulIntrinsicHelper::getOrCreateFunction(std::string name,
 }
 
 llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
-    std::string name, llvm::Instruction *insertPoint) {
+    std::vector<std::string> namePath, llvm::Instruction *insertPoint) {
   llvm::IRBuilder<> tempBuilder(insertPoint);
-  auto structFieldOrder = visitor.currentContract->getStructFieldOrder();
-  auto typeMap = visitor.currentContract->getVarTypeMap();
-  auto fieldIt =
-      std::find(structFieldOrder.begin(), structFieldOrder.end(), name);
-  assert(fieldIt != structFieldOrder.end());
-  int structIndex = fieldIt - structFieldOrder.begin();
+  std::vector<int> rawIndices = visitor.currentContract->getIndexPathByName(namePath);
   llvm::SmallVector<llvm::Value *> indices;
   llvm::Value *self = tempBuilder.CreatePointerCast(
-      visitor.getSelfArg(),
-      visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
-  indices.push_back(
-      llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
-  indices.push_back(llvm::ConstantInt::get(
-      visitor.getContext(), llvm::APInt(32, structIndex, false)));
+      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
+  for(int index: rawIndices){
+    indices.push_back(
+        llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, index, false)));
+  }
   llvm::Value *ptr = tempBuilder.CreateGEP(visitor.getSelfType(), self, indices,
-                                           "ptr_self_" + name);
+                                           "ptr_self_" + getNameFromNamePath(namePath));
   return ptr;
 }
 
@@ -73,17 +67,6 @@ llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type,
     assert(false && "type not found in typeinfomap and could not infer");
   }
   return llvm::Type::getIntNTy(visitor.getContext(), bitWidth);
-}
-
-llvm::StringRef
-YulIntrinsicHelper::getStorageVarYulTypeByName(llvm::StringRef name) {
-  llvm::StringRef type(
-      visitor.currentContract->getVarTypeMap()[name.str()].type);
-  auto &typeMap = visitor.currentContract->getTypeInfoMap();
-  auto typeInfo = typeMap.find(type.str());
-  if (typeInfo != typeMap.end())
-    assert(false && "Unreconized type of a variable");
-  return type;
 }
 
 llvm::FunctionType *
@@ -129,3 +112,11 @@ llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
 }
 
 LLVMCodegenVisitor &YulIntrinsicHelper::getVisitor() { return visitor; }
+
+std::string YulIntrinsicHelper::getNameFromNamePath(std::vector<std::string> namePath){
+  std::string name = "";
+  for(std::string nameComponent: namePath){
+    name= name+"_"+nameComponent;
+  }
+  return name;
+}

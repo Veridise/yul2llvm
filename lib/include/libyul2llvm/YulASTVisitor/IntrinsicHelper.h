@@ -13,9 +13,9 @@ class LLVMCodegenVisitor;
 using namespace yulast;
 class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
-  void rewriteUpdateStorageVarByName(llvm::CallInst *callInst, std::string name,
+  void rewriteUpdateStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name,
                                      llvm::Value *val);
-  void rewriteLoadStorageVarByName(llvm::CallInst *callInst, std::string name);
+  void rewriteLoadStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name);
   void rewriteUpdateStorageByLocation(llvm::CallInst *callInst,
                                       llvm::Value *slot, llvm::Value *offset,
                                       llvm::Type *type, llvm::Value *val);
@@ -26,6 +26,8 @@ class YulIntrinsicHelper {
                                         llvm::Type *type);
   IntrinsicPatternMatcher patternMatcher;
 
+  std::string getNameFromNamePath(std::vector<std::string> namePath);
+
 public:
   // Helpers
   bool isFunctionCallIntrinsic(llvm::StringRef calleeName);
@@ -33,9 +35,8 @@ public:
       llvm::StringRef calleeName); // skip definition of functions that are
                                    // going to be replaced out
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
-  llvm::Value *getPointerToStorageVarByName(std::string,
+  llvm::Value *getPointerToStorageVarByName(std::vector<std::string>,
                                             llvm::Instruction *insertPoint);
-  llvm::StringRef getStorageVarYulTypeByName(llvm::StringRef name);
   llvm::Type *getTypeByTypeName(llvm::StringRef type, const int addrSpaceId);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);
   YulIntrinsicHelper(LLVMCodegenVisitor &v);
