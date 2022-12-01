@@ -1,6 +1,6 @@
 #include <cassert>
 #include <libYulAST/YulContractNode.h>
-
+#include <iostream>
 using namespace yulast;
 
 void YulContractNode::parseRawAST(const json *rawAST) {
@@ -72,16 +72,17 @@ TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata)
            "valueType not found in metadata for mapping type");
     return TypeInfo(typeStr, types[type.data()]["kind"].get<std::string>(), // kind
                     keyType, valueType, -1);
-  } else if (type.substr(0, mappingTypeLit.size()) == structTypeLit){
-    assert(types[typeStr].contains("members") && "members not found in struct type");
+  } else if (type.substr(0, structTypeLit.size()) == structTypeLit){
+    assert(types[typeStr].contains("fields") && "fields not found in struct type");
     StructTypeResult res = patternMatcher.parseStructType(type);
     TypeInfo typeInfo(typeStr, "struct", "", "", res.size);
-    for(auto &field: types[typeStr]){
+    for(auto &field: types[typeStr]["fields"]){
       TypeInfo ti = parseType(field["type"].get<std::string>(), metadata);
-      typeInfo.members.push_back(StructField(field["label"].get<std::string>(), ti, 
+      typeInfo.members.push_back(StructField(field["name"].get<std::string>(), ti, 
                                             field["slot"].get<int>(), field["offset"].get<int>()));
     }
     structTypes[typeStr] = typeInfo;
+    return typeInfo;
   } else {
     // assume primitive type
     assert(types[typeStr].contains("size") &&
