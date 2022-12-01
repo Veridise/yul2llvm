@@ -14,3 +14,7 @@ contract ReturnString {
         return _name;
     }
 }
+
+// CHECK-LABEL: define i256* @fun_name_{{.*}}(
+
+// TODO: this currently returns an i256. Shouldn't it be i256* or some sort of struct/array type?

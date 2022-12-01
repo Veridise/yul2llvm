@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
-// XFAIL: *
 pragma solidity ^0.8.10;
 
 
@@ -14,4 +13,5 @@ contract OverloadingTestContract {
     }
 }
 
-//CHECK: define {{.* @fun_loop_.*\(i256 addrspace\(1\)\*\ %%__self\)}}
+//CHECK: define i256 @fun_echo_{{.*}}(i256 addrspace(1)* %__self, i256 %{{.*}})
+//CHECK: define i256 @fun_echo_{{.*}}(i256 addrspace(1)* %__self, i256 %{{.*}}, i256 %{{.*}})
