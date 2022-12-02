@@ -1,6 +1,5 @@
 #include <cassert>
 #include <libYulAST/YulContractNode.h>
-#include <iostream>
 using namespace yulast;
 
 void YulContractNode::parseRawAST(const json *rawAST) {

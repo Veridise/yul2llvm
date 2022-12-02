@@ -7,7 +7,7 @@ This testcase targets storage vaiable in same slot
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 //XFAIL: *
 pragma solidity ^0.8.10;
-    
+
 contract StructTest {
     struct Sb {
         uint256 a;
@@ -16,13 +16,12 @@ contract StructTest {
         uint256 a;
         Sb b;
     }
+    St st;
     function readStruct() external view returns (uint256){
-        St memory st;
-        st.b.a=1;
         return st.b.a;
     }
 
-    function writeStruct(St memory st, uint256 v) external {
+    function writeStruct(uint256 v) external {
         st.a=v;
     }
 }
