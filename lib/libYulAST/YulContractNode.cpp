@@ -141,6 +141,7 @@ int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
     }
     i++;
   }
+  assert(false && "field member not found");
 }
 
 std::vector<int> YulContractNode::getIndexPathByName(std::vector<std::string> namePath){
@@ -178,6 +179,7 @@ std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(TypeInfo type
                                                               currentSlot+mem.slot, currentOffset+mem.offset,
                                                               slot, offset);
       if(subPath.size() > 0) {
+        namePath.push_back(mem.name);
         namePath.insert(namePath.end(), subPath.begin(), subPath.end());
         return namePath;
       }

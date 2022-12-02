@@ -46,6 +46,7 @@ public:
                       llvm::SmallVector<llvm::Value *> &argsV);
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
+  int foldAdds(llvm::BinaryOperator *inst, llvm::CallInst *callInst);
 
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);

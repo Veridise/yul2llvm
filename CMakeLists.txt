@@ -15,7 +15,6 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE STRING "")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
 # Use same policy as LLVM to suppress warnings
 if(POLICY CMP0116)
   cmake_policy(SET CMP0116 OLD)
