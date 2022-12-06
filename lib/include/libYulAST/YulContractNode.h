@@ -26,8 +26,8 @@ struct TypeInfo {
 struct StructField{
    std::string name;
    TypeInfo typeInfo;
-   int slot;
-   int offset;
+   unsigned int slot;
+   unsigned int offset;
    StructField(std::string name, TypeInfo ti, int slot, int offset):name(name), typeInfo(ti), slot(slot), offset(offset){}
 };
 
@@ -45,7 +45,7 @@ class YulContractNode : public YulASTBase {
   void allocateSelfStruct();
   TypeInfo parseType(std::string_view type, const json &metadata);
   void buildStateVars(const nlohmann::json &metadata);
-  int getFieldIndexInStruct(TypeInfo ti, std::string name);
+  unsigned int getFieldIndexInStruct(TypeInfo ti, std::string name);
   std::vector<std::string> _getNamePathBySlotOffset(TypeInfo type, int currentSlot, int currentOffset, int slot, int offset);
 
 public:

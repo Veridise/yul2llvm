@@ -13,8 +13,23 @@ class LLVMCodegenVisitor;
 using namespace yulast;
 class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
+  /**
+   * @brief Rewrite the the yul intrinsic for updating storage var by name.
+   * 
+   * @param callInst The instruction to rewrite
+   * @param name Name of the variable. Its a vector of strings that as the name the rewitten variable could be a 
+   * member of a struct
+   * @param val The value to be stored at variable with the give name in @ref param
+   */
   void rewriteUpdateStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name,
                                      llvm::Value *val);
+
+  /**
+   * @brief Rewrite the the yul intrinsic for reading storage var by name.
+   * @param callInst The instruction to rewrite
+   * @param name Name of the variable. Its a vector of strings that as the name the rewitten variable could be a 
+   * member of a struct
+   */
   void rewriteLoadStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name);
   void rewriteUpdateStorageByLocation(llvm::CallInst *callInst,
                                       llvm::Value *slot, llvm::Value *offset,
@@ -26,6 +41,12 @@ class YulIntrinsicHelper {
                                         llvm::Type *type);
   IntrinsicPatternMatcher patternMatcher;
 
+  /**
+   * @brief Get the llvm value name From Name Path object
+   * 
+   * @param namePath 
+   * @return std::string 
+   */
   std::string getNameFromNamePath(std::vector<std::string> namePath);
 
 public:

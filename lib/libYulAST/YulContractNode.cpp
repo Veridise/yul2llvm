@@ -132,9 +132,9 @@ std::map<std::string, TypeInfo> &YulContractNode::getTypeInfoMap() {
   return typeInfoMap;
 }
 
-int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
+unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
   assert(ti.kind == "struct" && "type not struct");
-  int i = 0;
+  unsigned int i = 0;
   for(auto mem: ti.members){
     if(name == mem.name){
       return i;
@@ -142,6 +142,7 @@ int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
     i++;
   }
   assert(false && "field member not found");
+  return INT_MAX;
 }
 
 std::vector<int> YulContractNode::getIndexPathByName(std::vector<std::string> namePath){
