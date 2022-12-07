@@ -175,7 +175,6 @@
               solc_0_8_15
               jq
               
-
               # C++ dev tools
               doxygen
 
