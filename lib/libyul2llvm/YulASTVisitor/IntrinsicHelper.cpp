@@ -34,7 +34,8 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   int structIndex = fieldIt - structFieldOrder.begin();
   llvm::SmallVector<llvm::Value *> indices;
   llvm::Value *self = tempBuilder.CreatePointerCast(
-      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
+      visitor.getSelfArg(),
+      visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
   indices.push_back(
       llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, 0, false)));
   indices.push_back(llvm::ConstantInt::get(
@@ -44,7 +45,8 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   return ptr;
 }
 
-llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type, const int addrSpaceId = 0) {
+llvm::Type *YulIntrinsicHelper::getTypeByTypeName(llvm::StringRef type,
+                                                  const int addrSpaceId = 0) {
   auto &typeInfoMap = visitor.currentContract->getTypeInfoMap();
   std::regex uintTypeRegex(R"(^t_uint(\d+)$)");
   std::regex bytesTypeRegex(R"(^t_bytes(\d+)$)");

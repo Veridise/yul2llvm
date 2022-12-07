@@ -138,6 +138,4 @@ std::vector<std::string> &YulContractNode::getStructFieldOrder() {
   return structFieldOrder;
 }
 
-std::string_view YulContractNode::getName(){
-  return contractName;
-}
+std::string_view YulContractNode::getName() { return contractName; }
