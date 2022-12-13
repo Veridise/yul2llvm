@@ -58,6 +58,8 @@ def parse_args():
                         help='Root directory containing all sources')
     parser.add_argument('-o', '--output-dir', help='Location to place artifacts (default: do not save)',
                         type=Path, default=args_default['output_dir'])
+    parser.add_argument('-i', '--include-dir', help='Path to include dir for solc',
+                        type=Path)
     parser.add_argument('-d', '--disable-module-verification',
                         action='store_true', default=args_default['disable_module_verification'], help='Disable verification of generated llvm module')
     parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error', 'critical'],
@@ -92,7 +94,7 @@ def run(args):
     logger.addHandler(stream_handler)
 
     solc_output = solc_compile(
-        logger, args.input_file, args.output_dir, project_dir=args.project_dir
+        logger, args.input_file, args.output_dir, project_dir=args.project_dir, include_dir=args.include_dir
     )
     if solc_output is None:
         exit_error("failed to execute solc, aborting")
@@ -235,7 +237,8 @@ def run_preprocess_steps(the_contract: ContractData, logger: logging.Logger):
     preprocess.rewrite_call_inst(the_contract, logger=logger)
 
 
-def solc_compile(logger, src_path: Path, artifact_dir: Path, project_dir: Path = None):
+def solc_compile(logger, src_path: Path, artifact_dir: Path, project_dir: Path = None,
+                include_dir: Path = None):
     """Invoke solc"""
 
     assert project_dir is not None
@@ -270,6 +273,8 @@ def solc_compile(logger, src_path: Path, artifact_dir: Path, project_dir: Path =
 
     cmd = [solc_bin, "--standard-json", str(solc_input_path)]
     cmd.extend(["--base-path", str(project_dir)])
+    if include_dir:
+        cmd.extend(['--include-path', str(include_dir)])
 
     logger.info(f"Executing: {shlex.join(cmd)}")
     solc_proc = subprocess.run(cmd, text=True, capture_output=True)
