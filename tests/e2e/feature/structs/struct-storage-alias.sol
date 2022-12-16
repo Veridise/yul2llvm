@@ -22,18 +22,13 @@ contract StructTest {
         ref = st;
         return ref.b.a;
     }
-
-    function writeStruct(uint256 v) external {
-        st.a=v;
-    }
 }
 
-//CHECK: define i256 @fun_readArray_{{[0-9]+}}(i256 addrspace(1)* %__self, {{.+, .+}})
-//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]*
-//CHECK: arr_load{{.*}} = load i32, i32*
-//CHECK: %word_arr_load = zext i32
+//CHECK: define i256 @fun_readStruct_{{.*}}(i256 addrspace(1)* %__self) {
+//CHECK: {{.*}} = add i256 0, 1
+//CHECK: {{.*}} = add i256 {{.*}}, 0
+//CHECK: %ptr_self_st_b_a = getelementptr %self, %self addrspace(1)* %2, i32 0, i32 0, i32 1, i32 0
+//CHECK: %pyul_storage_var_load = load i256, i256 addrspace(1)* %ptr_self_st_b_a, align 4
+//CHECK: ret i256 %i256_pyul_storage_var_load
 
 
-//CHECK: define void @fun_writeArray_{{[0-9]+}}(i256 addrspace(1)* %__self, {{.+, .+, .+}})
-//CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]*
-//CHECK: store i32 {{.*}}, i32*
