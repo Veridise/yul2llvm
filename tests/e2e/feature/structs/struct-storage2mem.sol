@@ -18,7 +18,7 @@ contract StructTest {
     }
     St st;
     function readStruct() external view returns (uint256){
-        St storage ref;
+        St memory ref;
         ref = st;
         return ref.b.a;
     }

@@ -33,7 +33,8 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata) {
+TypeInfo YulContractNode::parseType(std::string_view type,
+                                    const json &metadata) {
   assert(metadata.contains("types") && "Metadata does not contain types");
   auto &types = metadata["types"];
   assert(types.contains(type) && "Types does not contain the requested type");
@@ -54,7 +55,8 @@ TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata)
     }
     assert(types.contains(match[1].str()) &&
            "Array child type not found in types");
-    return TypeInfo(typeStr, types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     "",                                            // keytype
                     match[1].str(),                                // valueType
                     types[typeStr]["size"].get<int>());            // size
@@ -69,16 +71,19 @@ TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata)
            "keyType not found in metadata for mapping type");
     assert(types.contains(valueType) &&
            "valueType not found in metadata for mapping type");
-    return TypeInfo(typeStr, types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     keyType, valueType, -1);
-  } else if (type.substr(0, structTypeLit.size()) == structTypeLit){
-    assert(types[typeStr].contains("fields") && "fields not found in struct type");
+  } else if (type.substr(0, structTypeLit.size()) == structTypeLit) {
+    assert(types[typeStr].contains("fields") &&
+           "fields not found in struct type");
     StructTypeResult res = patternMatcher.parseStructType(type);
     TypeInfo typeInfo(typeStr, "struct", "", "", res.size);
-    for(auto &field: types[typeStr]["fields"]){
+    for (auto &field : types[typeStr]["fields"]) {
       TypeInfo ti = parseType(field["type"].get<std::string>(), metadata);
-      typeInfo.members.push_back(StructField(field["name"].get<std::string>(), ti, 
-                                            field["slot"].get<int>(), field["offset"].get<int>()));
+      typeInfo.members.push_back(StructField(field["name"].get<std::string>(),
+                                             ti, field["slot"].get<int>(),
+                                             field["offset"].get<int>()));
     }
     structTypes[typeStr] = typeInfo;
     return typeInfo;
@@ -86,7 +91,8 @@ TypeInfo YulContractNode::parseType(std::string_view type, const json &metadata)
     // assume primitive type
     assert(types[typeStr].contains("size") &&
            "Primitive type does not conatiain size");
-    return TypeInfo(typeStr, types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     "", "", types[typeStr]["size"].get<int>());
   }
 }
@@ -100,14 +106,15 @@ void YulContractNode::buildTypeInfoMap(const json &metadata) {
 
 void YulContractNode::buildStateVars(const json &metadata) {
   // for each storage location i.e. var
-  //create self struct
+  // create self struct
   TypeInfo self("t_struct(self)", "struct", "", "", 0);
   for (auto &var : metadata["state_vars"]) {
     std::string varName = var["name"].get<std::string>();
     std::string varType = var["type"].get<std::string>();
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
-    self.members.push_back(StructField(varName, typeInfoMap[varType], slot, offset));
+    self.members.push_back(
+        StructField(varName, typeInfoMap[varType], slot, offset));
   }
   structTypes["self"] = self;
 }
@@ -126,16 +133,16 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-
 std::map<std::string, TypeInfo> &YulContractNode::getTypeInfoMap() {
   return typeInfoMap;
 }
 
-unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string name){
+unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti,
+                                                    std::string name) {
   assert(ti.kind == "struct" && "type not struct");
   unsigned int i = 0;
-  for(auto mem: ti.members){
-    if(name == mem.name){
+  for (auto mem : ti.members) {
+    if (name == mem.name) {
       return i;
     }
     i++;
@@ -144,15 +151,16 @@ unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti, std::string nam
   return INT_MAX;
 }
 
-std::vector<int> YulContractNode::getIndexPathByName(std::vector<std::string> namePath){
+std::vector<int>
+YulContractNode::getIndexPathByName(std::vector<std::string> namePath) {
   std::vector<int> indices = {0};
   TypeInfo currentStruct = structTypes["self"];
   int index;
-  for(auto name: namePath){
+  for (auto name : namePath) {
     index = getFieldIndexInStruct(currentStruct, name);
     indices.push_back(index);
     auto memType = currentStruct.members[index].typeInfo;
-    if(memType.kind == "struct"){
+    if (memType.kind == "struct") {
       currentStruct = memType;
     } else {
       break;
@@ -161,41 +169,40 @@ std::vector<int> YulContractNode::getIndexPathByName(std::vector<std::string> na
   return indices;
 }
 
-std::vector<int> YulContractNode::getIndexPathBySlotOffset(int slot, int offset){
+std::vector<int> YulContractNode::getIndexPathBySlotOffset(int slot,
+                                                           int offset) {
   auto namePath = getNamePathBySlotOffset(slot, offset);
-  return getIndexPathByName(namePath);  
+  return getIndexPathByName(namePath);
 }
 
-std::vector<std::string> YulContractNode::getNamePathBySlotOffset(int slot, int offset){
+std::vector<std::string> YulContractNode::getNamePathBySlotOffset(int slot,
+                                                                  int offset) {
   return _getNamePathBySlotOffset(structTypes["self"], 0, 0, slot, offset);
 }
 
-std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(TypeInfo type, int currentSlot, int currentOffset, 
-                                                                              int slot, int offset) {
+std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(
+    TypeInfo type, int currentSlot, int currentOffset, int slot, int offset) {
   std::vector<std::string> namePath;
-  for(auto mem: type.members){
-    if(mem.typeInfo.kind == "struct"){
-      std::vector<std::string> subPath = _getNamePathBySlotOffset(mem.typeInfo, 
-                                                              currentSlot+mem.slot, currentOffset+mem.offset,
-                                                              slot, offset);
-      if(subPath.size() > 0) {
+  for (auto mem : type.members) {
+    if (mem.typeInfo.kind == "struct") {
+      std::vector<std::string> subPath =
+          _getNamePathBySlotOffset(mem.typeInfo, currentSlot + mem.slot,
+                                   currentOffset + mem.offset, slot, offset);
+      if (subPath.size() > 0) {
         namePath.push_back(mem.name);
         namePath.insert(namePath.end(), subPath.begin(), subPath.end());
         return namePath;
       }
-    }
-    else if(mem.slot + currentSlot == slot && mem.offset +currentOffset == offset){
+    } else if (mem.slot + currentSlot == slot &&
+               mem.offset + currentOffset == offset) {
       namePath.push_back(mem.name);
     }
   }
   return namePath;
 }
 
+std::string_view YulContractNode::getName() { return contractName; }
 
-std::string_view YulContractNode::getName(){
-  return contractName;
-}
-
-std::map<std::string, TypeInfo> &YulContractNode::getStructTypes(){
+std::map<std::string, TypeInfo> &YulContractNode::getStructTypes() {
   return structTypes;
 }

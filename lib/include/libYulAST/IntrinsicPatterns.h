@@ -23,38 +23,54 @@ struct UpdateStorageDynamicResult {
   std::string toType;
 };
 
-struct StructTypeResult{
-    std::string name;
-    std::string location;
-    int size;
+struct StructTypeResult {
+  std::string name;
+  std::string location;
+  int size;
 };
 
-class IntrinsicPatternMatcher{
-    std::regex readFromStorageOffsetRegex;
-    std::regex readFromStorageDynamicRegex;
-    std::regex updateStorageOffsetfRegex;
-    std::regex updateStorageDynamicRegex;
+struct ConvertXToYResult {
+  std::string sourceType;
+  std::string sourceAddressSpace;
+  bool isSourceTypePointer;
+  std::string destType;
+  std::string destAddressSpace;
+  bool isDestTypePtr;
+};
 
+struct YulStructTypeResult {
+  std::string name;
+  int size;
+};
 
-    public:
-        IntrinsicPatternMatcher();
-        YUL_INTRINSIC_ID getYulIntriniscType(std::string_view name);
-        int readFromStorageOffsetGetOffset(std::string_view name);
-        std::string readFromStorageOffsetGetType(std::string_view name);
-        ReadFromStorageOffsetResult parseReadFromStorageOffset(std::string_view name);
-        
-        std::string readFromStorageDynamicGetType(std::string_view name);
-        ReadFromStorageDynamicResult parseReadFromStorageDynamic(std::string_view name);     
-        
-        int updateStorageOffsetGetOffset(std::string_view name);
-        std::string updateStorageOffsetGetFromType(std::string_view name);
-        std::string updateStorageOffsetGetToType(std::string_view name);
-        UpdateStorageOffsetResult parseUpdateStorageOffset(std::string_view name);
+class IntrinsicPatternMatcher {
+  std::regex readFromStorageOffsetRegex;
+  std::regex readFromStorageDynamicRegex;
+  std::regex updateStorageOffsetfRegex;
+  std::regex updateStorageDynamicRegex;
 
-        std::string updateStorageDynamicGetFromType(std::string_view name);
-        std::string updateStorageDynamicGetToType(std::string_view name);
-        UpdateStorageDynamicResult parseUpdateStorageDynamic(std::string_view name);
-        StructTypeResult parseStructType(std::string_view name);
+public:
+  IntrinsicPatternMatcher();
+  YUL_INTRINSIC_ID getYulIntriniscType(std::string_view name);
+  int readFromStorageOffsetGetOffset(std::string_view name);
+  std::string readFromStorageOffsetGetType(std::string_view name);
+  ReadFromStorageOffsetResult parseReadFromStorageOffset(std::string_view name);
 
+  std::string readFromStorageDynamicGetType(std::string_view name);
+  ReadFromStorageDynamicResult
+  parseReadFromStorageDynamic(std::string_view name);
+
+  int updateStorageOffsetGetOffset(std::string_view name);
+  std::string updateStorageOffsetGetFromType(std::string_view name);
+  std::string updateStorageOffsetGetToType(std::string_view name);
+  UpdateStorageOffsetResult parseUpdateStorageOffset(std::string_view name);
+
+  std::string updateStorageDynamicGetFromType(std::string_view name);
+  std::string updateStorageDynamicGetToType(std::string_view name);
+  UpdateStorageDynamicResult parseUpdateStorageDynamic(std::string_view name);
+  StructTypeResult parseStructType(std::string_view name);
+
+  ConvertXToYResult parseConvertXToY(std::string_view name);
+  YulStructTypeResult parseYulStructType(std::string_view name);
 };
 } // namespace yulast

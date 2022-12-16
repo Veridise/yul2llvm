@@ -11,7 +11,7 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
 }
 const static llvm::SmallVector<std::string> supportedIntrinsics(
     {"__pyul_map_index", "update_storage_value", "read_from_storage", "call",
-     "storage_array_index_access_t_array"});
+     "storage_array_index_access_t_array", "convert_t_"});
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -31,31 +31,35 @@ collectCalls(llvm::Function *enclosingFunction) {
   return oldInstructions;
 }
 
-int YulIntrinsicHelper::foldAdds(llvm::BinaryOperator *inst, llvm::CallInst *callInst){
+int YulIntrinsicHelper::foldAdds(llvm::BinaryOperator *inst,
+                                 llvm::CallInst *callInst) {
   llvm::ConstantInt *v1, *v2;
   v1 = llvm::dyn_cast<llvm::ConstantInt>(inst->getOperand(0));
   v2 = llvm::dyn_cast<llvm::ConstantInt>(inst->getOperand(1));
   llvm::APInt res(256, 0, false);
-  if(v1 && v2 && inst->getOpcode() == llvm::BinaryOperator::Add){
+  if (v1 && v2 && inst->getOpcode() == llvm::BinaryOperator::Add) {
     res = v1->getValue() + v2->getValue();
     llvm::Instruction *currentInst = inst;
-    while( (llvm::Instruction *)currentInst != (llvm::Instruction *)callInst){
-      for(auto user = currentInst->user_begin(); user != currentInst->user_end(); user++){
-        llvm::BinaryOperator *childUser = llvm::dyn_cast<llvm::BinaryOperator>(*user);
-        if(!childUser){
-          continue  ;
+    while ((llvm::Instruction *)currentInst != (llvm::Instruction *)callInst) {
+      for (auto user = currentInst->user_begin();
+           user != currentInst->user_end(); user++) {
+        llvm::BinaryOperator *childUser =
+            llvm::dyn_cast<llvm::BinaryOperator>(*user);
+        if (!childUser) {
+          continue;
         }
         v1 = llvm::dyn_cast<llvm::ConstantInt>(childUser->getOperand(0));
         v2 = llvm::dyn_cast<llvm::ConstantInt>(childUser->getOperand(1));
-        if(v1 && !v2){
-          res = res+v1->getValue();
-        } else if(!v1 && v2){
+        if (v1 && !v2) {
+          res = res + v1->getValue();
+        } else if (!v1 && v2) {
           res = res + v2->getValue();
         } else {
           assert(false && "folding happening at wrong location");
         }
       }
-      currentInst = llvm::dyn_cast<llvm::Instruction>(*currentInst->user_begin());
+      currentInst =
+          llvm::dyn_cast<llvm::Instruction>(*currentInst->user_begin());
     }
   } else {
     assert(false && "Folding staring from wrong instruction");
@@ -130,7 +134,8 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
         offset->getZExtValue(), 0);
     llvm::Value *ptrSelfVar = getPointerToStorageVarByName(varname, callInst);
     llvm::Type *mapType = checkAndGetPointeeType(ptrSelfVar);
-    llvm::Value *mapPtr = tmpBuilder.CreateLoad(mapType, ptrSelfVar, getNameFromNamePath(varname));
+    llvm::Value *mapPtr = tmpBuilder.CreateLoad(mapType, ptrSelfVar,
+                                                getNameFromNamePath(varname));
     llvm::Value *key = callInst->getArgOperand(1);
     llvm::SmallVector<llvm::Value *> args;
     args.push_back(mapPtr);
@@ -157,7 +162,7 @@ void YulIntrinsicHelper::rewriteUpdateStorageByLocation(
   llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
       castedValue->getType());
   llvm::Value *storageLocation =
-      getPointerInSlotByOffset(callInst, slot, offset, destType);
+      getPointerInSlotByOffset(callInst, slot, offset);
   auto newInst =
       new llvm::StoreInst(castedValue, storageLocation, false, align);
   llvm::ReplaceInstWithInst(callInst, newInst);
@@ -167,7 +172,7 @@ void YulIntrinsicHelper::rewriteLoadStorageByLocation(llvm::CallInst *callInst,
                                                       llvm::Value *slot,
                                                       llvm::Value *offset,
                                                       llvm::Type *loadType) {
-  llvm::Value *ptr = getPointerInSlotByOffset(callInst, slot, offset, loadType);
+  llvm::Value *ptr = getPointerInSlotByOffset(callInst, slot, offset);
   llvm::Align align =
       visitor.getModule().getDataLayout().getABITypeAlign(loadType);
   auto loadedValue = new llvm::LoadInst(loadType, ptr, "pyul_storage_var_load",
@@ -177,8 +182,8 @@ void YulIntrinsicHelper::rewriteLoadStorageByLocation(llvm::CallInst *callInst,
   llvm::ReplaceInstWithInst(callInst, casted);
 }
 
-void YulIntrinsicHelper::rewriteLoadStorageVarByName(llvm::CallInst *callInst,
-                                                     std::vector<std::string> varName) {
+void YulIntrinsicHelper::rewriteLoadStorageVarByName(
+    llvm::CallInst *callInst, std::vector<std::string> varName) {
   llvm::Value *ptr = getPointerToStorageVarByName(varName, callInst);
   llvm::Type *selfVarType = checkAndGetPointeeType(ptr);
   llvm::Align align =
@@ -193,7 +198,8 @@ void YulIntrinsicHelper::rewriteLoadStorageVarByName(llvm::CallInst *callInst,
 }
 
 void YulIntrinsicHelper::rewriteUpdateStorageVarByName(
-    llvm::CallInst *callInst, std::vector<std::string> varname, llvm::Value *storeValue) {
+    llvm::CallInst *callInst, std::vector<std::string> varname,
+    llvm::Value *storeValue) {
   llvm::Value *ptr = getPointerToStorageVarByName(varname, callInst);
   llvm::Value *castedValue = llvm::CastInst::CreateIntegerCast(
       storeValue, ptr->getType()->getPointerElementType(), true,
@@ -205,10 +211,8 @@ void YulIntrinsicHelper::rewriteUpdateStorageVarByName(
 }
 
 llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
-    llvm::CallInst *callInst, llvm::Value *slot, llvm::Value *offset,
-    llvm::Type *opType) {
+    llvm::CallInst *callInst, llvm::Value *slot, llvm::Value *offset) {
   llvm::IRBuilder<> tempBuilder(callInst);
-  int numElementsInSlot = SLOT_SIZE / opType->getIntegerBitWidth();
   if (!slot->getType()->isPointerTy()) {
     slot = tempBuilder.CreateIntToPtr(slot,
                                       visitor.getDefaultType()->getPointerTo());
@@ -218,7 +222,7 @@ llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
   llvm::Value *offsetTrunc = tempBuilder.CreateIntCast(
       offset, llvm::Type::getInt32Ty(visitor.getContext()), false);
   llvm::ArrayType *slotArrayType =
-      llvm::ArrayType::get(opType, numElementsInSlot);
+      llvm::ArrayType::get(llvm::Type::getInt8Ty(visitor.getContext()), 32);
   llvm::Value *arrayCastedSlot =
       tempBuilder.CreatePointerCast(slot, slotArrayType->getPointerTo());
   llvm::Value *location =
@@ -227,7 +231,6 @@ llvm::Value *YulIntrinsicHelper::getPointerInSlotByOffset(
   return location;
 }
 
-
 void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
     llvm::CallInst *callInst, std::string yulTypeStr) {
   // R"(^read_from_storage_split_dynamic_(.*))"
@@ -235,8 +238,9 @@ void YulIntrinsicHelper::rewriteStorageDynamicLoadIntrinsic(
   auto slot = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(0));
   auto offset = llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1));
   if (offset && slot) {
-    std::vector<std::string> varname = visitor.currentContract->getNamePathBySlotOffset(
-        slot->getZExtValue(), offset->getZExtValue());
+    std::vector<std::string> varname =
+        visitor.currentContract->getNamePathBySlotOffset(
+            slot->getZExtValue(), offset->getZExtValue());
     rewriteLoadStorageVarByName(callInst, varname);
   } else {
     rewriteLoadStorageByLocation(
@@ -256,24 +260,26 @@ void YulIntrinsicHelper::rewriteStorageOffsetLoadIntrinsic(
         visitor.currentContract->getNamePathBySlotOffset(slot, offset);
     rewriteLoadStorageVarByName(callInst, varname);
   } else {
-    auto test = [](llvm::Instruction *inst)->bool {
-    llvm::BinaryOperator *addInst = llvm::dyn_cast<llvm::BinaryOperator>(inst);
-    if(addInst && addInst->getOpcode() == llvm::BinaryOperator::Add){
-      llvm::Value *a1, *a2;
-      a1 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
-      a2 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
-      if(a1 && a2){
-        return true;
-      }
+    auto test = [](llvm::Instruction *inst) -> bool {
+      llvm::BinaryOperator *addInst =
+          llvm::dyn_cast<llvm::BinaryOperator>(inst);
+      if (addInst && addInst->getOpcode() == llvm::BinaryOperator::Add) {
+        llvm::Value *a1, *a2;
+        a1 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
+        a2 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
+        if (a1 && a2) {
+          return true;
+        }
       }
       return false;
     };
 
-    llvm::BinaryOperator *c = searchInstInDefs<llvm::BinaryOperator>(callInst, test);
-    if(c){
+    llvm::BinaryOperator *c =
+        searchInstInDefs<llvm::BinaryOperator>(callInst, test);
+    if (c) {
       int constSlot = foldAdds(c, callInst);
       std::vector<std::string> varname =
-        visitor.currentContract->getNamePathBySlotOffset(constSlot, offset);
+          visitor.currentContract->getNamePathBySlotOffset(constSlot, offset);
       rewriteLoadStorageVarByName(callInst, varname);
       return;
     }
@@ -299,6 +305,7 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
     rewriteStorageDynamicLoadIntrinsic(callInst, res.type);
   } else {
     //@todo raise runtime error
+    visitor.currentFunction->dump();
     assert(false && "unrecognized read from storage dynamic intrinsic");
   }
 }
@@ -334,8 +341,9 @@ void YulIntrinsicHelper::rewriteStorageDynamicUpdateIntrinsic(
   auto slotConst = llvm::dyn_cast<llvm::ConstantInt>(slotArg);
   auto offsetConst = llvm::dyn_cast<llvm::ConstantInt>(offsetArg);
   if (slotConst && offsetConst) {
-    std::vector<std::string> varname = visitor.currentContract->getNamePathBySlotOffset(
-        slotConst->getZExtValue(), offsetConst->getZExtValue());
+    std::vector<std::string> varname =
+        visitor.currentContract->getNamePathBySlotOffset(
+            slotConst->getZExtValue(), offsetConst->getZExtValue());
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
     llvm::Type *destType = getTypeByTypeName(destTypeName, DEFAULT_ADDR_SPACE);
@@ -359,29 +367,32 @@ void YulIntrinsicHelper::rewriteStorageOffsetUpdateIntrinsic(
   llvm::Value *storeValue = callInst->getArgOperand(2);
   if (auto slot =
           llvm::dyn_cast<llvm::ConstantInt>(callInst->getArgOperand(1))) {
-    std::vector<std::string> varname = visitor.currentContract->getNamePathBySlotOffset(
-        slot->getZExtValue(), offset);
+    std::vector<std::string> varname =
+        visitor.currentContract->getNamePathBySlotOffset(slot->getZExtValue(),
+                                                         offset);
     rewriteUpdateStorageVarByName(callInst, varname, storeValue);
   } else {
 
-    auto test = [](llvm::Instruction *inst)->bool {
-    llvm::BinaryOperator *addInst = llvm::dyn_cast<llvm::BinaryOperator>(inst);
-    if(addInst && addInst->getOpcode() == llvm::BinaryOperator::Add){
-      llvm::Value *a1, *a2;
-      a1 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
-      a2 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
-      if(a1 && a2){
-        return true;
-      }
+    auto test = [](llvm::Instruction *inst) -> bool {
+      llvm::BinaryOperator *addInst =
+          llvm::dyn_cast<llvm::BinaryOperator>(inst);
+      if (addInst && addInst->getOpcode() == llvm::BinaryOperator::Add) {
+        llvm::Value *a1, *a2;
+        a1 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
+        a2 = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
+        if (a1 && a2) {
+          return true;
+        }
       }
       return false;
     };
 
-    llvm::BinaryOperator *c = searchInstInDefs<llvm::BinaryOperator>(callInst, test);
-    if(c){
+    llvm::BinaryOperator *c =
+        searchInstInDefs<llvm::BinaryOperator>(callInst, test);
+    if (c) {
       int constSlot = foldAdds(c, callInst);
       std::vector<std::string> varname =
-        visitor.currentContract->getNamePathBySlotOffset(constSlot, offset);
+          visitor.currentContract->getNamePathBySlotOffset(constSlot, offset);
       rewriteUpdateStorageVarByName(callInst, varname, storeValue);
       return;
     }
@@ -473,6 +484,51 @@ void YulIntrinsicHelper::rewriteStorageArrayIndexAccess(
   llvm::ReplaceInstWithValue(instList, callInstIt, structPtr);
 }
 
+void YulIntrinsicHelper::rewriteConvertStorageToStoragePtr(
+    llvm::CallInst *callInst) {
+  llvm::BasicBlock::InstListType &instList =
+      callInst->getParent()->getInstList();
+  llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
+  llvm::ReplaceInstWithValue(instList, callInstIt, callInst->getArgOperand(0));
+}
+
+void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
+    llvm::CallInst *callInst, ConvertXToYResult res) {
+  llvm::BasicBlock::InstListType &instList =
+      callInst->getParent()->getInstList();
+  llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
+  llvm::IRBuilder<> tmpBuilder(callInst);
+  assert(res.sourceType == res.destType &&
+         "Source and destination type are not same");
+  YulStructTypeResult structType =
+      patternMatcher.parseYulStructType(res.sourceType);
+  auto sizeArray = visitor.getLLVMValueVector({structType.size});
+  llvm::Value *newLocation = tmpBuilder.CreateCall(
+      visitor.getAllocateMemoryFunction(), sizeArray, "new" + structType.name);
+  auto align = visitor.getModule().getDataLayout().getABITypeAlign(
+      newLocation->getType());
+  tmpBuilder.CreateMemCpy(newLocation, align, callInst->getArgOperand(0), align,
+                          sizeArray[0]);
+  llvm::Value *castedNewLocation = tmpBuilder.CreatePtrToInt(
+      newLocation, visitor.getDefaultType(), newLocation->getName() + "i256");
+  llvm::ReplaceInstWithValue(instList, callInstIt, castedNewLocation);
+}
+
+void YulIntrinsicHelper::rewriteConvertXToY(llvm::CallInst *callInst) {
+  ConvertXToYResult res =
+      patternMatcher.parseConvertXToY(callInst->getCalledFunction()->getName());
+  std::string structTypePrefix = "t_struct";
+  llvm::errs() << res.sourceType;
+  if (res.sourceType.substr(0, structTypePrefix.size()) == structTypePrefix) {
+    if (res.sourceAddressSpace == "storage" &&
+        res.destAddressSpace == "storage")
+      rewriteConvertStorageToStoragePtr(callInst);
+    else if (res.sourceAddressSpace == "storage" &&
+             res.destAddressSpace == "memory")
+      rewriteConvertStorageToMemoryPtr(callInst, res);
+  }
+}
+
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
       collectCalls(enclosingFunction);
@@ -490,6 +546,8 @@ void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
     } else if (c->getCalledFunction()->getName().startswith(
                    "storage_array_index_access_t_array")) {
       rewriteStorageArrayIndexAccess(c);
+    } else if (c->getCalledFunction()->getName().startswith("convert_t_")) {
+      rewriteConvertXToY(c);
     }
   }
 }

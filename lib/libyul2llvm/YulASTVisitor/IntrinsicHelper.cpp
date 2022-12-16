@@ -26,16 +26,19 @@ YulIntrinsicHelper::getOrCreateFunction(std::string name,
 llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
     std::vector<std::string> namePath, llvm::Instruction *insertPoint) {
   llvm::IRBuilder<> tempBuilder(insertPoint);
-  std::vector<int> rawIndices = visitor.currentContract->getIndexPathByName(namePath);
+  std::vector<int> rawIndices =
+      visitor.currentContract->getIndexPathByName(namePath);
   llvm::SmallVector<llvm::Value *> indices;
   llvm::Value *self = tempBuilder.CreatePointerCast(
-      visitor.getSelfArg(), visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
-  for(int index: rawIndices){
-    indices.push_back(
-        llvm::ConstantInt::get(visitor.getContext(), llvm::APInt(32, index, false)));
+      visitor.getSelfArg(),
+      visitor.getSelfType()->getPointerTo(STORAGE_ADDR_SPACE));
+  for (int index : rawIndices) {
+    indices.push_back(llvm::ConstantInt::get(visitor.getContext(),
+                                             llvm::APInt(32, index, false)));
   }
-  llvm::Value *ptr = tempBuilder.CreateGEP(visitor.getSelfType(), self, indices,
-                                           "ptr_self_" + getNameFromNamePath(namePath));
+  llvm::Value *ptr =
+      tempBuilder.CreateGEP(visitor.getSelfType(), self, indices,
+                            "ptr_self_" + getNameFromNamePath(namePath));
   return ptr;
 }
 
@@ -113,10 +116,11 @@ llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
 
 LLVMCodegenVisitor &YulIntrinsicHelper::getVisitor() { return visitor; }
 
-std::string YulIntrinsicHelper::getNameFromNamePath(std::vector<std::string> namePath){
+std::string
+YulIntrinsicHelper::getNameFromNamePath(std::vector<std::string> namePath) {
   std::string name = namePath[0];
-  for(auto it = namePath.begin()+1; it != namePath.end(); it++){
-    name= name+"_"+*it;
+  for (auto it = namePath.begin() + 1; it != namePath.end(); it++) {
+    name = name + "_" + *it;
   }
   return name;
 }

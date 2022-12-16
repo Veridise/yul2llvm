@@ -32,12 +32,12 @@ protected:
   llvm::StringMap<llvm::Value *> returnStructs;
 
   // data structures for self
-  llvm::StringMap<llvm::StructType*> structTypes;
+  llvm::StringMap<llvm::StructType *> structTypes;
   llvm::Value *ptrSelfPointer;
 
   llvm::Type *getLLVMTypeByInfo(llvm::StringRef typeStr,
-                            std::map<std::string, TypeInfo> &typeInfoMap,
-                            int addrSpaceId);
+                                std::map<std::string, TypeInfo> &typeInfoMap,
+                                int addrSpaceId);
   void constructStructs(YulContractNode &node);
 
   // external call context

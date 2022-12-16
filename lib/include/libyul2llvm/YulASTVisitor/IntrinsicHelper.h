@@ -15,37 +15,39 @@ class YulIntrinsicHelper {
   LLVMCodegenVisitor &visitor;
   /**
    * @brief Rewrite the the yul intrinsic for updating storage var by name.
-   * 
+   *
    * @param callInst The instruction to rewrite
-   * @param name Name of the variable. Its a vector of strings that as the name the rewitten variable could be a 
-   * member of a struct
-   * @param val The value to be stored at variable with the give name in @ref param
+   * @param name Name of the variable. Its a vector of strings that as the name
+   * the rewitten variable could be a member of a struct
+   * @param val The value to be stored at variable with the give name in @ref
+   * param
    */
-  void rewriteUpdateStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name,
+  void rewriteUpdateStorageVarByName(llvm::CallInst *callInst,
+                                     std::vector<std::string> name,
                                      llvm::Value *val);
 
   /**
    * @brief Rewrite the the yul intrinsic for reading storage var by name.
    * @param callInst The instruction to rewrite
-   * @param name Name of the variable. Its a vector of strings that as the name the rewitten variable could be a 
-   * member of a struct
+   * @param name Name of the variable. Its a vector of strings that as the name
+   * the rewitten variable could be a member of a struct
    */
-  void rewriteLoadStorageVarByName(llvm::CallInst *callInst, std::vector<std::string> name);
+  void rewriteLoadStorageVarByName(llvm::CallInst *callInst,
+                                   std::vector<std::string> name);
   void rewriteUpdateStorageByLocation(llvm::CallInst *callInst,
                                       llvm::Value *slot, llvm::Value *offset,
                                       llvm::Type *type, llvm::Value *val);
   void rewriteLoadStorageByLocation(llvm::CallInst *callInst, llvm::Value *slot,
                                     llvm::Value *offset, llvm::Type *type);
   llvm::Value *getPointerInSlotByOffset(llvm::CallInst *callInst,
-                                        llvm::Value *slot, llvm::Value *offset,
-                                        llvm::Type *type);
+                                        llvm::Value *slot, llvm::Value *offset);
   IntrinsicPatternMatcher patternMatcher;
 
   /**
    * @brief Get the llvm value name From Name Path object
-   * 
-   * @param namePath 
-   * @return std::string 
+   *
+   * @param namePath
+   * @return std::string
    */
   std::string getNameFromNamePath(std::vector<std::string> namePath);
 
@@ -68,6 +70,7 @@ public:
   llvm::FunctionType *getFunctionType(YulFunctionCallNode &node,
                                       llvm::SmallVector<llvm::Value *> &argsV);
   int foldAdds(llvm::BinaryOperator *inst, llvm::CallInst *callInst);
+  std::string convertStructTypeFromYulToABI(std::string yulType);
 
   // Emit intrinsics
   llvm::Value *handleMapIndex(YulFunctionCallNode &node);
@@ -103,6 +106,10 @@ public:
   void rewriteStorageLoadIntrinsic(llvm::CallInst *callInst);
   void rewriteCallIntrinsic(llvm::CallInst *callInst);
   void rewriteStorageArrayIndexAccess(llvm::CallInst *callInst);
+  void rewriteConvertStorageToStoragePtr(llvm::CallInst *callInst);
+  void rewriteConvertStorageToMemoryPtr(llvm::CallInst *callInst,
+                                        ConvertXToYResult res);
+  void rewriteConvertXToY(llvm::CallInst *callInst);
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);

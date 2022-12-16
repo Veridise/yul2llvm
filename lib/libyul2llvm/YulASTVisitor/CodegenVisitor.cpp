@@ -155,15 +155,13 @@ void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   runFunctionDeclaratorVisitor(node);
   constructStructs(node);
   getModule().setSourceFileName(node.getName());
-  ptrSelfPointer = new llvm::GlobalVariable(getModule(), 
-                                        structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE),
-                                        false, 
-                                        llvm::GlobalValue::ExternalLinkage, 
-                                        llvm::Constant::getNullValue(structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE)),
-                                        std::string(node.getName().data())+"_self_ptr", 
-                                        nullptr,
-                                        llvm::GlobalValue::NotThreadLocal, 
-                                        0);
+  ptrSelfPointer = new llvm::GlobalVariable(
+      getModule(), structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE), false,
+      llvm::GlobalValue::ExternalLinkage,
+      llvm::Constant::getNullValue(
+          structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE)),
+      std::string(node.getName().data()) + "_self_ptr", nullptr,
+      llvm::GlobalValue::NotThreadLocal, 0);
   currentContract = &node;
   for (auto &f : node.getFunctions()) {
     visit(*f);
@@ -391,48 +389,48 @@ void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
 void LLVMCodegenVisitor::constructStructs(YulContractNode &node) {
   auto &typeInfoMap = node.getTypeInfoMap();
   std::deque<TypeInfo> allStructs;
-  for(auto it: node.getStructTypes()){
-    if(it.second.kind == "struct")
+  for (auto it : node.getStructTypes()) {
+    if (it.second.kind == "struct")
       allStructs.push_back(it.second);
   }
-  while(!allStructs.empty()){
+  while (!allStructs.empty()) {
     std::vector<llvm::Type *> memberTypes;
     TypeInfo type = allStructs.front();
     allStructs.pop_front();
     bool skipStruct = false;
-    for (auto &field: type.members) {
-      if(field.typeInfo.kind == "struct"){
-        if(structTypes.find(field.typeInfo.typeStr) == structTypes.end()){
+    for (auto &field : type.members) {
+      if (field.typeInfo.kind == "struct") {
+        if (structTypes.find(field.typeInfo.typeStr) == structTypes.end()) {
           allStructs.push_back(type);
           skipStruct = true;
           break;
         }
       }
-      llvm::Type *memType = getLLVMTypeByInfo(field.typeInfo.typeStr, typeInfoMap, STORAGE_ADDR_SPACE);
+      llvm::Type *memType = getLLVMTypeByInfo(field.typeInfo.typeStr,
+                                              typeInfoMap, STORAGE_ADDR_SPACE);
       memberTypes.push_back(memType);
     }
-    if(skipStruct){
+    if (skipStruct) {
       continue;
     }
-    if(type.typeStr == "t_struct(self)")
+    if (type.typeStr == "t_struct(self)")
       type.typeStr = "self";
-    llvm::StructType *newType = llvm::StructType::create(*TheContext, memberTypes, type.typeStr);
+    llvm::StructType *newType =
+        llvm::StructType::create(*TheContext, memberTypes, type.typeStr);
     structTypes[type.typeStr] = newType;
   }
-  
 }
 
-llvm::Type *
-LLVMCodegenVisitor::getLLVMTypeByInfo(llvm::StringRef typeStr,
-                                  std::map<std::string, TypeInfo> &typeInfoMap,
-                                  int addrSpaceId) {
+llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
+    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap,
+    int addrSpaceId) {
   llvm::Type *memPtrType =
       llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {
     return memPtrType;
-  } else if (typeStr.startswith("t_struct")){
+  } else if (typeStr.startswith("t_struct")) {
     return structTypes[typeStr];
   } else {
     int bitwidth = typeInfoMap[typeStr.str()].size * 8;
@@ -499,7 +497,7 @@ LLVMCodegenVisitor::packRetsInStruct(llvm::StringRef functionName,
 }
 
 llvm::SmallVector<llvm::Value *> LLVMCodegenVisitor::unpackFunctionCallReturns(
-    YulExpressionNode &rhsExpression) { 
+    YulExpressionNode &rhsExpression) {
   YulFunctionCallNode &callNode =
       static_cast<YulFunctionCallNode &>(rhsExpression);
   std::string_view functionName = callNode.getCalleeName();

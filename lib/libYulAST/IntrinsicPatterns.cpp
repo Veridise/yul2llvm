@@ -1,6 +1,6 @@
 #include <cassert>
+#include <iostream>
 #include <libYulAST/IntrinsicPatterns.h>
-
 namespace yulast {
 IntrinsicPatternMatcher::IntrinsicPatternMatcher()
     : readFromStorageOffsetRegex(READ_FROM_STORAGE_OFFSET_REGEX_LIT),
@@ -151,17 +151,49 @@ IntrinsicPatternMatcher::parseUpdateStorageDynamic(std::string_view name) {
   res.toType = updateStorageDynamicGetToType(name);
   return res;
 }
-  StructTypeResult IntrinsicPatternMatcher::parseStructType(std::string_view name){
-    StructTypeResult res;
-    std::string nameStr(name);
-    std::regex regex(STRUCT_TYPE_ABI_REGEX_LIT);
-    std::smatch match;
-    int match_success = std::regex_match(nameStr, match, regex);
-    assert(match_success && "Struct match did not match regex");
-    res.name = match[1].str();
-    res.size = std::stoi(match[2].str());
-    res.location = match[3].str();
-    return res;
-  }
+StructTypeResult
+IntrinsicPatternMatcher::parseStructType(std::string_view name) {
+  StructTypeResult res;
+  std::string nameStr(name);
+  std::regex regex(STRUCT_TYPE_ABI_REGEX_LIT);
+  std::smatch match;
+  int match_success = std::regex_match(nameStr, match, regex);
+  assert(match_success && "Struct match did not match regex");
+  res.name = match[1].str();
+  res.size = std::stoi(match[2].str());
+  res.location = match[3].str();
+  return res;
+}
+
+ConvertXToYResult
+IntrinsicPatternMatcher::parseConvertXToY(std::string_view name) {
+  ConvertXToYResult res;
+  std::string nameStr(name);
+  std::regex regex(CONVERT_TYPE_X_TO_TYPE_Y_REGEX_LIT);
+  std::smatch match;
+  int match_success = std::regex_match(nameStr, match, regex);
+  assert(match_success && "ConvertXToY did not match regex");
+  res.sourceType = match[1].str();
+  res.sourceAddressSpace = match[2].str();
+  res.isSourceTypePointer = match[3].matched;
+
+  res.destType = match[4].str();
+  res.destAddressSpace = match[5].str();
+  res.isSourceTypePointer = match[6].matched;
+  return res;
+}
+
+YulStructTypeResult
+IntrinsicPatternMatcher::parseYulStructType(std::string_view name) {
+  YulStructTypeResult res;
+  std::string nameStr(name);
+  std::regex regex(STRUCT_TYPE_YUL_REGEX_LIT);
+  std::smatch match;
+  int match_success = std::regex_match(nameStr, match, regex);
+  assert(match_success && "Yul struct type did not match regex");
+  res.name = match[1].str();
+  res.size = std::stoi(match[2].str());
+  return res;
+}
 
 }; // namespace yulast

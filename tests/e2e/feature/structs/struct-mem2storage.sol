@@ -6,6 +6,7 @@ This testcase targets storage vaiable in same slot
 
 // RUN: pyul %s -o %t --project-dir %S | FileCheck %s
 //XFAIL: *
+// Wont work because copying mem to storage does not work
 pragma solidity ^0.8.10;
 
 contract StructTest {
@@ -17,8 +18,10 @@ contract StructTest {
         Sb b;
     }
     St st;
-    function readStruct() external view returns (uint256){
-        return st.b.a;
+    function readStruct(St memory mem) external view returns (uint256){
+        St storage ref = st ;
+        ref.a = mem;
+        return ref.b.a;
     }
 
     function writeStruct(uint256 v) external {

@@ -137,6 +137,8 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "sgt") {
     return true;
+  } else if (calleeName.startswith("convert_t_")) {
+    return true;
   } else
     return false;
 }
@@ -194,7 +196,8 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
     std::string strDenominator = match[4].str();
     llvm::StringRef srNumerator(strNumerator);
     llvm::StringRef srDenominator(strDenominator);
-    llvm::APInt numerator(256,0), denominator(256,0), quotient(256,0), reminder(256,0);
+    llvm::APInt numerator(256, 0), denominator(256, 0), quotient(256, 0),
+        reminder(256, 0);
     if (srNumerator.getAsInteger(10, numerator)) {
       assert(false && "Could not parse numerator in convert_t_rational");
     }
