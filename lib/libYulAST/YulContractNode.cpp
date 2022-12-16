@@ -156,7 +156,7 @@ YulContractNode::getIndexPathByName(std::vector<std::string> namePath) {
   std::vector<int> indices = {0};
   TypeInfo currentStruct = structTypes["self"];
   int index;
-  for (auto name : namePath) {
+  for (auto &name : namePath) {
     index = getFieldIndexInStruct(currentStruct, name);
     indices.push_back(index);
     auto memType = currentStruct.members[index].typeInfo;
@@ -171,12 +171,12 @@ YulContractNode::getIndexPathByName(std::vector<std::string> namePath) {
 
 std::vector<int> YulContractNode::getIndexPathBySlotOffset(int slot,
                                                            int offset) {
-  auto namePath = getNamePathBySlotOffset(slot, offset);
+  auto namePath = getIdentifierDerefBySlotOffset(slot, offset);
   return getIndexPathByName(namePath);
 }
 
-std::vector<std::string> YulContractNode::getNamePathBySlotOffset(int slot,
-                                                                  int offset) {
+std::vector<std::string>
+YulContractNode::getIdentifierDerefBySlotOffset(int slot, int offset) {
   return _getNamePathBySlotOffset(structTypes["self"], 0, 0, slot, offset);
 }
 

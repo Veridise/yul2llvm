@@ -137,8 +137,6 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "sgt") {
     return true;
-  } else if (calleeName.startswith("convert_t_")) {
-    return true;
   } else
     return false;
 }

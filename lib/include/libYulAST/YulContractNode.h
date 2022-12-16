@@ -9,11 +9,33 @@
 namespace yulast {
 
 struct StructField;
+/**
+ * @brief
+ *
+ */
 struct TypeInfo {
+  /**
+   * @brief Name of the type in the abi
+   *
+   */
   std::string typeStr;
+  /**
+   * @brief Helps identify if the type is a primitive, mapping or a struct
+   *
+   */
   std::string kind;
+  /**
+   * @brief This is valid only when kind is mapping. Helps identify type
+   * of key and value
+   *
+   */
   std::string keyType;
   std::string valueType;
+  /**
+   * @brief Valid only when kind is struct
+   * Refers to members of filed
+   *
+   */
   std::vector<StructField> members;
   int size;
   TypeInfo(std::string typeStr, std::string kind, std::string keyType,
@@ -57,7 +79,7 @@ public:
   std::vector<std::unique_ptr<YulFunctionDefinitionNode>> &getFunctions();
   std::vector<std::string> &getInsertionOrder();
   std::string to_string() override;
-  std::vector<std::string> getNamePathBySlotOffset(int slot, int offset);
+  std::vector<std::string> getIdentifierDerefBySlotOffset(int slot, int offset);
   std::vector<int> getIndexPathBySlotOffset(int slot, int offset);
   std::vector<int> getIndexPathByName(std::vector<std::string>);
   std::map<std::string, TypeInfo> &getTypeInfoMap();

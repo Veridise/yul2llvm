@@ -19,10 +19,10 @@ contract NestedMappingTestCase {
 //CHECK: define i256 @fun_mappingRead_{{[0-9]+\(i256 addrspace\(1\)\* \%__self, .+, .+\)}}
 //CHECK: call i256 addrspace(1)* @pyul_map_index{{\(i256 addrspace\(1\)\* \%.+, .+\)}}
 //CHECK: call i256 addrspace(1)* @pyul_map_index{{\(i256 addrspace\(1\)\* \%.+, .+\)}}
-//CHECK: load i32, i32*
+//CHECK: load i32, i32 addrspace(1)*
 
 
 //CHECK: define void @fun_mappingWrite_{{[0-9]+\(i256 addrspace\(1\)\* \%__self, .+, .+, .+\)}}
 //CHECK: call i256 addrspace(1)* @pyul_map_index({{i256 addrspace\(1\)\* \%.+, .+}})
 //CHECK: call i256 addrspace(1)* @pyul_map_index({{i256 addrspace\(1\)\* \%.+, .+}})
-//CHECK: store i32 {{.+}}, i32*
+//CHECK: store i32 {{.+}}, i32 addrspace(1)*
