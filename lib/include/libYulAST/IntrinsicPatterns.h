@@ -46,6 +46,7 @@ struct YulStructTypeResult {
 class IntrinsicPatternMatcher {
   std::regex readFromStorageOffsetRegex;
   std::regex readFromStorageDynamicRegex;
+  std::regex readFromStorageReferenceRegex;
   std::regex updateStorageOffsetfRegex;
   std::regex updateStorageDynamicRegex;
 

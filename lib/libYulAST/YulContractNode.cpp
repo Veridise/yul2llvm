@@ -1,5 +1,6 @@
 #include <cassert>
 #include <libYulAST/YulContractNode.h>
+#include <limits>
 using namespace yulast;
 
 void YulContractNode::parseRawAST(const json *rawAST) {
@@ -148,7 +149,7 @@ unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti,
     i++;
   }
   assert(false && "field member not found");
-  return INT_MAX;
+  return std::numeric_limits<int>::max();
 }
 
 std::vector<int>

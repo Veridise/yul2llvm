@@ -313,6 +313,8 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
   } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_DYNAMIC) {
     auto res = patternMatcher.parseReadFromStorageDynamic(calleeName);
     rewriteStorageDynamicLoadIntrinsic(callInst, res.type);
+  } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_REFERENCE) {
+    
   } else {
     //@todo raise runtime error
     visitor.currentFunction->dump();
@@ -500,7 +502,7 @@ void YulIntrinsicHelper::rewriteConvertStorageToStoragePtr(
   llvm::BasicBlock::InstListType &instList =
       callInst->getParent()->getInstList();
   llvm::BasicBlock::iterator callInstIt = callInst->getIterator();
-  llvm::ReplaceInstWithValue(instList, callInstIt, callInst->getArgOperand(0));
+  llvm::ReplaceInstWithValue(instList, callInstIt, callInst->getArgOperand(1));
 }
 
 void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
@@ -518,7 +520,7 @@ void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
       visitor.getAllocateMemoryFunction(), sizeArray, "new" + structType.name);
   auto align = visitor.getModule().getDataLayout().getABITypeAlign(
       newLocation->getType());
-  tmpBuilder.CreateMemCpy(newLocation, align, callInst->getArgOperand(0), align,
+  tmpBuilder.CreateMemCpy(newLocation, align, callInst->getArgOperand(1), align,
                           sizeArray[0]);
   llvm::Value *castedNewLocation = tmpBuilder.CreatePtrToInt(
       newLocation, visitor.getDefaultType(), newLocation->getName() + "i256");

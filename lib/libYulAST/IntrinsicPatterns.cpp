@@ -1,10 +1,10 @@
 #include <cassert>
-#include <iostream>
 #include <libYulAST/IntrinsicPatterns.h>
 namespace yulast {
 IntrinsicPatternMatcher::IntrinsicPatternMatcher()
     : readFromStorageOffsetRegex(READ_FROM_STORAGE_OFFSET_REGEX_LIT),
       readFromStorageDynamicRegex(READ_FROM_STORAGE_DYNAMIC_REGEX_LIT),
+      readFromStorageReferenceRegex(READ_FROM_STORAGE_REFERENCE_REGEX_LIT),
       updateStorageOffsetfRegex(UPDATE_STORAGE_OFFSET_REGEX_LIT),
       updateStorageDynamicRegex(UPDATE_STORAGE_DYNAMIC_REGEX_LIT) {}
 
@@ -16,6 +16,8 @@ IntrinsicPatternMatcher::getYulIntriniscType(std::string_view name) {
     return YUL_INTRINSIC_ID::READ_FROM_STORAGE_OFFSET;
   } else if (std::regex_match(nameStr, match, readFromStorageDynamicRegex)) {
     return YUL_INTRINSIC_ID::READ_FROM_STORAGE_DYNAMIC;
+  } else if (std::regex_match(nameStr, match, readFromStorageReferenceRegex)) {
+    return YUL_INTRINSIC_ID::READ_FROM_STORAGE_REFERENCE;
   } else if (std::regex_match(nameStr, match, updateStorageOffsetfRegex)) {
     return YUL_INTRINSIC_ID::UPDATE_STORAGE_OFFSET;
   } else if (std::regex_match(nameStr, match, updateStorageDynamicRegex)) {
