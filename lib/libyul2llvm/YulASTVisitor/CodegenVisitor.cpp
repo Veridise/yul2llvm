@@ -156,10 +156,10 @@ void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   constructStructs(node);
   getModule().setSourceFileName(node.getName());
   ptrSelfPointer = new llvm::GlobalVariable(
-      getModule(), structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE), false,
+      getModule(), getSelfType()->getPointerTo(STORAGE_ADDR_SPACE), false,
       llvm::GlobalValue::ExternalLinkage,
       llvm::Constant::getNullValue(
-          structTypes["self"]->getPointerTo(STORAGE_ADDR_SPACE)),
+          getSelfType()->getPointerTo(STORAGE_ADDR_SPACE)),
       std::string(node.getName().data()) + "_self_ptr", nullptr,
       llvm::GlobalValue::NotThreadLocal, 0);
   currentContract = &node;

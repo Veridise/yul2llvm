@@ -85,6 +85,7 @@ public:
   std::map<std::string, TypeInfo> &getTypeInfoMap();
   std::string_view getName();
   std::map<std::string, TypeInfo> &getStructTypes();
+  TypeInfo getSelfType();
 };
 
 }; // namespace yulast

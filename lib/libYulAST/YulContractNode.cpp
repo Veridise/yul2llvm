@@ -148,14 +148,21 @@ unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti,
     }
     i++;
   }
-  assert(false && "field member not found");
-  return std::numeric_limits<int>::max();
+
+  auto it = std::find_if(ti.members.begin(), ti.members.end(),
+                         [&](auto &mem) { return name == mem.name; });
+  if (it != ti.members.end()) {
+    return std::distance(ti.members.begin(), it);
+  } else {
+    assert(false && "field member not found");
+    return std::numeric_limits<int>::max();
+  }
 }
 
 std::vector<int>
 YulContractNode::getIndexPathByName(std::vector<std::string> namePath) {
   std::vector<int> indices = {0};
-  TypeInfo currentStruct = structTypes["self"];
+  TypeInfo currentStruct = getSelfType();
   int index;
   for (auto &name : namePath) {
     index = getFieldIndexInStruct(currentStruct, name);
@@ -178,7 +185,7 @@ std::vector<int> YulContractNode::getIndexPathBySlotOffset(int slot,
 
 std::vector<std::string>
 YulContractNode::getIdentifierDerefBySlotOffset(int slot, int offset) {
-  return _getNamePathBySlotOffset(structTypes["self"], 0, 0, slot, offset);
+  return _getNamePathBySlotOffset(getSelfType(), 0, 0, slot, offset);
 }
 
 std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(
@@ -206,4 +213,10 @@ std::string_view YulContractNode::getName() { return contractName; }
 
 std::map<std::string, TypeInfo> &YulContractNode::getStructTypes() {
   return structTypes;
+}
+
+TypeInfo YulContractNode::getSelfType() {
+  auto it = structTypes.find("self");
+  assert(it != structTypes.end() && "self type not found in contract");
+  return structTypes["self"];
 }

@@ -49,7 +49,7 @@ class YulIntrinsicHelper {
    * @param namePath
    * @return std::string
    */
-  std::string getNameFromNamePath(std::vector<std::string> namePath);
+  std::string getValueNameFromNamePath(std::vector<std::string> namePath);
 
 public:
   // Helpers
@@ -58,7 +58,16 @@ public:
       llvm::StringRef calleeName); // skip definition of functions that are
                                    // going to be replaced out
   llvm::Value *handleIntrinsicFunctionCall(YulFunctionCallNode &node);
-  llvm::Value *getPointerToStorageVarByName(std::vector<std::string>,
+
+  /**
+   * @brief Get the Pointer To Storage Var By Name object
+   * @param name The name of the storage variable being accessed.
+   * Note: Name can be referring to member of a struct. Therefore
+   * This vector is an array of such name components.
+   * @param insertPoint
+   * @return llvm::Value*
+   */
+  llvm::Value *getPointerToStorageVarByName(std::vector<std::string> name,
                                             llvm::Instruction *insertPoint);
   llvm::Type *getTypeByTypeName(llvm::StringRef type, const int addrSpaceId);
   llvm::Function *getOrCreateFunction(std::string, llvm::FunctionType *);

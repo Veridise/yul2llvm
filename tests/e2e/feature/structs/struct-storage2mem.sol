@@ -37,3 +37,4 @@ contract StructTest {
 //CHECK: define void @fun_writeArray_{{[0-9]+}}(i256 addrspace(1)* %__self, {{.+, .+, .+}})
 //CHECK: getelementptr [0 x {{.*}}], [0 x {{.*}}]*
 //CHECK: store i32 {{.*}}, i32*
+//CHECK: }

@@ -38,7 +38,7 @@ llvm::Value *YulIntrinsicHelper::getPointerToStorageVarByName(
   }
   llvm::Value *ptr =
       tempBuilder.CreateGEP(visitor.getSelfType(), self, indices,
-                            "ptr_self_" + getNameFromNamePath(namePath));
+                            "ptr_self_" + getValueNameFromNamePath(namePath));
   return ptr;
 }
 
@@ -116,8 +116,9 @@ llvm::SmallVector<llvm::Type *> YulIntrinsicHelper::getFunctionArgTypes(
 
 LLVMCodegenVisitor &YulIntrinsicHelper::getVisitor() { return visitor; }
 
-std::string
-YulIntrinsicHelper::getNameFromNamePath(std::vector<std::string> namePath) {
+std::string YulIntrinsicHelper::getValueNameFromNamePath(
+    std::vector<std::string> namePath) {
+  assert(!namePath.empty() && "Empty name path provided");
   std::string name = namePath[0];
   for (auto it = namePath.begin() + 1; it != namePath.end(); it++) {
     name = name + "_" + *it;

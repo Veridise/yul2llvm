@@ -135,8 +135,8 @@ void YulIntrinsicHelper::rewriteMapIndexCalls(llvm::CallInst *callInst) {
         offset->getZExtValue(), 0);
     llvm::Value *ptrSelfVar = getPointerToStorageVarByName(varname, callInst);
     llvm::Type *mapType = checkAndGetPointeeType(ptrSelfVar);
-    llvm::Value *mapPtr = tmpBuilder.CreateLoad(mapType, ptrSelfVar,
-                                                getNameFromNamePath(varname));
+    llvm::Value *mapPtr = tmpBuilder.CreateLoad(
+        mapType, ptrSelfVar, getValueNameFromNamePath(varname));
     llvm::Value *key = callInst->getArgOperand(1);
     llvm::SmallVector<llvm::Value *> args;
     args.push_back(mapPtr);
@@ -314,7 +314,7 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
     auto res = patternMatcher.parseReadFromStorageDynamic(calleeName);
     rewriteStorageDynamicLoadIntrinsic(callInst, res.type);
   } else if (loadType == YUL_INTRINSIC_ID::READ_FROM_STORAGE_REFERENCE) {
-    
+
   } else {
     //@todo raise runtime error
     visitor.currentFunction->dump();
