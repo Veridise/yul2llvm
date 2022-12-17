@@ -153,12 +153,13 @@ void LLVMCodegenVisitor::visitYulContractNode(YulContractNode &node) {
   allocateMemoryFunction = funDefHelper->createMemoryAllocatorFunction();
   allocateStorageFunction = funDefHelper->createStorageAllocatorFunction();
   runFunctionDeclaratorVisitor(node);
-  constructSelfStructType(node);
+  constructStructs(node);
   getModule().setSourceFileName(node.getName());
   ptrSelfPointer = new llvm::GlobalVariable(
-      getModule(), selfType->getPointerTo(STORAGE_ADDR_SPACE), false,
+      getModule(), getSelfType()->getPointerTo(STORAGE_ADDR_SPACE), false,
       llvm::GlobalValue::ExternalLinkage,
-      llvm::Constant::getNullValue(selfType->getPointerTo(STORAGE_ADDR_SPACE)),
+      llvm::Constant::getNullValue(
+          getSelfType()->getPointerTo(STORAGE_ADDR_SPACE)),
       std::string(node.getName().data()) + "_self_ptr", nullptr,
       llvm::GlobalValue::NotThreadLocal, 0);
   currentContract = &node;
@@ -385,28 +386,52 @@ void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
   }
 }
 
-void LLVMCodegenVisitor::constructSelfStructType(YulContractNode &node) {
-  std::vector<llvm::Type *> memberTypes;
+void LLVMCodegenVisitor::constructStructs(YulContractNode &node) {
   auto &typeInfoMap = node.getTypeInfoMap();
-  for (auto &field : node.getStructFieldOrder()) {
-    std::string typeStr = node.getVarTypeMap()[field].type;
-    llvm::Type *type = getTypeByInfo(typeStr, typeInfoMap, STORAGE_ADDR_SPACE);
-    memberTypes.push_back(type);
+  std::deque<TypeInfo> allStructs;
+  for (auto it : node.getStructTypes()) {
+    if (it.second.kind == "struct")
+      allStructs.push_back(it.second);
   }
-
-  selfType = llvm::StructType::create(*TheContext, memberTypes, "self_type");
+  while (!allStructs.empty()) {
+    std::vector<llvm::Type *> memberTypes;
+    TypeInfo type = allStructs.front();
+    allStructs.pop_front();
+    bool skipStruct = false;
+    for (auto &field : type.members) {
+      if (field.typeInfo.kind == "struct") {
+        if (structTypes.find(field.typeInfo.typeStr) == structTypes.end()) {
+          allStructs.push_back(type);
+          skipStruct = true;
+          break;
+        }
+      }
+      llvm::Type *memType = getLLVMTypeByInfo(field.typeInfo.typeStr,
+                                              typeInfoMap, STORAGE_ADDR_SPACE);
+      memberTypes.push_back(memType);
+    }
+    if (skipStruct) {
+      continue;
+    }
+    if (type.typeStr == "t_struct(self)")
+      type.typeStr = "self";
+    llvm::StructType *newType =
+        llvm::StructType::create(*TheContext, memberTypes, type.typeStr);
+    structTypes[type.typeStr] = newType;
+  }
 }
 
-llvm::Type *
-LLVMCodegenVisitor::getTypeByInfo(llvm::StringRef typeStr,
-                                  std::map<std::string, TypeInfo> &typeInfoMap,
-                                  int addrSpaceId) {
+llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
+    llvm::StringRef typeStr, std::map<std::string, TypeInfo> &typeInfoMap,
+    int addrSpaceId) {
   llvm::Type *memPtrType =
       llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {
     return memPtrType;
+  } else if (typeStr.startswith("t_struct")) {
+    return structTypes[typeStr];
   } else {
     int bitwidth = typeInfoMap[typeStr.str()].size * 8;
     return llvm::Type::getIntNTy(*TheContext, bitwidth);
@@ -437,9 +462,10 @@ void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {
 
 void LLVMCodegenVisitor::dumpToStdout() const { dump(llvm::outs()); }
 
-llvm::StructType *LLVMCodegenVisitor::getSelfType() const {
-  assert(selfType && "SelfType is accessed but not built yet");
-  return selfType;
+llvm::StructType *LLVMCodegenVisitor::getSelfType() {
+  auto it = structTypes.find("self");
+  assert(it != structTypes.end() && "SelfType is accessed but not built yet");
+  return structTypes["self"];
 }
 
 llvm::Type *LLVMCodegenVisitor::getDefaultType() const {

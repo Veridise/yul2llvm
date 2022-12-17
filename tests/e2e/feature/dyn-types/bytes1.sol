@@ -12,7 +12,7 @@ pragma solidity ^0.8.10;
 contract StorageBytes1TestCase {
     bytes1 x;
     bytes1 y;
-
+    
     function readStorageVariable() external view returns (bytes1){
         return x&y;
     }

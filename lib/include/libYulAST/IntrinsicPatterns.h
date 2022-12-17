@@ -23,9 +23,30 @@ struct UpdateStorageDynamicResult {
   std::string toType;
 };
 
+struct StructTypeResult {
+  std::string name;
+  std::string location;
+  int size;
+};
+
+struct ConvertXToYResult {
+  std::string sourceType;
+  std::string sourceAddressSpace;
+  bool isSourceTypePointer;
+  std::string destType;
+  std::string destAddressSpace;
+  bool isDestTypePtr;
+};
+
+struct YulStructTypeResult {
+  std::string name;
+  int size;
+};
+
 class IntrinsicPatternMatcher {
   std::regex readFromStorageOffsetRegex;
   std::regex readFromStorageDynamicRegex;
+  std::regex readFromStorageReferenceRegex;
   std::regex updateStorageOffsetfRegex;
   std::regex updateStorageDynamicRegex;
 
@@ -48,5 +69,9 @@ public:
   std::string updateStorageDynamicGetFromType(std::string_view name);
   std::string updateStorageDynamicGetToType(std::string_view name);
   UpdateStorageDynamicResult parseUpdateStorageDynamic(std::string_view name);
+  StructTypeResult parseStructType(std::string_view name);
+
+  ConvertXToYResult parseConvertXToY(std::string_view name);
+  YulStructTypeResult parseYulStructType(std::string_view name);
 };
 } // namespace yulast

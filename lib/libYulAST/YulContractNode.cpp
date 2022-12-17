@@ -1,6 +1,6 @@
 #include <cassert>
 #include <libYulAST/YulContractNode.h>
-
+#include <limits>
 using namespace yulast;
 
 void YulContractNode::parseRawAST(const json *rawAST) {
@@ -34,7 +34,8 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-TypeInfo parseType(std::string_view type, const json &metadata) {
+TypeInfo YulContractNode::parseType(std::string_view type,
+                                    const json &metadata) {
   assert(metadata.contains("types") && "Metadata does not contain types");
   auto &types = metadata["types"];
   assert(types.contains(type) && "Types does not contain the requested type");
@@ -44,6 +45,7 @@ TypeInfo parseType(std::string_view type, const json &metadata) {
   // starts with not available until c++20
   std::string arrayTypeLit("t_array");
   std::string mappingTypeLit("t_mapping");
+  std::string structTypeLit("t_struct");
   if (type.substr(0, arrayTypeLit.size()) == arrayTypeLit) {
     std::regex arrayTypeRegex("t_array\\((.*)\\)([0-9]+)_(storage|memory)?");
     std::smatch match;
@@ -54,7 +56,8 @@ TypeInfo parseType(std::string_view type, const json &metadata) {
     }
     assert(types.contains(match[1].str()) &&
            "Array child type not found in types");
-    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     "",                                            // keytype
                     match[1].str(),                                // valueType
                     types[typeStr]["size"].get<int>());            // size
@@ -69,14 +72,28 @@ TypeInfo parseType(std::string_view type, const json &metadata) {
            "keyType not found in metadata for mapping type");
     assert(types.contains(valueType) &&
            "valueType not found in metadata for mapping type");
-    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     keyType, valueType, -1);
+  } else if (type.substr(0, structTypeLit.size()) == structTypeLit) {
+    assert(types[typeStr].contains("fields") &&
+           "fields not found in struct type");
+    StructTypeResult res = patternMatcher.parseStructType(type);
+    TypeInfo typeInfo(typeStr, "struct", "", "", res.size);
+    for (auto &field : types[typeStr]["fields"]) {
+      TypeInfo ti = parseType(field["type"].get<std::string>(), metadata);
+      typeInfo.members.push_back(StructField(field["name"].get<std::string>(),
+                                             ti, field["slot"].get<int>(),
+                                             field["offset"].get<int>()));
+    }
+    structTypes[typeStr] = typeInfo;
+    return typeInfo;
   } else {
     // assume primitive type
-    //@todo another branch will be added when we implement solidity structs
     assert(types[typeStr].contains("size") &&
            "Primitive type does not conatiain size");
-    return TypeInfo(types[type.data()]["kind"].get<std::string>(), // kind
+    return TypeInfo(typeStr,
+                    types[type.data()]["kind"].get<std::string>(), // kind
                     "", "", types[typeStr]["size"].get<int>());
   }
 }
@@ -88,22 +105,25 @@ void YulContractNode::buildTypeInfoMap(const json &metadata) {
   }
 }
 
-void YulContractNode::buildVarTypeMap(const json &metadata) {
+void YulContractNode::buildStateVars(const json &metadata) {
   // for each storage location i.e. var
+  // create self struct
+  TypeInfo self("t_struct(self)", "struct", "", "", 0);
   for (auto &var : metadata["state_vars"]) {
     std::string varName = var["name"].get<std::string>();
     std::string varType = var["type"].get<std::string>();
     int offset = var["offset"].get<int>();
     int slot = var["slot"].get<int>();
-    varTypeMap[varName] = {std::move(varType), slot, offset};
-    structFieldOrder.push_back(varName);
+    self.members.push_back(
+        StructField(varName, typeInfoMap[varType], slot, offset));
   }
+  structTypes["self"] = self;
 }
 
 YulContractNode::YulContractNode(const json *rawAST)
     : YulASTBase(rawAST, YUL_AST_NODE_TYPE::YUL_AST_NODE_CONTRACT) {
   buildTypeInfoMap(rawAST->at("metadata"));
-  buildVarTypeMap(rawAST->at("metadata"));
+  buildStateVars(rawAST->at("metadata"));
   parseRawAST(rawAST);
 }
 
@@ -114,28 +134,89 @@ YulContractNode::getFunctions() {
 
 std::string YulContractNode::to_string() { return "contract"; }
 
-std::map<std::string, StorageVarInfo> &YulContractNode::getVarTypeMap() {
-  return varTypeMap;
-}
-
 std::map<std::string, TypeInfo> &YulContractNode::getTypeInfoMap() {
   return typeInfoMap;
 }
 
-std::string YulContractNode::getStateVarNameBySlotOffset(int slot, int offset) {
-  for (auto &f : structFieldOrder) {
-    auto varEntry = varTypeMap[f];
-    int varSlot = varEntry.slot;
-    int varOffset = varEntry.offset;
-    if (varOffset == offset && varSlot == slot) {
-      return f;
+unsigned int YulContractNode::getFieldIndexInStruct(TypeInfo ti,
+                                                    std::string name) {
+  assert(ti.kind == "struct" && "type not struct");
+  unsigned int i = 0;
+  for (auto mem : ti.members) {
+    if (name == mem.name) {
+      return i;
     }
+    i++;
   }
-  return "";
+
+  auto it = std::find_if(ti.members.begin(), ti.members.end(),
+                         [&](auto &mem) { return name == mem.name; });
+  if (it != ti.members.end()) {
+    return std::distance(ti.members.begin(), it);
+  } else {
+    assert(false && "field member not found");
+    return std::numeric_limits<int>::max();
+  }
 }
 
-std::vector<std::string> &YulContractNode::getStructFieldOrder() {
-  return structFieldOrder;
+std::vector<int>
+YulContractNode::getIndexPathByName(std::vector<std::string> namePath) {
+  std::vector<int> indices = {0};
+  TypeInfo currentStruct = getSelfType();
+  int index;
+  for (auto &name : namePath) {
+    index = getFieldIndexInStruct(currentStruct, name);
+    indices.push_back(index);
+    auto memType = currentStruct.members[index].typeInfo;
+    if (memType.kind == "struct") {
+      currentStruct = memType;
+    } else {
+      break;
+    }
+  }
+  return indices;
+}
+
+std::vector<int> YulContractNode::getIndexPathBySlotOffset(int slot,
+                                                           int offset) {
+  auto namePath = getIdentifierDerefBySlotOffset(slot, offset);
+  return getIndexPathByName(namePath);
+}
+
+std::vector<std::string>
+YulContractNode::getIdentifierDerefBySlotOffset(int slot, int offset) {
+  return _getNamePathBySlotOffset(getSelfType(), 0, 0, slot, offset);
+}
+
+std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(
+    TypeInfo type, int currentSlot, int currentOffset, int slot, int offset) {
+  std::vector<std::string> namePath;
+  for (auto mem : type.members) {
+    if (mem.typeInfo.kind == "struct") {
+      std::vector<std::string> subPath =
+          _getNamePathBySlotOffset(mem.typeInfo, currentSlot + mem.slot,
+                                   currentOffset + mem.offset, slot, offset);
+      if (subPath.size() > 0) {
+        namePath.push_back(mem.name);
+        namePath.insert(namePath.end(), subPath.begin(), subPath.end());
+        return namePath;
+      }
+    } else if (mem.slot + currentSlot == slot &&
+               mem.offset + currentOffset == offset) {
+      namePath.push_back(mem.name);
+    }
+  }
+  return namePath;
 }
 
 std::string_view YulContractNode::getName() { return contractName; }
+
+std::map<std::string, TypeInfo> &YulContractNode::getStructTypes() {
+  return structTypes;
+}
+
+TypeInfo YulContractNode::getSelfType() {
+  auto it = structTypes.find("self");
+  assert(it != structTypes.end() && "self type not found in contract");
+  return structTypes["self"];
+}
