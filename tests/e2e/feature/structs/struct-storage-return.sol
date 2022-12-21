@@ -26,3 +26,4 @@ contract StructTest {
 //CHECK:   call void @llvm.memcpy.p2i8.p256i8.i32(i8 addrspace(2)* align 8 %{{.*}}, i8 addrspace(256)* align 8 null, i32 10, i1 false)
 //CHECK:   %{{.*}} = ptrtoint i8 addrspace(2)* %{{.*}} to i256
 //CHECK:   ret i256 %{{.*}}
+//CHECK: }

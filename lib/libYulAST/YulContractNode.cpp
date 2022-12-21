@@ -123,6 +123,7 @@ void YulContractNode::buildStateVars(const json &metadata) {
 YulContractNode::YulContractNode(const json *rawAST)
     : YulASTBase(rawAST, YUL_AST_NODE_TYPE::YUL_AST_NODE_CONTRACT) {
   buildTypeInfoMap(rawAST->at("metadata"));
+  buildFunctionSignatures(rawAST->at("abi"));
   buildStateVars(rawAST->at("metadata"));
   parseRawAST(rawAST);
 }
@@ -219,4 +220,18 @@ TypeInfo YulContractNode::getSelfType() {
   auto it = structTypes.find("self");
   assert(it != structTypes.end() && "self type not found in contract");
   return structTypes["self"];
+}
+
+void YulContractNode::buildFunctionSignatures(const json &abi) {
+  for(auto &fun: abi){
+    std::string name = fun["name"];
+    std::vector<TypeInfo> args;
+    for(auto &input: fun["inputs"]) {
+
+    }
+    std::vector<TypeInfo> rets;
+    for(auto &input: fun["outputs"]) {
+
+    }
+  }
 }

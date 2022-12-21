@@ -3,6 +3,7 @@
 #include <libYulAST/IntrinsicPatterns.h>
 #include <libYulAST/YulASTBase.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
+#include <libYulAST/IntrinsicPatterns.h>
 #include <regex>
 #include <vector>
 
@@ -54,6 +55,12 @@ struct StructField {
       : name(name), typeInfo(ti), slot(slot), offset(offset) {}
 };
 
+struct FunctionSignature{
+  std::string name;
+  std::vector<TypeInfo> arguments;
+  std::vector<TypeInfo> returns;
+};
+
 class YulContractNode : public YulASTBase {
   // map from label -> (type name, bitwidth)
   // needed to maintain the index of a member in a struct
@@ -62,6 +69,7 @@ class YulContractNode : public YulASTBase {
   std::map<std::string, TypeInfo> typeInfoMap;
   IntrinsicPatternMatcher patternMatcher;
   std::map<std::string, TypeInfo> structTypes;
+  std::map<std::string, FunctionSignature> functionSignatures;
 
   void buildTypeInfoMap(const json &);
   virtual void parseRawAST(const json *) override;
@@ -73,6 +81,7 @@ class YulContractNode : public YulASTBase {
                                                     int currentSlot,
                                                     int currentOffset, int slot,
                                                     int offset);
+  void buildFunctionSignatures(const json &);
 
 public:
   YulContractNode(const json *);

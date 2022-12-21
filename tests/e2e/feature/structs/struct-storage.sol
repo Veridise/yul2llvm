@@ -31,3 +31,4 @@ contract StructTest {
 //CHECK: {{.*}} = add i256 0, 0
 //CHECK: %ptr_self_st_a = getelementptr %self, %self addrspace(1)* %1, i32 0, i32 0, i32 0
 //CHECK: store i256 %{{.*}}, i256 addrspace(1)* %ptr_self_st_a, align 4
+//CHECK: }
