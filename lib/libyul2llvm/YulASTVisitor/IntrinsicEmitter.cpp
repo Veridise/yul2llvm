@@ -41,6 +41,10 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "sgt") {
     return true;
+  } else if (calleeName == "div") {
+    return true;
+  } else if (calleeName == "mul") {
+    return true;
   }
   return false;
 }
@@ -86,6 +90,10 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleCompare(node, llvm::ICmpInst::ICMP_UGT);
   } else if (calleeName == "sgt") {
     return handleCompare(node, llvm::ICmpInst::ICMP_SGT);
+  } else if (calleeName == "div") {
+    return handleDiv(node);
+  } else if (calleeName == "mul") {
+    return handleDiv(node);
   }
   return nullptr;
 }
@@ -137,8 +145,13 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName == "sgt") {
     return true;
+  } else if (calleeName == "div") {
+    return true;
+  } else if (calleeName == "mul") {
+    return true;
   } else
     return false;
+
 }
 
 llvm::Value *YulIntrinsicHelper::handleCompare(YulFunctionCallNode &node,
@@ -406,6 +419,24 @@ YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
     assert(false && "pointer arithmetic with both pointers");
   } // both scalars
   return Builder.CreateAdd(v1, v2);
+}
+
+llvm::Value *
+YulIntrinsicHelper::handleDiv(YulFunctionCallNode &node) {
+  llvm::IRBuilder<> &Builder = visitor.getBuilder();
+  llvm::Value *v1, *v2;
+  v1 = visitor.visit(*node.getArgs()[0]);
+  v2 = visitor.visit(*node.getArgs()[1]);
+  return Builder.CreateUDiv(v1, v2);
+}
+
+llvm::Value *
+YulIntrinsicHelper::handleMul(YulFunctionCallNode &node) {
+  llvm::IRBuilder<> &Builder = visitor.getBuilder();
+  llvm::Value *v1, *v2;
+  v1 = visitor.visit(*node.getArgs()[0]);
+  v2 = visitor.visit(*node.getArgs()[1]);
+  return Builder.CreateMul(v1, v2);
 }
 
 llvm::Value *
