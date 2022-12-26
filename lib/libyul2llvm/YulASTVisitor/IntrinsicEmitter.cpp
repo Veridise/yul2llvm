@@ -151,7 +151,6 @@ bool YulIntrinsicHelper::skipDefinition(llvm::StringRef calleeName) {
     return true;
   } else
     return false;
-
 }
 
 llvm::Value *YulIntrinsicHelper::handleCompare(YulFunctionCallNode &node,
@@ -421,17 +420,15 @@ YulIntrinsicHelper::handleAddFunctionCall(YulFunctionCallNode &node) {
   return Builder.CreateAdd(v1, v2);
 }
 
-llvm::Value *
-YulIntrinsicHelper::handleDiv(YulFunctionCallNode &node) {
+llvm::Value *YulIntrinsicHelper::handleDiv(YulFunctionCallNode &node) {
   llvm::IRBuilder<> &Builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
   v2 = visitor.visit(*node.getArgs()[1]);
-  return Builder.CreateUDiv(v1, v2);
+  return Builder.CreateSDiv(v1, v2);
 }
 
-llvm::Value *
-YulIntrinsicHelper::handleMul(YulFunctionCallNode &node) {
+llvm::Value *YulIntrinsicHelper::handleMul(YulFunctionCallNode &node) {
   llvm::IRBuilder<> &Builder = visitor.getBuilder();
   llvm::Value *v1, *v2;
   v1 = visitor.visit(*node.getArgs()[0]);
