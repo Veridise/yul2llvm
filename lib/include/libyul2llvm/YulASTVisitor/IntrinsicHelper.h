@@ -122,6 +122,8 @@ public:
 
   // Yul EVM functions
   llvm::Value *handleAddFunctionCall(YulFunctionCallNode &node);
+  llvm::Value *handleDiv(YulFunctionCallNode &node);
+  llvm::Value *handleMul(YulFunctionCallNode &node);
   llvm::Value *handleSubFunctionCall(YulFunctionCallNode &node);
 
   LLVMCodegenVisitor &getVisitor();
