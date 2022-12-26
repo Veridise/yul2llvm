@@ -551,6 +551,7 @@ bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst, ll
     instStack.pop();
     if(currentValue->getName().contains("t_struct")){
       structRef = currentValue;
+      llvm::outs()<<"found "<<structRef<<"\n";
       return true;
     }
     for(auto &arg: callInst->getParent()->getParent()->args()){
@@ -594,6 +595,8 @@ llvm::SmallVector<int> YulIntrinsicHelper::getMemStructOffsets(llvm::CallInst *c
       if(!offset){
         assert(false && "While getting structs did not find a constant add to struct ref");
       }
+    } else {
+      assert(false && "Both operands of addInst are not in struct offset calculation chains");
     }
     offsets.push_back(offset->getSExtValue());
 
@@ -641,8 +644,10 @@ llvm::Value *YulIntrinsicHelper::structDerefFromReferenceByOffset(llvm::CallInst
 
 llvm::Value *YulIntrinsicHelper::getStructElementPointer(llvm::CallInst *callInst, 
                               llvm::Value *structRef){
+  llvm::outs()<<"gep "<<structRef<<"\n";
   llvm::StringRef name = structRef->getName();
   size_t idx = name.find("t_struct");
+  llvm::outs()<<name<<"\n";
   llvm::StringRef type = name.substr(idx, name.size()-idx);
   StructTypeResult res = patternMatcher.parseStructTypeFromYul(type);
   llvm::SmallVector<int> offsets = getMemStructOffsets(callInst, structRef);
@@ -659,14 +664,13 @@ YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
   llvm::Value *pointer;
   if (std::regex_match(calleeName, match, readCallNameRegex)) {
     if(isStructAddressCalculation(callInst, structRef)){
+      llvm::outs()<<"returned "<<structRef<<"\n";
       pointer = getStructElementPointer(callInst, structRef);
     } else {
-      llvm::Value *pointer = callInst->getArgOperand(0);
+      pointer = callInst->getArgOperand(0);
     }
     std::string type = match[1].str();
     llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
-    llvm::Align align =
-      visitor.getModule().getDataLayout().getABITypeAlign(loadType);
     llvm::LoadInst *loadedWord = new llvm::LoadInst(loadType, pointer, "mem_load", callInst);
     llvm::ReplaceInstWithInst(callInst, loadedWord);
   }
@@ -689,11 +693,13 @@ YulIntrinsicHelper::rewriteWriteToMemory(llvm::CallInst *callInst) {
       valueToStore = builder.CreateIntCast(valueToStore, elementType, false);
     }
     llvm::Value *structRef;
-    if(isStructAddressCalculation(callInst, pointer)){
+    if(isStructAddressCalculation(callInst, structRef)){
+      llvm::outs()<<"returned "<<structRef<<"\n";
       pointer = getStructElementPointer(callInst, structRef);
     } else {
       pointer = callInst->getArgOperand(0);
     }
+    callInst->setName("");
     llvm::StoreInst *store = new llvm::StoreInst(valueToStore, pointer, callInst);
     llvm::ReplaceInstWithInst(callInst, store);
   }

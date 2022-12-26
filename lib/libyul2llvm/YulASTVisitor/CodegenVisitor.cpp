@@ -441,7 +441,7 @@ llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
 
 llvm::StructType * LLVMCodegenVisitor::getStructTypeByName(std::string structTypeName){
   for(auto &it: structTypes){
-    llvm::StringRef yulTypeName = "t_struct("+structTypeName+")";
+    std::string yulTypeName = "t_struct("+structTypeName+")";
     if(it.first().startswith(yulTypeName)){
       return it.second;
     }

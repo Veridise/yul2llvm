@@ -187,7 +187,7 @@ void YulContractNode::augmentTypeInfoMapFromAbi(const json &abi){
   for(auto &fun: abi){
     std::deque<const json*> allStructs;
     for (auto &inp: fun.at("inputs")){
-      std::string_view internalType = inp.at("internalType").get<std::string>();
+      std::string internalType = inp.at("internalType").get<std::string>();
       if(internalType.substr(0, structTypeLit.size()) ==
                   structTypeLit){
         StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalType);
@@ -201,14 +201,16 @@ void YulContractNode::augmentTypeInfoMapFromAbi(const json &abi){
       }
     }
     for (auto &op: fun.at("outputs")){
-      std::string_view internalType = op.at("internalType").get<std::string>();
+      std::string internalType = op.at("internalType").get<std::string>();
       if(internalType.substr(0, structTypeLit.size()) ==
                   structTypeLit){
         StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalType);
         auto it = structTypes.find(res.name);
-        TypeInfo ti;
-        if(parseStructFromAbiArg(op, res.name, ti)){
-          assert(false && "Could not parse Struct");
+        if(it == structTypes.end()){
+          TypeInfo ti;
+          if(parseStructFromAbiArg(op, res.name, ti)){
+            assert(false && "Could not parse Struct");
+          }
         }
       }
     }
