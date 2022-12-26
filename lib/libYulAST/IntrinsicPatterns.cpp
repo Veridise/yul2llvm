@@ -1,5 +1,6 @@
 #include <cassert>
 #include <libYulAST/IntrinsicPatterns.h>
+#include <iostream>
 namespace yulast {
 IntrinsicPatternMatcher::IntrinsicPatternMatcher()
     : readFromStorageOffsetRegex(READ_FROM_STORAGE_OFFSET_REGEX_LIT),
@@ -154,10 +155,10 @@ IntrinsicPatternMatcher::parseUpdateStorageDynamic(std::string_view name) {
   return res;
 }
 StructTypeResult
-IntrinsicPatternMatcher::parseStructType(std::string_view name) {
+IntrinsicPatternMatcher::parseStructTypeFromStorageLayout(std::string_view name) {
   StructTypeResult res;
   std::string nameStr(name);
-  std::regex regex(STRUCT_TYPE_ABI_REGEX_LIT);
+  std::regex regex(STRUCT_TYPE_STORAGE_LAYOUT_REGEX_LIT);
   std::smatch match;
   int match_success = std::regex_match(nameStr, match, regex);
   assert(match_success && "Struct match did not match regex");
@@ -185,16 +186,32 @@ IntrinsicPatternMatcher::parseConvertXToY(std::string_view name) {
   return res;
 }
 
-YulStructTypeResult
-IntrinsicPatternMatcher::parseYulStructType(std::string_view name) {
-  YulStructTypeResult res;
+StructTypeResult
+IntrinsicPatternMatcher::parseStructTypeFromYul(std::string_view name) {
+  StructTypeResult res;
   std::string nameStr(name);
   std::regex regex(STRUCT_TYPE_YUL_REGEX_LIT);
   std::smatch match;
   int match_success = std::regex_match(nameStr, match, regex);
+  std::cout<<nameStr<<"\n";
   assert(match_success && "Yul struct type did not match regex");
   res.name = match[1].str();
   res.size = std::stoi(match[2].str());
+  res.location = match[3].str();
+  return res;
+}
+
+StructTypeResult
+IntrinsicPatternMatcher::parseStructTypeFromAbi(std::string_view name) {
+  StructTypeResult res;
+  std::string nameStr(name);
+  std::regex regex(STRUCT_TYPE_ABI_REGEX_LIT);
+  std::smatch match;
+  int match_success = std::regex_match(nameStr, match, regex);
+  assert(match_success && "Yul struct type did not match regex");
+  res.name = match[2].str();
+  res.size = 0;
+  res.location = "<unknown>";
   return res;
 }
 

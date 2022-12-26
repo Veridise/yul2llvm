@@ -37,8 +37,14 @@ struct TypeInfo {
    * Refers to members of filed
    *
    */
+  /**
+   * @brief Name of the struct in the contract
+   */ 
+
+  std::string prettyName;
   std::vector<StructField> members;
   int size;
+  std::map<int, int> offset2fieldIdx;
   TypeInfo(std::string typeStr, std::string kind, std::string keyType,
            std::string valueType, int size)
       : typeStr(typeStr), kind(kind), keyType(keyType), valueType(valueType),
@@ -52,10 +58,10 @@ struct StructField {
   unsigned int slot;
   unsigned int offset;
   StructField(std::string name, TypeInfo ti, int slot, int offset)
-      : name(name), typeInfo(ti), slot(slot), offset(offset) {}
+      : name(name), typeInfo(ti), slot(slot), offset(offset){}
 };
 
-struct FunctionSignature{
+struct FunctionSignature {
   std::string name;
   std::vector<TypeInfo> arguments;
   std::vector<TypeInfo> returns;
@@ -72,6 +78,7 @@ class YulContractNode : public YulASTBase {
   std::map<std::string, FunctionSignature> functionSignatures;
 
   void buildTypeInfoMap(const json &);
+  void augmentTypeInfoMapFromAbi(const json &);
   virtual void parseRawAST(const json *) override;
   void allocateSelfStruct();
   TypeInfo parseType(std::string_view type, const json &metadata);
@@ -82,6 +89,8 @@ class YulContractNode : public YulASTBase {
                                                     int currentOffset, int slot,
                                                     int offset);
   void buildFunctionSignatures(const json &);
+  void addPrimitiveTypes();
+  bool parseStructFromAbiArg(const json &arg, std::string name, TypeInfo &ti);
 
 public:
   YulContractNode(const json *);

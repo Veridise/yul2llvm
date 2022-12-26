@@ -411,6 +411,7 @@ void LLVMCodegenVisitor::constructStructs(YulContractNode &node) {
       memberTypes.push_back(memType);
     }
     if (skipStruct) {
+      skipStruct = false;
       continue;
     }
     if (type.typeStr == "t_struct(self)")
@@ -436,6 +437,17 @@ llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
     int bitwidth = typeInfoMap[typeStr.str()].size * 8;
     return llvm::Type::getIntNTy(*TheContext, bitwidth);
   }
+}
+
+llvm::StructType * LLVMCodegenVisitor::getStructTypeByName(std::string structTypeName){
+  for(auto &it: structTypes){
+    llvm::StringRef yulTypeName = "t_struct("+structTypeName+")";
+    if(it.first().startswith(yulTypeName)){
+      return it.second;
+    }
+  }
+  assert(false && "Could not find the structType looking for");
+  return nullptr;
 }
 
 llvm::SmallVector<llvm::Value *>
@@ -553,4 +565,8 @@ llvm::APInt yul2llvm::gmpToAPInt(mpz_class &gmpInt, const uint bitwidth,
   }
 
   return i;
+}
+
+llvm::StringMap<llvm::StructType *> &LLVMCodegenVisitor::getStructTypes(){
+  return structTypes;
 }

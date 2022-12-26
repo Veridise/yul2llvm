@@ -11,7 +11,7 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
 }
 const static llvm::SmallVector<std::string> supportedIntrinsics(
     {"__pyul_map_index", "update_storage_value", "read_from_storage", "call",
-     "storage_array_index_access_t_array", "convert_t_"});
+     "storage_array_index_access_t_array", "convert_t_", "read_from_memory", "write_to_memory"});
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -513,8 +513,8 @@ void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
   llvm::IRBuilder<> tmpBuilder(callInst);
   assert(res.sourceType == res.destType &&
          "Source and destination type are not same");
-  YulStructTypeResult structType =
-      patternMatcher.parseYulStructType(res.sourceType);
+  StructTypeResult structType =
+      patternMatcher.parseStructTypeFromYul(res.sourceType);
   auto sizeArray = visitor.getLLVMValueVector({structType.size});
   llvm::Value *newLocation = tmpBuilder.CreateCall(
       visitor.getAllocateMemoryFunction(), sizeArray, "new" + structType.name);
@@ -541,6 +541,165 @@ void YulIntrinsicHelper::rewriteConvertXToY(llvm::CallInst *callInst) {
   }
 }
 
+//======================== Memory intriniscs ================================
+bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst, llvm::Value *&structRef){
+  llvm::Value *currentValue;
+  std::stack<llvm::Value*> instStack;
+  instStack.push(callInst);
+  while(!instStack.empty()){
+    currentValue = instStack.top();
+    instStack.pop();
+    if(currentValue->getName().contains("t_struct")){
+      structRef = currentValue;
+      return true;
+    }
+    for(auto &arg: callInst->getParent()->getParent()->args()){
+      if(currentValue == &arg){
+        structRef = &arg;
+        return true;
+      }
+    }
+    llvm::Instruction *currentInstruction = llvm::dyn_cast<llvm::Instruction>(currentValue);
+    if(!currentInstruction)
+      continue;
+    for(auto &op: currentInstruction->operands()){
+      llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(op.get());
+      if(inst && !llvm::isa<llvm::Constant>(op)){
+        instStack.push(inst);
+      }
+    }
+  }
+  return false;
+}
+
+llvm::SmallVector<int> YulIntrinsicHelper::getMemStructOffsets(llvm::CallInst *callInst, 
+                                  llvm::Value *source){
+  llvm::Value *currentValue = source;
+  llvm::SmallVector<int> offsets;
+  while(currentValue != callInst){
+    assert(currentValue->getNumUses() == 1);
+    llvm::User *addUser = *(currentValue->user_begin());
+    llvm::BinaryOperator *addInst = llvm::dyn_cast<llvm::BinaryOperator>(addUser);
+    if(!addInst || addInst->getOpcode() != llvm::BinaryOperator::Add){
+      assert(false && "getMemoryStructOffset did not find alternate add mload pattern");
+    }
+    llvm::ConstantInt *offset;
+    if(addInst->getOperand(0) == currentValue){
+      offset = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
+      if(!offset){
+        assert(false && "While getting structs did not find a constant add to struct ref");
+      }
+    } else if(addInst->getOperand(1) == currentValue){
+      offset = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
+      if(!offset){
+        assert(false && "While getting structs did not find a constant add to struct ref");
+      }
+    }
+    offsets.push_back(offset->getSExtValue());
+
+    assert(addUser->getNumUses() == 1 && "While geting mem struct offsets, could not find mload after add");
+    llvm::User *mloadUser = *(addUser->user_begin());
+    llvm::CallInst *callAfterAdd = llvm::dyn_cast<llvm::CallInst>(mloadUser);
+    if(!callAfterAdd){
+      assert(false && "While getting mem struct offset, could not find function call after add");
+    }
+    llvm::StringRef calleeName = callAfterAdd->getCalledFunction()->getName();
+    if(calleeName.startswith("read_from_memory") || 
+      calleeName.startswith("write_to_memory") )
+      break;
+    else if(calleeName == "mload")
+      currentValue = callAfterAdd;
+    else  
+      assert(false && "Unexpected function call after add");
+  }
+  return offsets;
+}
+
+llvm::Value *YulIntrinsicHelper::structDerefFromReferenceByOffset(llvm::CallInst *callInst,
+                                    llvm::Value *structRef, std::string type, 
+                                    llvm::SmallVector<int> &offsets){
+  llvm::SmallVector<int> structIdx({0});
+  TypeInfo ti = visitor.currentContract->getStructTypes()[type];
+  for(int offset: offsets){
+    structIdx.push_back(ti.offset2fieldIdx[offset]);
+  }
+  auto structIdxVals = visitor.getLLVMValueVector(structIdx);
+  llvm::StructType *structType = visitor.getStructTypeByName(type);
+  llvm::Value *castedStructRef = llvm::BitCastInst::Create(llvm::CastInst::CastOps::IntToPtr, 
+                        structRef, 
+                        structType->getPointerTo(DEFAULT_ADDR_SPACE), 
+                        type+"_casted_ptr", callInst);
+  llvm::GetElementPtrInst *gep = llvm::GetElementPtrInst::Create(
+                                    structType, 
+                                    castedStructRef,
+                                    structIdxVals, 
+                                    "mem_"+type+"_ptr", 
+                                    callInst
+                                  );
+  return gep;
+}
+
+llvm::Value *YulIntrinsicHelper::getStructElementPointer(llvm::CallInst *callInst, 
+                              llvm::Value *structRef){
+  llvm::StringRef name = structRef->getName();
+  size_t idx = name.find("t_struct");
+  llvm::StringRef type = name.substr(idx, name.size()-idx);
+  StructTypeResult res = patternMatcher.parseStructTypeFromYul(type);
+  llvm::SmallVector<int> offsets = getMemStructOffsets(callInst, structRef);
+  auto ptr = structDerefFromReferenceByOffset(callInst, structRef, res.name, offsets);
+  return ptr;
+}
+
+void
+YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
+  std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
+  std::smatch match;
+  std::string calleeName = callInst->getCalledFunction()->getName().str();
+  llvm::Value *structRef;
+  llvm::Value *pointer;
+  if (std::regex_match(calleeName, match, readCallNameRegex)) {
+    if(isStructAddressCalculation(callInst, structRef)){
+      pointer = getStructElementPointer(callInst, structRef);
+    } else {
+      llvm::Value *pointer = callInst->getArgOperand(0);
+    }
+    std::string type = match[1].str();
+    llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
+    llvm::Align align =
+      visitor.getModule().getDataLayout().getABITypeAlign(loadType);
+    llvm::LoadInst *loadedWord = new llvm::LoadInst(loadType, pointer, "mem_load", callInst);
+    llvm::ReplaceInstWithInst(callInst, loadedWord);
+  }
+}
+
+void
+YulIntrinsicHelper::rewriteWriteToMemory(llvm::CallInst *callInst) {
+  std::regex writeCallNameRegex(R"(^write_to_memory_(t_[a-z]+\d+))");
+  std::smatch match;
+  std::string calleeName = callInst->getCalledFunction()->getName().str();
+  if (std::regex_match(calleeName, match, writeCallNameRegex)) {
+    auto builder = llvm::IRBuilder<>(callInst);
+    std::string type = match[1].str();
+    llvm::Value *pointer = nullptr;
+    llvm::Value *valueToStore = callInst->getArgOperand(1);
+    llvm::Type *elementType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
+    if (valueToStore->getType()->isPointerTy()) {
+      valueToStore = builder.CreatePtrToInt(valueToStore, elementType);
+    } else {
+      valueToStore = builder.CreateIntCast(valueToStore, elementType, false);
+    }
+    llvm::Value *structRef;
+    if(isStructAddressCalculation(callInst, pointer)){
+      pointer = getStructElementPointer(callInst, structRef);
+    } else {
+      pointer = callInst->getArgOperand(0);
+    }
+    llvm::StoreInst *store = new llvm::StoreInst(valueToStore, pointer, callInst);
+    llvm::ReplaceInstWithInst(callInst, store);
+  }
+}
+
+
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
       collectCalls(enclosingFunction);
@@ -560,6 +719,10 @@ void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
       rewriteStorageArrayIndexAccess(c);
     } else if (c->getCalledFunction()->getName().startswith("convert_t_")) {
       rewriteConvertXToY(c);
+    } else if (c->getCalledFunction()->getName().startswith("read_from_memory")) {
+      rewriteReadFromMemory(c);
+    } else if (c->getCalledFunction()->getName().startswith("write_to_memory")) {
+      rewriteWriteToMemory(c);
     }
   }
 }

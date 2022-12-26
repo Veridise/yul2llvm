@@ -9,8 +9,10 @@ option(Y2L_ENABLE_ASAN "Enable address sanitizer" OFF)
 include(GNUInstallDirs)
 
 if(${Y2L_ENABLE_ASAN})
-  add_compile_options(-fsanitize=address)
-  add_link_options(-fsanitize=address)
+  message(STATUS "Setting up debug flags")
+  # add_compile_options(-fsanitize=address)
+  # add_link_options(-fsanitize=address)
+  add_compile_options(-g -O0)
 endif()
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard")

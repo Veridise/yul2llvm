@@ -38,11 +38,6 @@ struct ConvertXToYResult {
   bool isDestTypePtr;
 };
 
-struct YulStructTypeResult {
-  std::string name;
-  int size;
-};
-
 class IntrinsicPatternMatcher {
   std::regex readFromStorageOffsetRegex;
   std::regex readFromStorageDynamicRegex;
@@ -69,9 +64,11 @@ public:
   std::string updateStorageDynamicGetFromType(std::string_view name);
   std::string updateStorageDynamicGetToType(std::string_view name);
   UpdateStorageDynamicResult parseUpdateStorageDynamic(std::string_view name);
-  StructTypeResult parseStructType(std::string_view name);
+  StructTypeResult parseStructTypeFromStorageLayout(std::string_view name);
 
   ConvertXToYResult parseConvertXToY(std::string_view name);
-  YulStructTypeResult parseYulStructType(std::string_view name);
+  StructTypeResult parseStructTypeFromYul(std::string_view name);
+  StructTypeResult parseStructTypeFromAbi(std::string_view name);
+
 };
 } // namespace yulast

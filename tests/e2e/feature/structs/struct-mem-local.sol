@@ -16,13 +16,14 @@ contract StructTest {
         uint256 a;
         Sb b;
     }
+
     function readStruct() external view returns (uint256){
         St memory memlocal;
-        memlocal.b.a=1;
         return memlocal.b.a;
     }
 
     function writeStruct(St memory st, uint256 v) external {
-        st.a=v;
+        St memory memlocal;
+        memlocal.b.a = 1;
     }
 }
