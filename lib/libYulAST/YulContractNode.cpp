@@ -1,6 +1,6 @@
 #include <cassert>
-#include <libYulAST/YulContractNode.h>
 #include <iostream>
+#include <libYulAST/YulContractNode.h>
 #include <limits>
 using namespace yulast;
 
@@ -35,26 +35,26 @@ void YulContractNode::parseRawAST(const json *rawAST) {
   }
 }
 
-void YulContractNode::addPrimitiveTypes(){
-  for(int i=1; i<=32; i++){
-    std::string typeStr = "t_bytes"+std::to_string(i);
+void YulContractNode::addPrimitiveTypes() {
+  for (int i = 1; i <= 32; i++) {
+    std::string typeStr = "t_bytes" + std::to_string(i);
     TypeInfo ti(typeStr,
-                    "", // kind
-                    "", "", i);
+                "", // kind
+                "", "", i);
     typeInfoMap[typeStr] = ti;
   }
-  for(int i=1; i<=32; i++){
-    std::string typeStr = "t_uint"+std::to_string(i*8);
+  for (int i = 1; i <= 32; i++) {
+    std::string typeStr = "t_uint" + std::to_string(i * 8);
     TypeInfo ti(typeStr,
-                    "", // kind
-                    "", "", i);
+                "", // kind
+                "", "", i);
     typeInfoMap[typeStr] = ti;
   }
-  for(int i=1; i<=32; i++){
-    std::string typeStr = "t_int"+std::to_string(i*8);
+  for (int i = 1; i <= 32; i++) {
+    std::string typeStr = "t_int" + std::to_string(i * 8);
     TypeInfo ti(typeStr,
-                    "", // kind
-                    "", "", i);
+                "", // kind
+                "", "", i);
     typeInfoMap[typeStr] = ti;
   }
 }
@@ -102,18 +102,18 @@ TypeInfo YulContractNode::parseType(std::string_view type,
   } else if (type.substr(0, structTypeLit.size()) == structTypeLit) {
     assert(types[typeStr].contains("fields") &&
            "fields not found in struct type");
-    StructTypeResult res = patternMatcher.parseStructTypeFromStorageLayout(type);
+    StructTypeResult res =
+        patternMatcher.parseStructTypeFromStorageLayout(type);
     TypeInfo typeInfo(typeStr, "struct", "", "", res.size);
     int currentOffset = 0;
     int fieldIdx = 0;
     for (auto &field : types[typeStr]["fields"]) {
       TypeInfo ti = parseType(field["type"].get<std::string>(), metadata);
-      StructField sf(field["name"].get<std::string>(),
-                                             ti, field["slot"].get<int>(),
-                                             field["offset"].get<int>());
+      StructField sf(field["name"].get<std::string>(), ti,
+                     field["slot"].get<int>(), field["offset"].get<int>());
       typeInfo.members.push_back(sf);
       typeInfo.offset2fieldIdx[currentOffset] = fieldIdx;
-      typeInfo.prettyName=res.name;
+      typeInfo.prettyName = res.name;
       fieldIdx++;
       currentOffset += ti.size;
     }
@@ -137,34 +137,37 @@ void YulContractNode::buildTypeInfoMap(const json &metadata) {
   }
 }
 
-bool YulContractNode::parseStructFromAbiArg(const json &arg, std::string name, TypeInfo &ti){
+bool YulContractNode::parseStructFromAbiArg(const json &arg, std::string name,
+                                            TypeInfo &ti) {
   int size = 0;
   std::string structTypeLit = "struct ";
   std::string uintTypeLit = "uint";
   std::string intTypeLit = "int";
   int fieldIdx = 0;
-  for(auto &comp: arg.at("components")){
+  for (auto &comp : arg.at("components")) {
     std::string internalTypeName = comp.at("internalType").get<std::string>();
     std::string abiTypeName;
     TypeInfo fieldTi;
-    if(internalTypeName.substr(0, structTypeLit.size()) == structTypeLit){
-      StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalTypeName);
+    if (internalTypeName.substr(0, structTypeLit.size()) == structTypeLit) {
+      StructTypeResult res =
+          patternMatcher.parseStructTypeFromAbi(internalTypeName);
       auto it = structTypes.find(res.name);
-      if(it != structTypes.end()){
+      if (it != structTypes.end()) {
         fieldTi = it->second;
       } else {
         parseStructFromAbiArg(comp, res.name, fieldTi);
       }
-    } else if(internalTypeName.substr(0, uintTypeLit.size()) == uintTypeLit ||
-              internalTypeName.substr(0, intTypeLit.size()) == intTypeLit){
-        std::string typeName = "t_"+internalTypeName;
-        auto it = typeInfoMap.find(typeName);
-        if(it == typeInfoMap.end()){
-          assert(false && "Internal type not found when parsing struct from abi");
-        }
-        fieldTi = typeInfoMap[typeName];
+    } else if (internalTypeName.substr(0, uintTypeLit.size()) == uintTypeLit ||
+               internalTypeName.substr(0, intTypeLit.size()) == intTypeLit) {
+      std::string typeName = "t_" + internalTypeName;
+      auto it = typeInfoMap.find(typeName);
+      if (it == typeInfoMap.end()) {
+        assert(false && "Internal type not found when parsing struct from abi");
+      }
+      fieldTi = typeInfoMap[typeName];
     } else {
-      assert(false && "Unhandled type found while parsing struct from abi function signatures");
+      assert(false && "Unhandled type found while parsing struct from abi "
+                      "function signatures");
     }
     std::string fieldName = arg.at("name").get<std::string>();
     StructField sf(fieldName, fieldTi, 0, 0);
@@ -175,45 +178,38 @@ bool YulContractNode::parseStructFromAbiArg(const json &arg, std::string name, T
   }
   ti.size = size;
   ti.kind = "struct";
-  ti.typeStr = "t_struct("+name+")"+std::to_string(size);
-  ti.prettyName=name;
+  ti.typeStr = "t_struct(" + name + ")" + std::to_string(size);
+  ti.prettyName = name;
   typeInfoMap[ti.typeStr] = ti;
   structTypes[name] = ti;
   return true;
 }
 
-void YulContractNode::augmentTypeInfoMapFromAbi(const json &abi){
+void YulContractNode::buildTypeFromAbiComponent(const json &component) {
   std::string structTypeLit = "struct ";
-  for(auto &fun: abi){
-    std::deque<const json*> allStructs;
-    for (auto &inp: fun.at("inputs")){
-      std::string internalType = inp.at("internalType").get<std::string>();
-      if(internalType.substr(0, structTypeLit.size()) ==
-                  structTypeLit){
-        StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalType);
-        auto it = structTypes.find(res.name);
-        if(it == structTypes.end()){
-          TypeInfo ti;
-          if(!parseStructFromAbiArg(inp, res.name, ti)) {
-            assert(false && "Could not parse Struct");
-          }
-        }
+  std::string internalType = component.at("internalType").get<std::string>();
+  if (internalType.substr(0, structTypeLit.size()) == structTypeLit) {
+    StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalType);
+    auto it = structTypes.find(res.name);
+    if (it == structTypes.end()) {
+      TypeInfo ti;
+      if (!parseStructFromAbiArg(component, res.name, ti)) {
+        assert(false && "Could not parse Struct");
       }
     }
-    for (auto &op: fun.at("outputs")){
-      std::string internalType = op.at("internalType").get<std::string>();
-      if(internalType.substr(0, structTypeLit.size()) ==
-                  structTypeLit){
-        StructTypeResult res = patternMatcher.parseStructTypeFromAbi(internalType);
-        auto it = structTypes.find(res.name);
-        if(it == structTypes.end()){
-          TypeInfo ti;
-          if(parseStructFromAbiArg(op, res.name, ti)){
-            assert(false && "Could not parse Struct");
-          }
-        }
+  }
+}
+
+void YulContractNode::augmentTypeInfoMapFromAbi(const json &abi) {
+  for (auto &fun : abi) {
+    if (fun.contains("inputs"))
+      for (auto &inp : fun.at("inputs")) {
+        buildTypeFromAbiComponent(inp);
       }
-    }
+    if (fun.contains("outputs"))
+      for (auto &op : fun.at("outputs")) {
+        buildTypeFromAbiComponent(op);
+      }
   }
 }
 
@@ -244,7 +240,8 @@ YulContractNode::YulContractNode(const json *rawAST)
   buildTypeInfoMap(rawAST->at("metadata"));
   // buildFunctionSignatures(rawAST->at("abi"));
   buildStateVars(rawAST->at("metadata"));
-  augmentTypeInfoMapFromAbi(rawAST->at("abi"));
+  if (rawAST->contains("abi"))
+    augmentTypeInfoMapFromAbi(rawAST->at("abi"));
   parseRawAST(rawAST);
 }
 
@@ -309,8 +306,10 @@ YulContractNode::getIdentifierDerefBySlotOffset(int slot, int offset) {
   return _getNamePathBySlotOffset(getSelfType(), 0, 0, slot, offset);
 }
 
-std::vector<std::string> YulContractNode::_getNamePathBySlotOffset(
-    TypeInfo type, int currentSlot, int currentOffset, int slot, int offset) {
+std::vector<std::string>
+YulContractNode::_getNamePathBySlotOffset(TypeInfo type, int currentSlot,
+                                          int currentOffset, unsigned int slot,
+                                          unsigned int offset) {
   std::vector<std::string> namePath;
   for (auto mem : type.members) {
     if (mem.typeInfo.kind == "struct") {
@@ -342,40 +341,38 @@ TypeInfo YulContractNode::getSelfType() {
   return structTypes["self"];
 }
 
+TypeInfo YulContractNode::getAbiComponentType(const json &component) {
+  std::string typeName = component.at("internalType");
+  auto dotIdx = typeName.find(".");
+  TypeInfo type;
+  if (dotIdx != std::string::npos) {
+    std::string structName =
+        typeName.substr(dotIdx + 1, typeName.length() - dotIdx);
+    auto it = structTypes.find(structName);
+    assert(it != structTypes.end() && "Could not find struct in structTypes");
+    if (it != structTypes.end())
+      type = structTypes[structName];
+    else
+      assert(false && "Could find type present in abi component");
+  } else {
+  }
+  return type;
+}
+
 void YulContractNode::buildFunctionSignatures(const json &abi) {
-  for(auto &fun: abi){
+  for (auto &fun : abi) {
     FunctionSignature funSig;
     funSig.name = fun["name"];
-    for(auto &input: fun["inputs"]) {
-      std::string typeName = input.at("internalType");
-      int dotIdx = typeName.find(".");
-      if(dotIdx != std::string::npos){
-        std::string structName = typeName.substr(dotIdx+1, typeName.length()-dotIdx);
-        auto it = structTypes.find(structName);
-        assert(it != structTypes.end() && "Could not find struct in structTypes");
-        if(it != structTypes.end())
-          funSig.arguments.push_back(structTypes[structName]);
-        else 
-          std::cout<<structName<<" not found";
-      } else {
-        TypeInfo type;
-        type.typeStr=typeName;
-        funSig.arguments.push_back(type);
+    if (fun.contains("inputs"))
+      for (auto &input : fun.at("inputs")) {
+        TypeInfo compType = getAbiComponentType(input);
+        funSig.arguments.push_back(compType);
       }
-    }
-    std::vector<TypeInfo> rets;
-    for(auto &output: fun["outputs"]) {
-      std::string typeName = output.at("internalType");
-      int dotIdx = typeName.find(".");
-      if(dotIdx != std::string::npos){
-        std::string structName = typeName.substr(dotIdx+1, typeName.length()-dotIdx);
-        funSig.returns.push_back(structTypes[structName]);
-      } else {
-        TypeInfo type;
-        type.typeStr=typeName;
-        funSig.returns.push_back(type);
+    if (fun.contains("outputs"))
+      for (auto &output : fun.at("outputs")) {
+        TypeInfo compType = getAbiComponentType(output);
+        funSig.returns.push_back(compType);
       }
-    }
     functionSignatures[funSig.name] = funSig;
   }
 }

@@ -69,6 +69,5 @@ public:
   ConvertXToYResult parseConvertXToY(std::string_view name);
   StructTypeResult parseStructTypeFromYul(std::string_view name);
   StructTypeResult parseStructTypeFromAbi(std::string_view name);
-
 };
 } // namespace yulast

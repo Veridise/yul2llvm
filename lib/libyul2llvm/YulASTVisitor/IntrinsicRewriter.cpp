@@ -11,7 +11,8 @@ llvm::Type *checkAndGetPointeeType(llvm::Value *ptr) {
 }
 const static llvm::SmallVector<std::string> supportedIntrinsics(
     {"__pyul_map_index", "update_storage_value", "read_from_storage", "call",
-     "storage_array_index_access_t_array", "convert_t_", "read_from_memory", "write_to_memory"});
+     "storage_array_index_access_t_array", "convert_t_", "read_from_memory",
+     "write_to_memory"});
 
 llvm::SmallVector<llvm::CallInst *>
 collectCalls(llvm::Function *enclosingFunction) {
@@ -542,30 +543,31 @@ void YulIntrinsicHelper::rewriteConvertXToY(llvm::CallInst *callInst) {
 }
 
 //======================== Memory intriniscs ================================
-bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst, llvm::Value *&structRef){
+bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst,
+                                                    llvm::Value *&structRef) {
   llvm::Value *currentValue;
-  std::stack<llvm::Value*> instStack;
+  std::stack<llvm::Value *> instStack;
   instStack.push(callInst);
-  while(!instStack.empty()){
+  while (!instStack.empty()) {
     currentValue = instStack.top();
     instStack.pop();
-    if(currentValue->getName().contains("t_struct")){
+    if (currentValue->getName().startswith_insensitive("zero_t_struct")) {
       structRef = currentValue;
-      llvm::outs()<<"found "<<structRef<<"\n";
       return true;
     }
-    for(auto &arg: callInst->getParent()->getParent()->args()){
-      if(currentValue == &arg){
+    for (auto &arg : callInst->getParent()->getParent()->args()) {
+      if (currentValue == &arg) {
         structRef = &arg;
         return true;
       }
     }
-    llvm::Instruction *currentInstruction = llvm::dyn_cast<llvm::Instruction>(currentValue);
-    if(!currentInstruction)
+    llvm::Instruction *currentInstruction =
+        llvm::dyn_cast<llvm::Instruction>(currentValue);
+    if (!currentInstruction)
       continue;
-    for(auto &op: currentInstruction->operands()){
+    for (auto &op : currentInstruction->operands()) {
       llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(op.get());
-      if(inst && !llvm::isa<llvm::Constant>(op)){
+      if (inst && !llvm::isa<llvm::Constant>(op)) {
         instStack.push(inst);
       }
     }
@@ -573,111 +575,121 @@ bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst, ll
   return false;
 }
 
-llvm::SmallVector<int> YulIntrinsicHelper::getMemStructOffsets(llvm::CallInst *callInst, 
-                                  llvm::Value *source){
+llvm::SmallVector<int>
+YulIntrinsicHelper::getMemStructOffsets(llvm::CallInst *callInst,
+                                        llvm::Value *source) {
   llvm::Value *currentValue = source;
   llvm::SmallVector<int> offsets;
-  while(currentValue != callInst){
+  while (currentValue != callInst) {
     assert(currentValue->getNumUses() == 1);
     llvm::User *addUser = *(currentValue->user_begin());
-    llvm::BinaryOperator *addInst = llvm::dyn_cast<llvm::BinaryOperator>(addUser);
-    if(!addInst || addInst->getOpcode() != llvm::BinaryOperator::Add){
-      assert(false && "getMemoryStructOffset did not find alternate add mload pattern");
+    llvm::BinaryOperator *addInst =
+        llvm::dyn_cast<llvm::BinaryOperator>(addUser);
+    if (!addInst || addInst->getOpcode() != llvm::BinaryOperator::Add) {
+      assert(false &&
+             "getMemoryStructOffset did not find alternate add-mload pattern");
     }
     llvm::ConstantInt *offset;
-    if(addInst->getOperand(0) == currentValue){
+    if (addInst->getOperand(0) == currentValue) {
       offset = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(1));
-      if(!offset){
-        assert(false && "While getting structs did not find a constant add to struct ref");
+      if (!offset) {
+        assert(
+            false &&
+            "While getting structs did not find a constant add to struct ref");
       }
-    } else if(addInst->getOperand(1) == currentValue){
+    } else if (addInst->getOperand(1) == currentValue) {
       offset = llvm::dyn_cast<llvm::ConstantInt>(addInst->getOperand(0));
-      if(!offset){
-        assert(false && "While getting structs did not find a constant add to struct ref");
+      if (!offset) {
+        assert(
+            false &&
+            "While getting structs did not find a constant add to struct ref");
       }
     } else {
-      assert(false && "Both operands of addInst are not in struct offset calculation chains");
+      assert(false && "Both operands of addInst are not in struct offset "
+                      "calculation chains");
     }
     offsets.push_back(offset->getSExtValue());
 
-    assert(addUser->getNumUses() == 1 && "While geting mem struct offsets, could not find mload after add");
+    assert(addUser->getNumUses() == 1 &&
+           "While geting mem struct offsets, could not find mload after add");
     llvm::User *mloadUser = *(addUser->user_begin());
     llvm::CallInst *callAfterAdd = llvm::dyn_cast<llvm::CallInst>(mloadUser);
-    if(!callAfterAdd){
-      assert(false && "While getting mem struct offset, could not find function call after add");
+    if (!callAfterAdd) {
+      assert(false && "While getting mem struct offset, could not find "
+                      "function call after add");
     }
     llvm::StringRef calleeName = callAfterAdd->getCalledFunction()->getName();
-    if(calleeName.startswith("read_from_memory") || 
-      calleeName.startswith("write_to_memory") )
+    if (calleeName.startswith("read_from_memory") ||
+        calleeName.startswith("write_to_memory"))
       break;
-    else if(calleeName == "mload")
+    else if (calleeName == "mload")
       currentValue = callAfterAdd;
-    else  
+    else
       assert(false && "Unexpected function call after add");
   }
   return offsets;
 }
 
-llvm::Value *YulIntrinsicHelper::structDerefFromReferenceByOffset(llvm::CallInst *callInst,
-                                    llvm::Value *structRef, std::string type, 
-                                    llvm::SmallVector<int> &offsets){
+llvm::Value *YulIntrinsicHelper::structDerefFromReferenceByOffset(
+    llvm::CallInst *callInst, llvm::Value *structRef, std::string type,
+    llvm::SmallVector<int> &offsets) {
   llvm::SmallVector<int> structIdx({0});
   TypeInfo ti = visitor.currentContract->getStructTypes()[type];
-  for(int offset: offsets){
+  for (int offset : offsets) {
     structIdx.push_back(ti.offset2fieldIdx[offset]);
   }
   auto structIdxVals = visitor.getLLVMValueVector(structIdx);
   llvm::StructType *structType = visitor.getStructTypeByName(type);
-  llvm::Value *castedStructRef = llvm::BitCastInst::Create(llvm::CastInst::CastOps::IntToPtr, 
-                        structRef, 
-                        structType->getPointerTo(DEFAULT_ADDR_SPACE), 
-                        type+"_casted_ptr", callInst);
+  llvm::Value *castedStructRef =
+      llvm::BitCastInst::Create(llvm::CastInst::CastOps::IntToPtr, structRef,
+                                structType->getPointerTo(DEFAULT_ADDR_SPACE),
+                                type + "_casted_ptr", callInst);
   llvm::GetElementPtrInst *gep = llvm::GetElementPtrInst::Create(
-                                    structType, 
-                                    castedStructRef,
-                                    structIdxVals, 
-                                    "mem_"+type+"_ptr", 
-                                    callInst
-                                  );
+      structType, castedStructRef, structIdxVals, "mem_" + type + "_ptr",
+      callInst);
   return gep;
 }
 
-llvm::Value *YulIntrinsicHelper::getStructElementPointer(llvm::CallInst *callInst, 
-                              llvm::Value *structRef){
-  llvm::outs()<<"gep "<<structRef<<"\n";
+llvm::Value *
+YulIntrinsicHelper::getStructElementPointer(llvm::CallInst *callInst,
+                                            llvm::Value *structRef) {
+  llvm::outs() << "gep " << structRef << "\n";
   llvm::StringRef name = structRef->getName();
   size_t idx = name.find("t_struct");
-  llvm::outs()<<name<<"\n";
-  llvm::StringRef type = name.substr(idx, name.size()-idx);
+  llvm::StringRef type = name.substr(idx, name.size() - idx);
   StructTypeResult res = patternMatcher.parseStructTypeFromYul(type);
   llvm::SmallVector<int> offsets = getMemStructOffsets(callInst, structRef);
-  auto ptr = structDerefFromReferenceByOffset(callInst, structRef, res.name, offsets);
+  auto ptr =
+      structDerefFromReferenceByOffset(callInst, structRef, res.name, offsets);
   return ptr;
 }
 
-void
-YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
+void YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
   std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
   std::smatch match;
   std::string calleeName = callInst->getCalledFunction()->getName().str();
   llvm::Value *structRef;
   llvm::Value *pointer;
   if (std::regex_match(calleeName, match, readCallNameRegex)) {
-    if(isStructAddressCalculation(callInst, structRef)){
-      llvm::outs()<<"returned "<<structRef<<"\n";
+    if (isStructAddressCalculation(callInst, structRef)) {
       pointer = getStructElementPointer(callInst, structRef);
     } else {
       pointer = callInst->getArgOperand(0);
     }
     std::string type = match[1].str();
     llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
-    llvm::LoadInst *loadedWord = new llvm::LoadInst(loadType, pointer, "mem_load", callInst);
-    llvm::ReplaceInstWithInst(callInst, loadedWord);
+    llvm::Align align =
+        visitor.getModule().getDataLayout().getABITypeAlign(loadType);
+    llvm::LoadInst *loadedWord = new llvm::LoadInst(
+        loadType, pointer, "mem_load", false, align, callInst);
+    llvm::CastInst *defaultLoadedWord = llvm::CastInst::Create(
+        llvm::CastInst::CastOps::SExt, loadedWord, visitor.getDefaultType(),
+        loadedWord->getName() + "_u256");
+    llvm::ReplaceInstWithInst(callInst, defaultLoadedWord);
   }
 }
 
-void
-YulIntrinsicHelper::rewriteWriteToMemory(llvm::CallInst *callInst) {
+void YulIntrinsicHelper::rewriteWriteToMemory(llvm::CallInst *callInst) {
   std::regex writeCallNameRegex(R"(^write_to_memory_(t_[a-z]+\d+))");
   std::smatch match;
   std::string calleeName = callInst->getCalledFunction()->getName().str();
@@ -693,18 +705,19 @@ YulIntrinsicHelper::rewriteWriteToMemory(llvm::CallInst *callInst) {
       valueToStore = builder.CreateIntCast(valueToStore, elementType, false);
     }
     llvm::Value *structRef;
-    if(isStructAddressCalculation(callInst, structRef)){
-      llvm::outs()<<"returned "<<structRef<<"\n";
+    if (isStructAddressCalculation(callInst, structRef)) {
       pointer = getStructElementPointer(callInst, structRef);
     } else {
       pointer = callInst->getArgOperand(0);
     }
     callInst->setName("");
-    llvm::StoreInst *store = new llvm::StoreInst(valueToStore, pointer, callInst);
+    llvm::Align align = visitor.getModule().getDataLayout().getABITypeAlign(
+        valueToStore->getType());
+    llvm::StoreInst *store =
+        new llvm::StoreInst(valueToStore, pointer, false, align);
     llvm::ReplaceInstWithInst(callInst, store);
   }
 }
-
 
 void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
   llvm::SmallVector<llvm::CallInst *> allCalls =
@@ -725,9 +738,11 @@ void YulIntrinsicHelper::rewriteIntrinsics(llvm::Function *enclosingFunction) {
       rewriteStorageArrayIndexAccess(c);
     } else if (c->getCalledFunction()->getName().startswith("convert_t_")) {
       rewriteConvertXToY(c);
-    } else if (c->getCalledFunction()->getName().startswith("read_from_memory")) {
+    } else if (c->getCalledFunction()->getName().startswith(
+                   "read_from_memory")) {
       rewriteReadFromMemory(c);
-    } else if (c->getCalledFunction()->getName().startswith("write_to_memory")) {
+    } else if (c->getCalledFunction()->getName().startswith(
+                   "write_to_memory")) {
       rewriteWriteToMemory(c);
     }
   }

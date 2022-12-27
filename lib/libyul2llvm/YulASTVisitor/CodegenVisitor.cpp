@@ -439,10 +439,11 @@ llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
   }
 }
 
-llvm::StructType * LLVMCodegenVisitor::getStructTypeByName(std::string structTypeName){
-  for(auto &it: structTypes){
-    std::string yulTypeName = "t_struct("+structTypeName+")";
-    if(it.first().startswith(yulTypeName)){
+llvm::StructType *
+LLVMCodegenVisitor::getStructTypeByName(std::string structTypeName) {
+  for (auto &it : structTypes) {
+    std::string yulTypeName = "t_struct(" + structTypeName + ")";
+    if (it.first().startswith(yulTypeName)) {
       return it.second;
     }
   }
@@ -567,6 +568,6 @@ llvm::APInt yul2llvm::gmpToAPInt(mpz_class &gmpInt, const uint bitwidth,
   return i;
 }
 
-llvm::StringMap<llvm::StructType *> &LLVMCodegenVisitor::getStructTypes(){
+llvm::StringMap<llvm::StructType *> &LLVMCodegenVisitor::getStructTypes() {
   return structTypes;
 }

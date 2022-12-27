@@ -1,6 +1,6 @@
 #include <cassert>
-#include <libYulAST/IntrinsicPatterns.h>
 #include <iostream>
+#include <libYulAST/IntrinsicPatterns.h>
 namespace yulast {
 IntrinsicPatternMatcher::IntrinsicPatternMatcher()
     : readFromStorageOffsetRegex(READ_FROM_STORAGE_OFFSET_REGEX_LIT),
@@ -154,8 +154,8 @@ IntrinsicPatternMatcher::parseUpdateStorageDynamic(std::string_view name) {
   res.toType = updateStorageDynamicGetToType(name);
   return res;
 }
-StructTypeResult
-IntrinsicPatternMatcher::parseStructTypeFromStorageLayout(std::string_view name) {
+StructTypeResult IntrinsicPatternMatcher::parseStructTypeFromStorageLayout(
+    std::string_view name) {
   StructTypeResult res;
   std::string nameStr(name);
   std::regex regex(STRUCT_TYPE_STORAGE_LAYOUT_REGEX_LIT);
@@ -193,7 +193,7 @@ IntrinsicPatternMatcher::parseStructTypeFromYul(std::string_view name) {
   std::regex regex(STRUCT_TYPE_YUL_REGEX_LIT);
   std::smatch match;
   int match_success = std::regex_match(nameStr, match, regex);
-  std::cout<<nameStr<<"\n";
+  std::cout << nameStr << "\n";
   assert(match_success && "Yul struct type did not match regex");
   res.name = match[1].str();
   res.size = std::stoi(match[2].str());

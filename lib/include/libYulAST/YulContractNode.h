@@ -3,7 +3,6 @@
 #include <libYulAST/IntrinsicPatterns.h>
 #include <libYulAST/YulASTBase.h>
 #include <libYulAST/YulFunctionDefinitionNode.h>
-#include <libYulAST/IntrinsicPatterns.h>
 #include <regex>
 #include <vector>
 
@@ -39,7 +38,7 @@ struct TypeInfo {
    */
   /**
    * @brief Name of the struct in the contract
-   */ 
+   */
 
   std::string prettyName;
   std::vector<StructField> members;
@@ -58,7 +57,7 @@ struct StructField {
   unsigned int slot;
   unsigned int offset;
   StructField(std::string name, TypeInfo ti, int slot, int offset)
-      : name(name), typeInfo(ti), slot(slot), offset(offset){}
+      : name(name), typeInfo(ti), slot(slot), offset(offset) {}
 };
 
 struct FunctionSignature {
@@ -84,13 +83,14 @@ class YulContractNode : public YulASTBase {
   TypeInfo parseType(std::string_view type, const json &metadata);
   void buildStateVars(const nlohmann::json &metadata);
   unsigned int getFieldIndexInStruct(TypeInfo ti, std::string name);
-  std::vector<std::string> _getNamePathBySlotOffset(TypeInfo type,
-                                                    int currentSlot,
-                                                    int currentOffset, int slot,
-                                                    int offset);
+  std::vector<std::string>
+  _getNamePathBySlotOffset(TypeInfo type, int currentSlot, int currentOffset,
+                           unsigned int slot, unsigned int offset);
   void buildFunctionSignatures(const json &);
   void addPrimitiveTypes();
   bool parseStructFromAbiArg(const json &arg, std::string name, TypeInfo &ti);
+  TypeInfo getAbiComponentType(const json &component);
+  void buildTypeFromAbiComponent(const json &component);
 
 public:
   YulContractNode(const json *);

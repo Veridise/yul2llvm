@@ -52,8 +52,11 @@ class YulIntrinsicHelper {
   std::string getValueNameFromNamePath(std::vector<std::string> namePath);
   bool isStructAddressCalculation(llvm::CallInst *, llvm::Value *&);
   llvm::SmallVector<int> getMemStructOffsets(llvm::CallInst *, llvm::Value *);
-  llvm::Value *structDerefFromReferenceByOffset(llvm::CallInst *, llvm::Value *structRef, 
-                                    std::string type, llvm::SmallVector<int> &offsets);
+  llvm::Value *
+  structDerefFromReferenceByOffset(llvm::CallInst *, llvm::Value *structRef,
+                                   std::string type,
+                                   llvm::SmallVector<int> &offsets);
+
 public:
   // Helpers
   bool isFunctionCallIntrinsic(llvm::StringRef calleeName);
@@ -102,8 +105,8 @@ public:
   // Rewrites
   void rewriteReadFromMemory(llvm::CallInst *node);
   void rewriteWriteToMemory(llvm::CallInst *node);
-  llvm::Value *getStructElementPointer(llvm::CallInst *, llvm::Value *structRef);
-
+  llvm::Value *getStructElementPointer(llvm::CallInst *,
+                                       llvm::Value *structRef);
 
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
