@@ -93,7 +93,7 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
   } else if (calleeName == "div") {
     return handleDiv(node);
   } else if (calleeName == "mul") {
-    return handleDiv(node);
+    return handleMul(node);
   }
   return nullptr;
 }
