@@ -551,7 +551,7 @@ bool YulIntrinsicHelper::isStructAddressCalculation(llvm::CallInst *callInst,
   while (!instStack.empty()) {
     currentValue = instStack.top();
     instStack.pop();
-    if (currentValue->getName().startswith_insensitive("zero_t_struct")) {
+    if (currentValue->getName().startswith("zero_value_for_split_t_struct")) {
       structRef = currentValue;
       return true;
     }
@@ -680,12 +680,20 @@ void YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
     llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
     llvm::Align align =
         visitor.getModule().getDataLayout().getABITypeAlign(loadType);
-    llvm::LoadInst *loadedWord = new llvm::LoadInst(
-        loadType, pointer, "mem_load", false, align, callInst);
-    llvm::CastInst *defaultLoadedWord = llvm::CastInst::Create(
-        llvm::CastInst::CastOps::SExt, loadedWord, visitor.getDefaultType(),
+    llvm::Instruction *newInstruction;
+    if(loadType->getIntegerBitWidth() < 256){
+      llvm::LoadInst *loadedWord = new llvm::LoadInst(
+          loadType, pointer, "mem_load", false, align, callInst);
+      newInstruction = llvm::CastInst::Create(
+          llvm::CastInst::CastOps::SExt, loadedWord, visitor.getDefaultType(),
         loadedWord->getName() + "_u256");
-    llvm::ReplaceInstWithInst(callInst, defaultLoadedWord);
+    } else if(loadType->getIntegerBitWidth() == 256){
+      newInstruction = new llvm::LoadInst(
+          loadType, pointer, "mem_load", false, align);
+    } else {
+      assert(false && "Unhandled bitwidth while loading");
+    }
+    llvm::ReplaceInstWithInst(callInst, newInstruction);
   }
 }
 

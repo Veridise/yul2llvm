@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 #include <libYulAST/IntrinsicPatterns.h>
 namespace yulast {
 IntrinsicPatternMatcher::IntrinsicPatternMatcher()
@@ -193,7 +192,6 @@ IntrinsicPatternMatcher::parseStructTypeFromYul(std::string_view name) {
   std::regex regex(STRUCT_TYPE_YUL_REGEX_LIT);
   std::smatch match;
   int match_success = std::regex_match(nameStr, match, regex);
-  std::cout << nameStr << "\n";
   assert(match_success && "Yul struct type did not match regex");
   res.name = match[1].str();
   res.size = std::stoi(match[2].str());

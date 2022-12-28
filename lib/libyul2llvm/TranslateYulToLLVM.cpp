@@ -40,7 +40,6 @@ bool TranslateYulToLLVM::buildContract() {
 }
 
 bool TranslateYulToLLVM::run() {
-  // std::cout << "[+] Traversing json " << std::endl;
   if (!buildContract())
     return false;
   return true;
