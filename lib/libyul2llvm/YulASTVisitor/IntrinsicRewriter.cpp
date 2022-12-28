@@ -521,8 +521,11 @@ void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
       visitor.getAllocateMemoryFunction(), sizeArray, "new" + structType.name);
   auto align = visitor.getModule().getDataLayout().getABITypeAlign(
       newLocation->getType());
-  tmpBuilder.CreateMemCpy(newLocation, align, callInst->getArgOperand(1), align,
-                          sizeArray[0]);
+  llvm::Value *srcPtr = tmpBuilder.CreateIntToPtr(
+      callInst->getArgOperand(1),
+      llvm::Type::getInt8PtrTy(visitor.getContext(), STORAGE_ADDR_SPACE),
+      "casted_src");
+  tmpBuilder.CreateMemCpy(newLocation, align, srcPtr, align, sizeArray[0]);
   llvm::Value *castedNewLocation = tmpBuilder.CreatePtrToInt(
       newLocation, visitor.getDefaultType(), newLocation->getName() + "i256");
   llvm::ReplaceInstWithValue(instList, callInstIt, castedNewLocation);
@@ -681,15 +684,15 @@ void YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {
     llvm::Align align =
         visitor.getModule().getDataLayout().getABITypeAlign(loadType);
     llvm::Instruction *newInstruction;
-    if(loadType->getIntegerBitWidth() < 256){
+    if (loadType->getIntegerBitWidth() < 256) {
       llvm::LoadInst *loadedWord = new llvm::LoadInst(
           loadType, pointer, "mem_load", false, align, callInst);
       newInstruction = llvm::CastInst::Create(
           llvm::CastInst::CastOps::SExt, loadedWord, visitor.getDefaultType(),
-        loadedWord->getName() + "_u256");
-    } else if(loadType->getIntegerBitWidth() == 256){
-      newInstruction = new llvm::LoadInst(
-          loadType, pointer, "mem_load", false, align);
+          loadedWord->getName() + "_u256");
+    } else if (loadType->getIntegerBitWidth() == 256) {
+      newInstruction =
+          new llvm::LoadInst(loadType, pointer, "mem_load", false, align);
     } else {
       assert(false && "Unhandled bitwidth while loading");
     }
