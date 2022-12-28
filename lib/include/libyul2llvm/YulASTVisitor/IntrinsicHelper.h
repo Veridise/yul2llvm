@@ -52,10 +52,6 @@ class YulIntrinsicHelper {
   std::string getValueNameFromNamePath(std::vector<std::string> namePath);
   bool isStructAddressCalculation(llvm::CallInst *, llvm::Value *&);
   llvm::SmallVector<int> getMemStructOffsets(llvm::CallInst *, llvm::Value *);
-  llvm::Value *
-  structDerefFromReferenceByOffset(llvm::CallInst *, llvm::Value *structRef,
-                                   std::string type,
-                                   llvm::SmallVector<int> &offsets);
 
 public:
   // Helpers

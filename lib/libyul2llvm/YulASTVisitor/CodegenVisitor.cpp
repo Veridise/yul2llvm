@@ -389,7 +389,7 @@ void LLVMCodegenVisitor::codeGenForOneVarAllocation(YulIdentifierNode &id,
 void LLVMCodegenVisitor::constructStructs(YulContractNode &node) {
   auto &typeInfoMap = node.getTypeInfoMap();
   std::deque<TypeInfo> allStructs;
-  for (auto it : node.getStructTypes()) {
+  for (auto it : node.getTypeInfoMap()) {
     if (it.second.kind == "struct")
       allStructs.push_back(it.second);
   }
@@ -414,7 +414,7 @@ void LLVMCodegenVisitor::constructStructs(YulContractNode &node) {
       skipStruct = false;
       continue;
     }
-    if (type.typeStr == "t_struct(self)")
+    if (type.typeStr == "self")
       type.typeStr = "self";
     llvm::StructType *newType =
         llvm::StructType::create(*TheContext, memberTypes, type.typeStr);
@@ -427,11 +427,16 @@ llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
     int addrSpaceId) {
   llvm::Type *memPtrType =
       llvm::Type::getIntNPtrTy(*TheContext, 256, addrSpaceId);
+  auto it = typeInfoMap.find(typeStr.data());
+  if (it == typeInfoMap.end()) {
+    assert(false && "Could not find type in typeInfoMap while building type "
+                    "from typeinfomap");
+  }
   if (typeStr.startswith("t_mapping")) {
     return memPtrType;
   } else if (typeStr.find("t_array") != typeStr.npos) {
     return memPtrType;
-  } else if (typeStr.startswith("t_struct")) {
+  } else if (it->second.kind == "struct") {
     return structTypes[typeStr];
   } else {
     int bitwidth = typeInfoMap[typeStr.str()].size * 8;
@@ -442,8 +447,8 @@ llvm::Type *LLVMCodegenVisitor::getLLVMTypeByInfo(
 llvm::StructType *
 LLVMCodegenVisitor::getStructTypeByName(std::string structTypeName) {
   for (auto &it : structTypes) {
-    std::string yulTypeName = "t_struct(" + structTypeName + ")";
-    if (it.first().startswith(yulTypeName)) {
+    std::string yulTypeName = structTypeName;
+    if (it.first().startswith(structTypeName)) {
       return it.second;
     }
   }
@@ -466,7 +471,7 @@ llvm::StructType *LLVMCodegenVisitor::getExtCallCtxType() {
 }
 
 llvm::Value *LLVMCodegenVisitor::getSelfArg() const {
-  assert(currentFunction && "currentFunction null while getting silfArg");
+  assert(currentFunction && "currentFunction null while getting selfArg");
   return currentFunction->arg_begin();
 }
 void LLVMCodegenVisitor::dump(llvm::raw_ostream &os) const {

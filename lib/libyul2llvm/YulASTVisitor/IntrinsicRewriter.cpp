@@ -633,38 +633,32 @@ YulIntrinsicHelper::getMemStructOffsets(llvm::CallInst *callInst,
   return offsets;
 }
 
-llvm::Value *YulIntrinsicHelper::structDerefFromReferenceByOffset(
-    llvm::CallInst *callInst, llvm::Value *structRef, std::string type,
-    llvm::SmallVector<int> &offsets) {
-  llvm::SmallVector<int> structIdx({0});
-  TypeInfo ti = visitor.currentContract->getStructTypes()[type];
-  for (int offset : offsets) {
-    structIdx.push_back(ti.offset2fieldIdx[offset]);
-  }
-  auto structIdxVals = visitor.getLLVMValueVector(structIdx);
-  llvm::StructType *structType = visitor.getStructTypeByName(type);
-  llvm::Value *castedStructRef =
-      llvm::BitCastInst::Create(llvm::CastInst::CastOps::IntToPtr, structRef,
-                                structType->getPointerTo(DEFAULT_ADDR_SPACE),
-                                type + "_casted_ptr", callInst);
-  llvm::GetElementPtrInst *gep = llvm::GetElementPtrInst::Create(
-      structType, castedStructRef, structIdxVals, "mem_" + type + "_ptr",
-      callInst);
-  return gep;
-}
-
 llvm::Value *
 YulIntrinsicHelper::getStructElementPointer(llvm::CallInst *callInst,
                                             llvm::Value *structRef) {
-  llvm::outs() << "gep " << structRef << "\n";
   llvm::StringRef name = structRef->getName();
   size_t idx = name.find("t_struct");
   llvm::StringRef type = name.substr(idx, name.size() - idx);
   StructTypeResult res = patternMatcher.parseStructTypeFromYul(type);
   llvm::SmallVector<int> offsets = getMemStructOffsets(callInst, structRef);
-  auto ptr =
-      structDerefFromReferenceByOffset(callInst, structRef, res.name, offsets);
-  return ptr;
+  llvm::SmallVector<int> structIdx({0});
+  auto it = visitor.currentContract->getTypeInfoMap().find(res.name);
+  if (it == visitor.currentContract->getTypeInfoMap().end())
+    assert(false && "Could not find struct while dereferencing contract");
+  TypeInfo ti = it->second;
+  for (int offset : offsets) {
+    structIdx.push_back(ti.offset2fieldIdx[offset]);
+  }
+  auto structIdxVals = visitor.getLLVMValueVector(structIdx);
+  llvm::StructType *structType = visitor.getStructTypeByName(res.name);
+  llvm::Value *castedStructRef =
+      llvm::BitCastInst::Create(llvm::CastInst::CastOps::IntToPtr, structRef,
+                                structType->getPointerTo(MEMORY_ADDR_SPACE),
+                                res.name + "_casted_ptr", callInst);
+  llvm::GetElementPtrInst *gep = llvm::GetElementPtrInst::Create(
+      structType, castedStructRef, structIdxVals, "mem_" + res.name + "_ptr",
+      callInst);
+  return gep;
 }
 
 void YulIntrinsicHelper::rewriteReadFromMemory(llvm::CallInst *callInst) {

@@ -73,7 +73,6 @@ class YulContractNode : public YulASTBase {
   std::string contractName;
   std::map<std::string, TypeInfo> typeInfoMap;
   IntrinsicPatternMatcher patternMatcher;
-  std::map<std::string, TypeInfo> structTypes;
   std::map<std::string, FunctionSignature> functionSignatures;
 
   void buildTypeInfoMap(const json &);
@@ -102,7 +101,6 @@ public:
   std::vector<int> getIndexPathByName(std::vector<std::string>);
   std::map<std::string, TypeInfo> &getTypeInfoMap();
   std::string_view getName();
-  std::map<std::string, TypeInfo> &getStructTypes();
   TypeInfo getSelfType();
 };
 
