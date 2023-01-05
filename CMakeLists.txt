@@ -38,13 +38,22 @@ if(Y2L_ENABLE_LLVM)
   include(TableGen)
   include(AddLLVM)
   include(HandleLLVMOptions)
+
+  # Update LLVM include paths
+  foreach(_llvm_comp IN ITEMS ${LLVM_AVAILABLE_LIBS})
+    set_property(TARGET ${_llvm_comp} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${LLVM_INCLUDE_DIRS})
+  endforeach()
+
+  if (NOT LLVM_ENABLE_RTTI)
+    add_compile_options(-fno-rtti)
+  endif()
+
+  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+  add_definitions(${LLVM_DEFINITIONS_LIST})
 else()
   message(STATUS "LLVM target support disabled")
 endif()
 
-# include_directories(${LLVM_INCLUDE_DIRS})
-# separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-# add_definitions(${LLVM_DEFINITIONS_LIST})
 add_compile_options(-Wswitch-enum)
 
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON CACHE BOOL "Hide inlines")
