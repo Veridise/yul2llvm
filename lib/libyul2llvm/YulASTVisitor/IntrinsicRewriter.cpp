@@ -317,7 +317,6 @@ void YulIntrinsicHelper::rewriteStorageLoadIntrinsic(llvm::CallInst *callInst) {
 
   } else {
     //@todo raise runtime error
-    visitor.currentFunction->dump();
     assert(false && "unrecognized read from storage dynamic intrinsic");
   }
 }
