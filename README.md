@@ -188,7 +188,7 @@ poetry install --extras dev
 #### C++ component
 
 Dependencies:
-* LLVM 13 built with `LLVM_ENABLE_RTTI=on`
+* LLVM 13
 * nlohmann json
 * (Optional) GoogleTest (for unit tests)
 
