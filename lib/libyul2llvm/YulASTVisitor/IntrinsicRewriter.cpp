@@ -517,10 +517,21 @@ void YulIntrinsicHelper::rewriteConvertStorageToMemoryPtr(
   auto sizeArray = visitor.getLLVMValueVector({structType.size});
   llvm::Value *newLocation = tmpBuilder.CreateCall(
       visitor.getAllocateMemoryFunction(), sizeArray, "new" + structType.name);
-  auto align = visitor.getModule().getDataLayout().getABITypeAlign(
+  auto destalign = visitor.getModule().getDataLayout().getABITypeAlign(
       newLocation->getType());
-  tmpBuilder.CreateMemCpy(newLocation, align, callInst->getArgOperand(1), align,
-                          sizeArray[0]);
+  llvm::Value *src = callInst->getArgOperand(1);
+  llvm::Type *int8PtrType =
+      llvm::Type::getInt8PtrTy(visitor.getContext(), STORAGE_ADDR_SPACE);
+  if (!src->getType()->isPointerTy()) {
+    src = tmpBuilder.CreateIntToPtr(src, int8PtrType, src->getName() + "_ptr");
+  } else if (src->getType()->getIntegerBitWidth() != 8) {
+    src = tmpBuilder.CreatePointerBitCastOrAddrSpaceCast(
+        src, int8PtrType, src->getName() + "_ptr");
+  }
+
+  auto srcAlign =
+      visitor.getModule().getDataLayout().getABITypeAlign(src->getType());
+  tmpBuilder.CreateMemCpy(newLocation, destalign, src, srcAlign, sizeArray[0]);
   llvm::Value *castedNewLocation = tmpBuilder.CreatePtrToInt(
       newLocation, visitor.getDefaultType(), newLocation->getName() + "i256");
   llvm::ReplaceInstWithValue(instList, callInstIt, castedNewLocation);
