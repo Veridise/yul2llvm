@@ -29,5 +29,4 @@ contract StructTest {
 //CHECK: %ptr_self_st_b_a = getelementptr %self, %self addrspace(1)* %2, i32 0, i32 0, i32 1, i32 0
 //CHECK: %pyul_storage_var_load = load i256, i256 addrspace(1)* %ptr_self_st_b_a, align 4
 //CHECK: ret i256 %i256_pyul_storage_var_load
-
-
+//CHECK: }

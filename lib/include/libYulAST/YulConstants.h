@@ -84,8 +84,11 @@ const std::string UPDATE_STORAGE_OFFSET_REGEX_LIT =
     R"(^update_storage_value_offset_([0-9]+)(.*)_to_(.*)$)";
 const std::string UPDATE_STORAGE_DYNAMIC_REGEX_LIT =
     R"(^update_storage_value_(.*)_to_(.*)$)";
-const std::string STRUCT_TYPE_ABI_REGEX_LIT = R"(^t_struct\((.*)\)(.*)_(.*)$)";
-const std::string STRUCT_TYPE_YUL_REGEX_LIT = R"(^t_struct\$_(.*)_\$(\d+)$)";
+const std::string STRUCT_TYPE_STORAGE_LAYOUT_REGEX_LIT =
+    R"(^t_struct\((.*)\)(.*)_(.*)$)";
+const std::string STRUCT_TYPE_ABI_REGEX_LIT = R"(^struct (.*)\.(.*)$)";
+const std::string STRUCT_TYPE_YUL_REGEX_LIT =
+    R"(^t_struct\$_(.*)_\$(\d+)(_.*)?$)";
 const std::string CONVERT_TYPE_X_TO_TYPE_Y_REGEX_LIT =
     R"(^convert_(.*?)_?(storage|memory)?_(ptr_)?to_(.*?)_?(storage|memory)?(_ptr)?$)";
 }; // namespace yulast

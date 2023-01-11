@@ -55,7 +55,6 @@ YulFunctionCallHelper::visitYulFunctionCallNode(YulFunctionCallNode &node) {
   }
   assert(F && "Function not found and could not be created");
 
-  // std::cout<<"Creating call "<<callee->getIdentfierValue()<<std::endl;
   if (F->getReturnType() == llvm::Type::getVoidTy(visitor.getContext())) {
     visitor.getBuilder().CreateCall(F, ArgsV);
     return nullptr;

@@ -134,6 +134,8 @@ public:
   llvm::Function *getAllocateMemoryFunction();
   void setSelfPointer(llvm::Value *);
   llvm::Value *getSelfPointer();
+  llvm::StringMap<llvm::StructType *> &getStructTypes();
+  llvm::StructType *getStructTypeByName(std::string);
 };
 
 namespace yul2llvm {

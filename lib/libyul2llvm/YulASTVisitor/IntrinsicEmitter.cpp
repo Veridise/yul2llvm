@@ -19,10 +19,6 @@ bool YulIntrinsicHelper::isFunctionCallIntrinsic(llvm::StringRef calleeName) {
     return true;
   } else if (calleeName.startswith("memory_array_index_access_")) {
     return true;
-  } else if (calleeName.startswith("read_from_memory")) {
-    return true;
-  } else if (calleeName.startswith("write_to_memory")) {
-    return true;
   } else if (calleeName.startswith("convert_t_rational_")) {
     return true;
   } else if (calleeName.startswith("byte")) {
@@ -68,10 +64,6 @@ YulIntrinsicHelper::handleIntrinsicFunctionCall(YulFunctionCallNode &node) {
     return handleAllocateUnbounded(node);
   } else if (calleeName.startswith("memory_array_index_access_")) {
     return handleMemoryArrayIndexAccess(node);
-  } else if (calleeName.startswith("read_from_memory")) {
-    return handleReadFromMemory(node);
-  } else if (calleeName.startswith("write_to_memory")) {
-    return handleWriteToMemory(node);
   } else if (calleeName.startswith("convert_t_rational_")) {
     return handleConvertRationalXByY(node);
   } else if (calleeName.startswith("byte")) {
@@ -226,48 +218,6 @@ YulIntrinsicHelper::handleConvertRationalXByY(YulFunctionCallNode &node) {
   }
   assert(false &&
          "convert_t_rational either did not match regex or wrong count");
-  return nullptr;
-}
-
-llvm::Value *
-YulIntrinsicHelper::handleReadFromMemory(YulFunctionCallNode &node) {
-  assert(node.getArgs().size() == 1 &&
-         "Wrong number of arguments read_from_memory_t_x call");
-  std::regex readCallNameRegex(R"(^read_from_memory(t_[a-z]+\d+))");
-  std::smatch match;
-  std::string calleeName = node.getCalleeName().data();
-  if (std::regex_match(calleeName, match, readCallNameRegex)) {
-    std::string type = match[1].str();
-    llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
-    auto &builder = visitor.getBuilder();
-    llvm::Type *loadType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
-    llvm::Value *loadedWord = builder.CreateLoad(loadType, pointer, "arr_load");
-    return builder.CreateIntCast(loadedWord, visitor.getDefaultType(), false,
-                                 "word_" + loadedWord->getName());
-  }
-  assert(false && "regex did not match write_to_memory");
-  return nullptr;
-}
-llvm::Value *
-YulIntrinsicHelper::handleWriteToMemory(YulFunctionCallNode &node) {
-  assert(node.getArgs().size() == 2 &&
-         "Wrong number of arguments write_to_memory_t_x call");
-  std::regex writeCallNameRegex(R"(^write_to_memory_(t_[a-z]+\d+))");
-  std::smatch match;
-  std::string calleeName = node.getCalleeName().data();
-  if (std::regex_match(calleeName, match, writeCallNameRegex)) {
-    auto &builder = visitor.getBuilder();
-    std::string type = match[1].str();
-    llvm::Value *pointer = visitor.visit(*node.getArgs()[0]);
-    llvm::Value *valueToStore = visitor.visit(*node.getArgs()[1]);
-    llvm::Type *elementType = getTypeByTypeName(type, DEFAULT_ADDR_SPACE);
-    if (valueToStore->getType()->isPointerTy()) {
-      valueToStore = builder.CreatePtrToInt(valueToStore, elementType);
-    } else {
-      valueToStore = builder.CreateIntCast(valueToStore, elementType, false);
-    }
-    builder.CreateStore(valueToStore, pointer);
-  }
   return nullptr;
 }
 

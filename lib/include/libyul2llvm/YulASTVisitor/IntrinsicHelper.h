@@ -50,6 +50,8 @@ class YulIntrinsicHelper {
    * @return std::string
    */
   std::string getValueNameFromNamePath(std::vector<std::string> namePath);
+  bool isStructAddressCalculation(llvm::CallInst *, llvm::Value *&);
+  llvm::SmallVector<int> getMemStructOffsets(llvm::CallInst *, llvm::Value *);
 
 public:
   // Helpers
@@ -89,8 +91,6 @@ public:
   llvm::Value *handleMemoryArrayIndexAccess(YulFunctionCallNode &node);
   llvm::Value *handlePointerAdd(llvm::Value *v1, llvm::Value *v2);
   llvm::Value *handlePointerSub(llvm::Value *v1, llvm::Value *v2);
-  llvm::Value *handleReadFromMemory(YulFunctionCallNode &node);
-  llvm::Value *handleWriteToMemory(YulFunctionCallNode &node);
   llvm::Value *handleConvertRationalXByY(YulFunctionCallNode &node);
   llvm::Value *handleAnd(YulFunctionCallNode &node);
   llvm::Value *handleByte(YulFunctionCallNode &node);
@@ -99,6 +99,11 @@ public:
                              llvm::ICmpInst::Predicate op);
 
   // Rewrites
+  void rewriteReadFromMemory(llvm::CallInst *node);
+  void rewriteWriteToMemory(llvm::CallInst *node);
+  llvm::Value *getStructElementPointer(llvm::CallInst *,
+                                       llvm::Value *structRef);
+
   void rewriteIntrinsics(llvm::Function *enclosingFunction);
   void rewriteMapIndexCalls(llvm::CallInst *callInst);
   void rewriteStorageOffsetUpdateIntrinsic(llvm::CallInst *callInst, int offset,
