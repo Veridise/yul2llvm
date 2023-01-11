@@ -44,12 +44,8 @@ if(Y2L_ENABLE_LLVM)
     set_property(TARGET ${_llvm_comp} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${LLVM_INCLUDE_DIRS})
   endforeach()
 
-  if (NOT LLVM_ENABLE_RTTI)
-    add_compile_options(-fno-rtti)
-  endif()
-
-  separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-  add_definitions(${LLVM_DEFINITIONS_LIST})
+  # Don't set global LLVM compile flags here. That should be done by calling
+  # llvm_update_compile_flags() on every target that depends on LLVM.
 else()
   message(STATUS "LLVM target support disabled")
 endif()

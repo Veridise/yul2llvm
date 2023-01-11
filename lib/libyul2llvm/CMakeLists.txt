@@ -9,5 +9,7 @@ target_link_libraries(libyul2llvm PUBLIC
   LLVMCore
   LLVMPasses
 )
+llvm_update_compile_flags(libyul2llvm)
+target_compile_options(libyul2llvm PRIVATE -fexceptions)  # needed by gmpcxx
 
 add_subdirectory(YulASTVisitor)
